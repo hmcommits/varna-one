@@ -75,6 +75,23 @@ body {
   animation-play-state: paused;
 }
 
+/* TopBar announcement marquee animation for mobile */
+@keyframes topbarMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.topbar-marquee {
+  display: flex;
+  width: max-content;
+  animation: topbarMarquee 20s linear infinite;
+}
+
+.topbar-marquee:hover,
+.topbar-marquee:active {
+  animation-play-state: paused;
+}
+
 /* Authentic Indian Mughal Pointed Arch Clip Path */
 .mughal-arch-clip {
   clip-path: url(#mughal-arch-shape);
