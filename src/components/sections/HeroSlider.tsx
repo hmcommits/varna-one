@@ -190,17 +190,17 @@ export default function HeroSlider() {
       {/* Bottom Bar: Unique & Modern Frosted Bubble / Round Indicators + Mobile Arrow Controls */}
       <div className="absolute bottom-3 md:bottom-6 left-4 md:left-10 right-4 md:right-auto z-30 flex items-center justify-between md:justify-start gap-4">
         {/* Floating Glassmorphic Bubble Pod */}
-        <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/20 shadow-2xl">
+        <div className="flex items-center gap-2 sm:gap-2.5 bg-black/40 backdrop-blur-xl px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-white/20 shadow-2xl">
           {slides.map((_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setCurrent(i)}
               aria-label={`Go to slide ${i + 1}`}
-              className={`group relative flex items-center justify-center transition-all duration-500 cursor-pointer ${
+              className={`group relative flex items-center justify-center transition-all duration-300 cursor-pointer ${
                 i === current
-                  ? 'w-7 h-7 sm:w-8 sm:h-8'
-                  : 'w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-50 hover:opacity-100 hover:scale-125'
+                  ? 'w-5 h-5 sm:w-6 sm:h-6'
+                  : 'w-2 h-2 sm:w-2.5 sm:h-2.5 opacity-50 hover:opacity-100 hover:scale-125'
               }`}
             >
               {i === current ? (
@@ -209,38 +209,38 @@ export default function HeroSlider() {
                   <svg
                     key={current}
                     className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
-                    viewBox="0 0 32 32"
+                    viewBox="0 0 24 24"
                   >
                     {/* Subtle track background */}
                     <circle
-                      cx="16"
-                      cy="16"
-                      r="13"
-                      stroke="rgba(255,255,255,0.18)"
-                      strokeWidth="2"
+                      cx="12"
+                      cy="12"
+                      r="9.5"
+                      stroke="rgba(255,255,255,0.2)"
+                      strokeWidth="1.5"
                       fill="none"
                     />
                     {/* Animated filling stroke */}
                     <circle
-                      cx="16"
-                      cy="16"
-                      r="13"
+                      cx="12"
+                      cy="12"
+                      r="9.5"
                       stroke="#e8d5b7"
-                      strokeWidth="2.5"
+                      strokeWidth="2"
                       strokeLinecap="round"
-                      strokeDasharray="81.68"
-                      strokeDashoffset="81.68"
+                      strokeDasharray="59.69"
+                      strokeDashoffset="59.69"
                       fill="none"
-                      className="animate-slide-progress drop-shadow-[0_0_6px_rgba(232,213,183,0.9)]"
+                      className="animate-slide-progress drop-shadow-[0_0_4px_rgba(232,213,183,0.9)]"
                     />
                   </svg>
 
                   {/* Luminous Glowing Core Pearl */}
-                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#e8d5b7] shadow-[0_0_12px_#e8d5b7] animate-pulse" />
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#e8d5b7] shadow-[0_0_8px_#e8d5b7]" />
                 </>
               ) : (
                 /* Inactive Bubble: Translucent frosted glass pearl */
-                <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/40 group-hover:bg-white group-hover:shadow-[0_0_10px_rgba(255,255,255,0.9)] border border-white/30 transition-all duration-300" />
+                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-white/45 group-hover:bg-white group-hover:shadow-[0_0_8px_rgba(255,255,255,0.9)] border border-white/30 transition-all duration-300" />
               )}
             </button>
           ))}

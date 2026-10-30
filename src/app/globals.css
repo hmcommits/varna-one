@@ -99,24 +99,24 @@ body {
 
 /* Gentle low-frequency WhatsApp button ambient breathing glow */
 @keyframes whatsappGentleGlow {
-  0%, 70%, 100% {
+  0%, 60%, 100% {
     transform: scale(1);
     opacity: 0;
   }
-  85% {
-    transform: scale(1.15);
-    opacity: 0.3;
+  80% {
+    transform: scale(1.22);
+    opacity: 0.55;
   }
 }
 
 .whatsapp-gentle-glow {
-  animation: whatsappGentleGlow 4.5s ease-in-out infinite;
+  animation: whatsappGentleGlow 3.8s ease-in-out infinite;
 }
 
 /* Unique orbital bubble timer animation for hero slider */
 @keyframes slideProgress {
   from {
-    stroke-dashoffset: 81.68;
+    stroke-dashoffset: 59.69;
   }
   to {
     stroke-dashoffset: 0;

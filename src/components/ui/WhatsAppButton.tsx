@@ -15,8 +15,8 @@ export default function WhatsAppButton() {
       style={{ zIndex: 9999 }}
     >
       <div className="relative">
-        {/* Low-frequency gentle ambient breathing glow (calm 4.5s cycle) */}
-        <span className="absolute -inset-1 rounded-full bg-[#25D366] whatsapp-gentle-glow -z-10 pointer-events-none" />
+        {/* Ambient breathing luminous glow */}
+        <span className="absolute -inset-1.5 sm:-inset-2 rounded-full bg-[#25D366] whatsapp-gentle-glow -z-10 pointer-events-none blur-[2px]" />
 
         <a
           href={whatsappUrl}
