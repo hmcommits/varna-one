@@ -115,14 +115,14 @@ export default function HeroSlider() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent md:hidden" />
 
           {/* Desktop Gradient: side-gradient from left to right */}
-          <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
+          <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-transparent" />
         </div>
       ))}
 
       {/* Slide Content */}
       <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex flex-col justify-end md:justify-center pb-12 sm:pb-14 md:pb-0">
         <div className="max-w-md md:max-w-lg text-white">
-          <p className="text-[10px] sm:text-xs font-bold tracking-[0.2em] sm:tracking-[0.25em] uppercase mb-1 md:mb-2 text-[#e8d5b7]">
+          <p className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase mb-1 md:mb-2 text-[#e8d5b7]">
             {slides[current].badge}
           </p>
           <h1 className="font-display text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-1.5 sm:mb-2 md:mb-4 whitespace-pre-line drop-shadow-md">
@@ -135,14 +135,14 @@ export default function HeroSlider() {
             <button
               type="button"
               onClick={handleActionClick}
-              className="bg-[#1a2e1a] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#2d4a2d] active:scale-95 transition-all shadow-md cursor-pointer border border-white/10"
+              className="bg-[#1a2e1a] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#2d4a2d] active:scale-95 transition-all shadow-md cursor-pointer border border-[#e8d5b7]/30"
             >
               {slides[current].ctaPrimary}
             </button>
             <button
               type="button"
               onClick={handleActionClick}
-              className="border border-white/80 backdrop-blur-md bg-black/20 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-white hover:text-[#1a2e1a] active:scale-95 transition-all cursor-pointer shadow-md"
+              className="border border-[#e8d5b7]/70 backdrop-blur-md bg-black/25 text-[#e8d5b7] hover:text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-white/20 active:scale-95 transition-all cursor-pointer shadow-md"
             >
               {slides[current].ctaSecondary}
             </button>
@@ -150,24 +150,30 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      {/* Decorative Script text on right (desktop only) */}
-      <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 z-10 hidden md:block pointer-events-none select-none">
-        <p className="font-display italic text-white text-3xl lg:text-4xl leading-tight text-right opacity-90 drop-shadow">
+      {/* Fluid Calligraphy Script on right with curved arrow flourish (desktop only) */}
+      <div className="absolute right-6 md:right-14 top-1/2 -translate-y-1/2 z-10 hidden md:block pointer-events-none select-none">
+        <p className="font-script text-[#e8d5b7] text-5xl lg:text-6xl leading-tight text-right drop-shadow-lg transform -rotate-3">
           {slides[current].scriptText}
         </p>
-        <div className="mt-2 flex justify-end">
-          <svg width="70" height="20" viewBox="0 0 70 20" className="text-white opacity-70">
-            <path d="M0 10 Q35 0 70 10" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        <div className="mt-1 flex justify-end">
+          <svg width="85" height="24" viewBox="0 0 85 24" fill="none" className="text-[#e8d5b7] opacity-80">
+            <path
+              d="M3 14 C25 2, 65 3, 80 12 M70 6 L81 12 L72 19"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
       </div>
 
-      {/* Desktop Navigation Arrows (Far left and far right, cleanly positioned) */}
+      {/* Desktop Navigation Arrows (Far left and far right) */}
       <button
         type="button"
         onClick={prevSlide}
         aria-label="Previous slide"
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full items-center justify-center backdrop-blur-md border border-white/20 shadow-md active:scale-90 transition-all cursor-pointer"
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/35 hover:bg-black/55 text-white rounded-full items-center justify-center backdrop-blur-md border border-[#e8d5b7]/30 shadow-md active:scale-90 transition-all cursor-pointer"
       >
         <ChevronLeft size={22} />
       </button>
@@ -176,29 +182,43 @@ export default function HeroSlider() {
         type="button"
         onClick={nextSlide}
         aria-label="Next slide"
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full items-center justify-center backdrop-blur-md border border-white/20 shadow-md active:scale-90 transition-all cursor-pointer"
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/35 hover:bg-black/55 text-white rounded-full items-center justify-center backdrop-blur-md border border-[#e8d5b7]/30 shadow-md active:scale-90 transition-all cursor-pointer"
       >
         <ChevronRight size={22} />
       </button>
 
-      {/* Bottom Bar: Slide Indicator Dots + Mobile Navigation Controls */}
-      <div className="absolute bottom-3 md:bottom-6 left-4 md:left-10 right-4 md:right-auto z-30 flex items-center justify-between md:justify-start gap-3">
-        {/* Dots */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Bottom Bar: Editorial Numbered Progress Bar (01 — 02 — 03) + Mobile Arrow Controls */}
+      <div className="absolute bottom-3 md:bottom-6 left-4 md:left-10 right-4 md:right-auto z-30 flex items-center justify-between md:justify-start gap-4">
+        {/* Editorial Numbered Progress Bar */}
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
           {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setCurrent(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
-                i === current ? 'w-6 sm:w-8 h-1.5 sm:h-2 bg-white' : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/80'
-              }`}
-            />
+            <div key={i} className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setCurrent(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`text-[11px] sm:text-xs font-mono tracking-widest transition-all cursor-pointer ${
+                  i === current
+                    ? 'text-[#e8d5b7] font-bold scale-110 drop-shadow'
+                    : 'text-white/45 hover:text-white/80'
+                }`}
+              >
+                0{i + 1}
+              </button>
+              {i < slides.length - 1 && (
+                <div className="w-6 sm:w-10 h-0.5 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full bg-[#e8d5b7] transition-all duration-500 ${
+                      i === current ? 'w-full' : i < current ? 'w-full opacity-60' : 'w-0'
+                    }`}
+                  />
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
-        {/* Mobile-only compact arrow buttons in bottom-right corner (never covering text) */}
+        {/* Mobile-only compact arrow buttons in bottom-right corner */}
         <div className="flex md:hidden items-center gap-1.5">
           <button
             type="button"

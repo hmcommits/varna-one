@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Inter } from 'next/font/google'
+import { Playfair_Display, Inter, Alex_Brush } from 'next/font/google'
 import './globals.css'
 import TopBar from '@/components/layout/TopBar'
 import Navbar from '@/components/layout/Navbar'
@@ -18,6 +18,13 @@ const inter = Inter({
   display: 'swap',
 })
 
+const alexBrush = Alex_Brush({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-script',
+  display: 'swap',
+})
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -31,7 +38,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${inter.variable} ${alexBrush.variable}`}>
       <body className="min-h-screen bg-[#faf8f4] text-[#1a1a1a] antialiased selection:bg-[#1a2e1a] selection:text-white">
         <TopBar />
         <Navbar />

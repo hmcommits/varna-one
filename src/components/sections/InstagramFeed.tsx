@@ -58,7 +58,7 @@ export default function InstagramFeed() {
           </div>
           <div>
             <p className="font-bold text-sm sm:text-base text-[#1a1a1a]">@varnastore</p>
-            <p className="text-xs text-gray-500">Real people. Real style. Tag us to get featured.</p>
+            <p className="text-xs text-[#7d7062]">Real people. Real style. Tag us to get featured.</p>
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export default function InstagramFeed() {
             type="button"
             onClick={() => scroll('left')}
             aria-label="Scroll left"
-            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-full flex items-center justify-center shadow-lg border border-gray-200/80 active:scale-90 transition-all cursor-pointer"
+            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
           >
             <ChevronLeft size={20} />
           </button>
@@ -83,17 +83,17 @@ export default function InstagramFeed() {
               <div
                 key={p.id}
                 onClick={handlePostClick}
-                className="relative flex-shrink-0 w-36 sm:w-44 md:w-52 aspect-square rounded-2xl overflow-hidden bg-[#e8d5b7] shadow-sm hover:shadow-md group cursor-pointer select-none"
+                className="relative flex-shrink-0 w-36 sm:w-44 md:w-52 aspect-square rounded-2xl overflow-hidden bg-[#e8d5b7] shadow-sm hover:shadow-lg border border-[#e8d5b7]/40 group cursor-pointer select-none transition-all duration-300"
               >
                 <Image
                   src={p.image}
                   alt={p.alt}
                   fill
                   sizes="(max-width: 640px) 144px, 208px"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 {/* Instagram Overlay on Hover/Tap */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-center justify-center backdrop-blur-[1px]">
                   <InstagramIcon
                     size={28}
                     className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow"
@@ -108,7 +108,7 @@ export default function InstagramFeed() {
             type="button"
             onClick={() => scroll('right')}
             aria-label="Scroll right"
-            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-full flex items-center justify-center shadow-lg border border-gray-200/80 active:scale-90 transition-all cursor-pointer"
+            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
           >
             <ChevronRight size={20} />
           </button>

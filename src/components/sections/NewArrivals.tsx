@@ -120,7 +120,7 @@ export default function NewArrivals() {
         {/* Section Header with Filter Pills */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-8 gap-4">
           <div>
-            <p className="text-[11px] md:text-xs font-bold tracking-[0.2em] uppercase text-[#1a2e1a] mb-1">
+            <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
               JUST IN
             </p>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
@@ -137,7 +137,7 @@ export default function NewArrivals() {
                 className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   f === activeFilter
                     ? 'bg-[#1a2e1a] text-white shadow-sm'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-[#1a2e1a]'
+                    : 'bg-white text-[#63574a] border border-[#e8d5b7]/70 hover:border-[#1a2e1a] hover:text-[#1a2e1a]'
                 }`}
               >
                 {f}
@@ -153,14 +153,14 @@ export default function NewArrivals() {
           </div>
         </div>
 
-        {/* Horizontal Scroll Product Carousel with Visible, Working Arrows */}
+        {/* Horizontal Scroll Product Carousel with Smooth Responsive Controls */}
         <div className="relative group/carousel">
           {/* Scroll Left Button */}
           <button
             type="button"
             onClick={() => scroll('left')}
             aria-label="Scroll left"
-            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-full flex items-center justify-center shadow-lg border border-gray-200/80 active:scale-90 transition-all cursor-pointer"
+            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
           >
             <ChevronLeft size={20} />
           </button>
@@ -180,7 +180,7 @@ export default function NewArrivals() {
             type="button"
             onClick={() => scroll('right')}
             aria-label="Scroll right"
-            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white hover:bg-gray-50 text-gray-800 rounded-full flex items-center justify-center shadow-lg border border-gray-200/80 active:scale-90 transition-all cursor-pointer"
+            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
           >
             <ChevronRight size={20} />
           </button>
