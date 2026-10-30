@@ -126,6 +126,27 @@ export default function ProductDetailsView() {
   const [customNotes, setCustomNotes] = useState('')
   const [activeTab, setActiveTab] = useState<'details' | 'fabric' | 'shipping' | 'custom'>('details')
   const [copiedLink, setCopiedLink] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    if (distance > 45) {
+      setSelectedImageIndex((prev) => (prev + 1) % galleryImages.length)
+    } else if (distance < -45) {
+      setSelectedImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
+    }
+  }
 
   const price = 999
   const originalPrice = 1499
@@ -168,7 +189,7 @@ export default function ProductDetailsView() {
   }
 
   return (
-    <div className="bg-[#faf8f4] min-h-screen py-4 sm:py-8">
+    <div className="bg-[#faf8f4] min-h-screen pt-4 sm:pt-8 pb-28 sm:pb-16">
       {/* Breadcrumbs Navigation */}
       <div className="max-w-7xl mx-auto px-4 mb-4 sm:mb-6">
         <nav className="flex items-center gap-1.5 text-xs text-[#7d7062]">
@@ -198,18 +219,18 @@ export default function ProductDetailsView() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* LEFT COLUMN: Multi-angle Product Gallery (lg:col-span-7) */}
-          <div className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4">
-            {/* Thumbnail Strip */}
-            <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar flex-shrink-0">
+          <div className="lg:col-span-7 flex flex-col md:flex-row gap-4">
+            {/* Thumbnail Strip: Column on desktop, horizontal row on mobile */}
+            <div className="order-2 md:order-1 flex md:flex-col gap-2.5 sm:gap-3 overflow-x-auto md:overflow-visible pb-1 md:pb-0 no-scrollbar flex-shrink-0">
               {galleryImages.map((img, idx) => (
                 <button
                   key={img.src}
                   type="button"
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative w-18 h-24 sm:w-20 sm:h-26 md:w-22 md:h-28 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer bg-[#f0ece4] ${
+                  className={`relative w-[76px] h-[98px] sm:w-[86px] sm:h-[110px] md:w-[92px] md:h-[118px] rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer bg-[#f0ece4] ${
                     selectedImageIndex === idx
-                      ? 'border-[#1a2e1a] shadow-md ring-2 ring-[#1a2e1a]/20 scale-102'
-                      : 'border-[#e8d5b7]/70 hover:border-[#1a2e1a]/50 opacity-70 hover:opacity-100'
+                      ? 'border-[#1a2e1a] shadow-md ring-2 ring-[#1a2e1a]/25 scale-102'
+                      : 'border-[#e8d5b7]/80 hover:border-[#1a2e1a]/50 opacity-75 hover:opacity-100'
                   }`}
                   aria-label={`View ${img.label}`}
                 >
@@ -217,10 +238,10 @@ export default function ProductDetailsView() {
                     src={img.src}
                     alt={img.alt}
                     fill
-                    sizes="88px"
+                    sizes="96px"
                     className="object-cover object-top"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-[9px] text-center py-0.5 font-medium truncate px-1">
+                  <div className="absolute inset-x-0 bottom-0 bg-black/65 backdrop-blur-xs text-white text-[9px] text-center py-0.5 font-medium truncate px-1">
                     {img.badge}
                   </div>
                 </button>
@@ -228,7 +249,12 @@ export default function ProductDetailsView() {
             </div>
 
             {/* Main Featured Photo Frame */}
-            <div className="relative flex-1 aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#f0ece4] border border-[#e8d5b7]/60 shadow-lg group">
+            <div
+              className="order-1 md:order-2 relative flex-1 aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#f0ece4] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <Image
                 src={galleryImages[selectedImageIndex].src}
                 alt={galleryImages[selectedImageIndex].alt}
@@ -297,7 +323,20 @@ export default function ProductDetailsView() {
                     Natural Breathable Weave • Enzyme Softened
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center gap-2">
+                  {/* Visual dots */}
+                  <div className="flex sm:hidden items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full">
+                    {galleryImages.map((_, dotIdx) => (
+                      <span
+                        key={dotIdx}
+                        className={`h-1.5 rounded-full transition-all ${
+                          selectedImageIndex === dotIdx
+                            ? 'w-4 bg-white'
+                            : 'w-1.5 bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
                   <span className="text-[11px] bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-white font-medium">
                     {selectedImageIndex + 1} of {galleryImages.length}
                   </span>
