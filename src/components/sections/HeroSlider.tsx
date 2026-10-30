@@ -21,7 +21,7 @@ const slides = [
     badge: 'NEW COLLECTION',
     title: 'Festive Looks,\nRedefined',
     subtitle: 'Celebrate every occasion with style and grace.',
-    scriptText: 'Dress to impress',
+    scriptText: 'Dress to express',
     ctaPrimary: 'Shop Women →',
     ctaSecondary: 'Shop Men',
     mobilePosition: 'object-[78%_center]',
