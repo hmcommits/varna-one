@@ -2,24 +2,20 @@
 import { useState } from 'react'
 import { Search, Menu, X } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const navLinks = [
-  { label: 'New Arrivals', href: '#new-arrivals' },
-  { label: 'Men', href: '#men' },
-  { label: 'Women', href: '#women' },
-  { label: 'Collections', href: '#collections' },
-  { label: 'Accessories', href: '#accessories' },
-  { label: 'Sale', href: '#sale', isRed: true },
+  { label: 'New Arrivals', href: '/#new-arrivals' },
+  { label: 'Men', href: '/#men' },
+  { label: 'Women', href: '/#women' },
+  { label: 'Collections', href: '/#collections' },
+  { label: 'Accessories', href: '/#accessories' },
+  { label: 'Sale', href: '/#sale', isRed: true },
 ]
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-
-  const handleNavClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setMobileOpen(false)
-  }
 
   return (
     <header className="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#e8d5b7]/50 shadow-xs transition-all">
@@ -35,12 +31,8 @@ export default function Navbar() {
         </button>
 
         {/* Brand Logo with the Emblem */}
-        <a
-          href="#home"
-          onClick={(e) => {
-            e.preventDefault()
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-          }}
+        <Link
+          href="/"
           className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer group py-1"
         >
           <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
@@ -61,22 +53,21 @@ export default function Navbar() {
               Custom Wear &amp; Prints
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-6 xl:gap-7">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
-              onClick={handleNavClick}
               className={`text-sm font-medium tracking-wide transition-colors py-1 relative group cursor-pointer ${
                 link.isRed ? 'text-[#c85a44] font-semibold' : 'text-[#3d362e] hover:text-[#1a2e1a]'
               }`}
             >
               {link.label}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1a2e1a] group-hover:w-full transition-all duration-300" />
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -113,16 +104,16 @@ export default function Navbar() {
           {/* Links */}
           <div className="grid grid-cols-2 gap-2 pt-1">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
-                onClick={handleNavClick}
+                onClick={() => setMobileOpen(false)}
                 className={`text-sm py-2 px-3 rounded-lg font-medium transition-colors cursor-pointer ${
                   link.isRed ? 'text-[#c85a44] font-semibold bg-[#c85a44]/5' : 'text-[#3d362e] hover:bg-[#faf8f4]'
                 }`}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
