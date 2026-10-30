@@ -15,15 +15,15 @@ export default function WhatsAppButton() {
       style={{ zIndex: 9999 }}
     >
       <div className="relative">
-        {/* Subtle breathing ambient halo */}
-        <span className="absolute -inset-1 rounded-full bg-[#25D366]/35 animate-ping -z-10 pointer-events-none duration-1000" />
+        {/* Low-frequency gentle ambient breathing glow (calm 4.5s cycle) */}
+        <span className="absolute -inset-1 rounded-full bg-[#25D366] whatsapp-gentle-glow -z-10 pointer-events-none" />
 
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Enquire on WhatsApp"
-          className="inline-flex items-center gap-2.5 sm:gap-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base px-4 sm:px-5 py-2.5 sm:py-3 rounded-full shadow-[0_8px_28px_rgba(37,211,102,0.55)] hover:shadow-[0_12px_36px_rgba(37,211,102,0.75)] hover:scale-105 active:scale-95 transition-all duration-300 ring-4 ring-white/95 cursor-pointer group"
+          className="inline-flex items-center gap-2.5 sm:gap-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base px-4 sm:px-5 py-2.5 sm:py-3 rounded-full shadow-[0_8px_24px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.65)] hover:scale-105 active:scale-95 transition-all duration-300 ring-4 ring-white/95 cursor-pointer group"
         >
           {/* WhatsApp Logo Icon */}
           <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">

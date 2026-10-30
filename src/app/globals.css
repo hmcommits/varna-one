@@ -58,7 +58,40 @@ body {
   animation-play-state: paused;
 }
 
+/* Trust Badges mobile marquee animation */
+@keyframes badgesMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.badges-marquee {
+  display: flex;
+  width: max-content;
+  animation: badgesMarquee 22s linear infinite;
+}
+
+.badges-marquee:hover,
+.badges-marquee:active {
+  animation-play-state: paused;
+}
+
 /* Authentic Indian Mughal Pointed Arch Clip Path */
 .mughal-arch-clip {
   clip-path: url(#mughal-arch-shape);
+}
+
+/* Gentle low-frequency WhatsApp button ambient breathing glow */
+@keyframes whatsappGentleGlow {
+  0%, 70%, 100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  85% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+}
+
+.whatsapp-gentle-glow {
+  animation: whatsappGentleGlow 4.5s ease-in-out infinite;
 }
