@@ -24,7 +24,7 @@ export default function TrustBadges() {
                 key={`${b.title}-${idx}`}
                 className="flex items-center gap-2.5 flex-shrink-0 px-4"
               >
-                <div className="w-8 h-8 rounded-full bg-[#f0ece4] border border-[#e8d5b7]/40 flex items-center justify-center flex-shrink-0 text-[#1a2e1a]">
+                <div className="w-8 h-8 rounded-full bg-[#f0ece4] border border-[#e8d5b7]/40 flex items-center justify-center flex-shrink-0 text-[#4A121A]">
                   <b.icon size={15} />
                 </div>
                 <div>
@@ -43,7 +43,7 @@ export default function TrustBadges() {
               key={b.title}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-full bg-[#f0ece4] border border-[#e8d5b7]/40 flex items-center justify-center flex-shrink-0 text-[#1a2e1a]">
+              <div className="w-10 h-10 rounded-full bg-[#f0ece4] border border-[#e8d5b7]/40 flex items-center justify-center flex-shrink-0 text-[#4A121A]">
                 <b.icon size={18} />
               </div>
               <div>

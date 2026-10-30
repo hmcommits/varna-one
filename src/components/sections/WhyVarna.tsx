@@ -17,7 +17,7 @@ export default function WhyVarna() {
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 md:pl-10 w-full">
           {reasons.map((r) => (
             <div key={r.title} className="flex items-center gap-3">
-              <div className="w-10 sm:w-11 h-10 sm:h-11 rounded-full border-2 border-[#1a2e1a]/25 bg-[#faf8f4] flex items-center justify-center flex-shrink-0 text-[#1a2e1a]">
+              <div className="w-10 sm:w-11 h-10 sm:h-11 rounded-full border-2 border-[#4A121A]/25 bg-[#faf8f4] flex items-center justify-center flex-shrink-0 text-[#4A121A]">
                 <r.icon size={18} />
               </div>
               <div>

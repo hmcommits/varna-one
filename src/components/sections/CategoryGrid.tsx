@@ -31,7 +31,7 @@ export default function CategoryGrid() {
         {/* Section Header */}
         <div className="flex items-end justify-between mb-6 md:mb-8">
           <div>
-            <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
+            <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#4A121A] mb-1">
               SHOP BY CATEGORY
             </p>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
@@ -41,7 +41,7 @@ export default function CategoryGrid() {
           <button
             type="button"
             onClick={handleClick}
-            className="text-xs sm:text-sm text-[#1a2e1a] font-semibold hover:underline flex items-center gap-1 group cursor-pointer"
+            className="text-xs sm:text-sm text-[#4A121A] font-semibold hover:underline flex items-center gap-1 group cursor-pointer"
           >
             View all categories{' '}
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -83,12 +83,12 @@ export default function CategoryGrid() {
                 <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
                 {/* Action Arrow Button */}
-                <div className="absolute bottom-2.5 right-2.5 w-7 h-7 bg-white/95 group-hover:bg-[#1a2e1a] text-[#1a2e1a] group-hover:text-white rounded-full flex items-center justify-center shadow-md opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute bottom-2.5 right-2.5 w-7 h-7 bg-white/95 group-hover:bg-[#4A121A] text-[#4A121A] group-hover:text-white rounded-full flex items-center justify-center shadow-md opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-300">
                   <ArrowRight size={13} />
                 </div>
               </div>
 
-              <p className="text-xs sm:text-sm font-semibold text-center text-[#1a1a1a] group-hover:text-[#1a2e1a] transition-colors">
+              <p className="text-xs sm:text-sm font-semibold text-center text-[#1a1a1a] group-hover:text-[#4A121A] transition-colors">
                 {cat.label}
               </p>
             </div>

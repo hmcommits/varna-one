@@ -53,7 +53,7 @@ export default function CustomerReviews() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
         {/* Left Rating Summary */}
         <div className="md:col-span-4">
-          <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
+          <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#4A121A] mb-1">
             TESTIMONIALS
           </p>
           <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a] mb-3">
@@ -81,7 +81,7 @@ export default function CustomerReviews() {
             type="button"
             onClick={() => scroll('left')}
             aria-label="Previous review"
-            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
+            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#4A121A] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
           >
             <ChevronLeft size={20} />
           </button>
@@ -97,7 +97,7 @@ export default function CustomerReviews() {
                 className="flex-shrink-0 w-72 sm:w-80 bg-[#faf8f4] rounded-2xl p-5 sm:p-6 border border-[#e8d5b7]/60 hover:border-[#c4a675] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
-                  <Quote size={28} className="text-[#1a2e1a]/25 mb-3" />
+                  <Quote size={28} className="text-[#4A121A]/25 mb-3" />
                   <p className="text-xs sm:text-sm text-[#3d362e] leading-relaxed mb-4 italic">
                     &quot;{r.text}&quot;
                   </p>
@@ -129,7 +129,7 @@ export default function CustomerReviews() {
             type="button"
             onClick={() => scroll('right')}
             aria-label="Next review"
-            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
+            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#4A121A] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
           >
             <ChevronRight size={20} />
           </button>

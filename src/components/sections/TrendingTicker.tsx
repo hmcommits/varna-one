@@ -13,8 +13,8 @@ export default function TrendingTicker() {
   return (
     <div className="bg-[#f5efe6] border-y border-[#e8d5b7]/80 py-2.5 overflow-hidden select-none">
       <div className="flex items-center">
-        <span className="font-semibold text-[11px] md:text-xs text-[#1a2e1a] tracking-wider uppercase px-4 whitespace-nowrap flex-shrink-0 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#1a2e1a] animate-pulse" />
+        <span className="font-semibold text-[11px] md:text-xs text-[#4A121A] tracking-wider uppercase px-4 whitespace-nowrap flex-shrink-0 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4A121A] animate-pulse" />
           Trending Now:
         </span>
         <div className="overflow-hidden flex-1 relative">
@@ -24,7 +24,7 @@ export default function TrendingTicker() {
                 <a
                   href="#trending"
                   onClick={handleClick}
-                  className="hover:text-[#1a2e1a] font-medium transition-colors cursor-pointer"
+                  className="hover:text-[#4A121A] font-medium transition-colors cursor-pointer"
                 >
                   {item}
                 </a>

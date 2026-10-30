@@ -18,7 +18,7 @@ export interface ProductCardProps {
 }
 
 const badgeStyles = {
-  New: 'bg-[#1e4a36] text-[#faf8f4]',
+  New: 'bg-[#661524] text-[#faf8f4]',
   Trending: 'bg-[#c85a44] text-white',
   Bestseller: 'bg-[#c47d2b] text-white',
 }
@@ -95,7 +95,7 @@ export default function ProductCard({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="hidden sm:flex absolute inset-x-3 bottom-3 items-center justify-center gap-1.5 py-2 px-3 bg-[#1a2e1a]/95 hover:bg-[#25D366] text-white rounded-xl text-xs font-semibold backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer"
+          className="hidden sm:flex absolute inset-x-3 bottom-3 items-center justify-center gap-1.5 py-2 px-3 bg-[#4A121A]/95 hover:bg-[#25D366] text-white rounded-xl text-xs font-semibold backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer"
         >
           <div className="relative w-3.5 h-3.5 flex-shrink-0">
             <Image src="/images/icons/whatsapp.webp" alt="WhatsApp" fill className="object-contain" />
@@ -107,7 +107,7 @@ export default function ProductCard({
       {/* Product Info */}
       <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between bg-white">
         <div>
-          <h3 className="text-xs sm:text-sm font-semibold text-[#1a1a1a] mb-1 line-clamp-1 group-hover:text-[#1a2e1a] transition-colors">
+          <h3 className="text-xs sm:text-sm font-semibold text-[#1a1a1a] mb-1 line-clamp-1 group-hover:text-[#4A121A] transition-colors">
             {name}
           </h3>
 
@@ -140,7 +140,7 @@ export default function ProductCard({
                 type="button"
                 onClick={() => setSelectedColor(c)}
                 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all cursor-pointer ${
-                  selectedColor === c ? 'ring-2 ring-[#1a2e1a] ring-offset-1 scale-110' : 'hover:scale-105'
+                  selectedColor === c ? 'ring-2 ring-[#4A121A] ring-offset-1 scale-110' : 'hover:scale-105'
                 }`}
                 style={{ backgroundColor: c }}
                 title={c}

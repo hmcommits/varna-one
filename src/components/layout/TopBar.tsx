@@ -12,13 +12,13 @@ const topBarMessages = [
 
 export default function TopBar() {
   return (
-    <div className="bg-[#1a2e1a] text-white text-[11px] md:text-xs py-2 px-3 md:px-4 overflow-hidden select-none">
+    <div className="bg-[#4A121A] text-white text-[11px] md:text-xs py-2 px-3 md:px-4 overflow-hidden select-none">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
         {/* Mobile View (< sm): continuous smooth marquee so no text is ever clipped on narrow screens */}
         <div className="sm:hidden flex-1 overflow-hidden relative mr-2">
           {/* Subtle edge gradient masks for smooth entry and exit */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-[#1a2e1a] to-transparent z-10" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-[#1a2e1a] to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-[#4A121A] to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-[#4A121A] to-transparent z-10" />
 
           <div className="topbar-marquee">
             {[...topBarMessages, ...topBarMessages].map((item, idx) => (

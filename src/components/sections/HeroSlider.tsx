@@ -91,7 +91,7 @@ export default function HeroSlider() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="relative w-full h-[320px] sm:h-[400px] md:h-[540px] lg:h-[600px] overflow-hidden bg-[#1a2e1a] select-none"
+      className="relative w-full h-[320px] sm:h-[400px] md:h-[540px] lg:h-[600px] overflow-hidden bg-[#4A121A] select-none"
     >
       {/* High-Resolution Background Slides with smooth crossfade */}
       {slides.map((s, idx) => (
@@ -135,7 +135,7 @@ export default function HeroSlider() {
             <button
               type="button"
               onClick={handleActionClick}
-              className="bg-[#1a2e1a] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#2d4a2d] active:scale-95 transition-all shadow-md cursor-pointer border border-[#e8d5b7]/30"
+              className="bg-[#4A121A] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#631723] active:scale-95 transition-all shadow-md cursor-pointer border border-[#e8d5b7]/30"
             >
               {slides[current].ctaPrimary}
             </button>

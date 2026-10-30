@@ -54,7 +54,7 @@ export default function Navbar() {
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-display italic text-xl sm:text-2xl font-bold text-[#1a2e1a] tracking-tight leading-none">
+            <span className="font-display italic text-xl sm:text-2xl font-bold text-[#4A121A] tracking-tight leading-none">
               Varna
             </span>
             <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider text-[#7d7062] uppercase mt-0.5 hidden xs:block">
@@ -71,18 +71,18 @@ export default function Navbar() {
               href={link.href}
               onClick={handleNavClick}
               className={`text-sm font-medium tracking-wide transition-colors py-1 relative group cursor-pointer ${
-                link.isRed ? 'text-[#c85a44] font-semibold' : 'text-[#3d362e] hover:text-[#1a2e1a]'
+                link.isRed ? 'text-[#c85a44] font-semibold' : 'text-[#3d362e] hover:text-[#4A121A]'
               }`}
             >
               {link.label}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1a2e1a] group-hover:w-full transition-all duration-300" />
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#4A121A] group-hover:w-full transition-all duration-300" />
             </a>
           ))}
         </nav>
 
         {/* Right Action: Clean Search Bar */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs">
+          <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#4A121A] focus-within:bg-white transition-all shadow-xs">
             <Search size={15} className="text-[#8a7d6e] flex-shrink-0" />
             <input
               type="text"

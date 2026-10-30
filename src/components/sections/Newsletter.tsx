@@ -29,7 +29,7 @@ export default function Newsletter() {
   }
 
   return (
-    <section className="bg-[#1a2e1a] text-white py-12 md:py-16 px-4 relative overflow-hidden">
+    <section className="bg-[#4A121A] text-white py-12 md:py-16 px-4 relative overflow-hidden">
       {/* Decorative botanical illustration SVGs */}
       <svg
         className="absolute left-0 bottom-0 opacity-15 pointer-events-none select-none"
@@ -76,7 +76,7 @@ export default function Newsletter() {
               onClick={() => setSelectedTopic(t.label)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 selectedTopic === t.label
-                  ? 'bg-[#e8d5b7] text-[#1a2e1a] shadow-md scale-105'
+                  ? 'bg-[#e8d5b7] text-[#4A121A] shadow-md scale-105'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/15'
               }`}
             >

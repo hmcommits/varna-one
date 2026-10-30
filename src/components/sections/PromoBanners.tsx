@@ -33,7 +33,7 @@ export default function PromoBanners() {
             <button
               type="button"
               onClick={handleClick}
-              className="inline-flex items-center gap-2 bg-white text-[#1a2e1a] px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold hover:bg-[#faf8f4] active:scale-95 transition-all shadow-md cursor-pointer"
+              className="inline-flex items-center gap-2 bg-white text-[#4A121A] px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold hover:bg-[#faf8f4] active:scale-95 transition-all shadow-md cursor-pointer"
             >
               Shop Men <ArrowRight size={14} />
             </button>
@@ -63,7 +63,7 @@ export default function PromoBanners() {
             <button
               type="button"
               onClick={handleClick}
-              className="inline-flex items-center gap-2 bg-white text-[#1a2e1a] px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold hover:bg-[#faf8f4] active:scale-95 transition-all shadow-md cursor-pointer"
+              className="inline-flex items-center gap-2 bg-white text-[#4A121A] px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold hover:bg-[#faf8f4] active:scale-95 transition-all shadow-md cursor-pointer"
             >
               Shop Women <ArrowRight size={14} />
             </button>
