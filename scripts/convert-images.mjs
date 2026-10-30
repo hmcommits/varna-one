@@ -14,7 +14,7 @@ const sectionLimits = {
   banners: { maxWidth: 1400, maxHeight: 900 },
   categories: { maxWidth: 1080, maxHeight: 1440 },
   products: { maxWidth: 1080, maxHeight: 1440 },
-  instagram: { maxWidth: 800, maxHeight: 800 },
+  instagram: { maxWidth: 1080, maxHeight: 1080 },
 }
 
 const SUPPORTED_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.heif', '.tiff', '.bmp', '.gif']
@@ -33,21 +33,35 @@ export async function convertImage(sourcePath, targetRelPath) {
     fs.mkdirSync(destDir, { recursive: true })
   }
 
-  const isHero = section === 'hero'
-  const quality = isHero ? 95 : 88
+  const isHighQuality = section === 'hero' || section === 'instagram'
+  const quality = isHighQuality ? 95 : 90
+  const isInstagram = section === 'instagram'
 
-  const pipeline = sharp(sourcePath)
-    .rotate() // auto-orient based on EXIF
-    .resize({
-      width: limits.maxWidth,
-      height: limits.maxHeight,
-      fit: 'inside', // preserve exact image aspect ratio without forced clipping
-      withoutEnlargement: true,
-    })
-    .webp({
-      quality,
-      effort: 4,
-    })
+  const pipeline = isInstagram
+    ? sharp(sourcePath)
+        .rotate()
+        .resize({
+          width: 1080,
+          height: 1080,
+          fit: 'cover',
+          position: 'top',
+        })
+        .webp({
+          quality: 95,
+          effort: 4,
+        })
+    : sharp(sourcePath)
+        .rotate()
+        .resize({
+          width: limits.maxWidth,
+          height: limits.maxHeight,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({
+          quality,
+          effort: 4,
+        })
 
   await pipeline.toFile(destinationPath)
 

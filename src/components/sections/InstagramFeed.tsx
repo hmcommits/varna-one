@@ -24,11 +24,11 @@ function InstagramIcon({ size = 20, className = '' }: { size?: number; className
 }
 
 const posts = [
-  { id: 1, image: '/images/instagram/post-1.webp', alt: 'Community style 1' },
-  { id: 2, image: '/images/instagram/post-2.webp', alt: 'Community style 2' },
-  { id: 3, image: '/images/instagram/post-3.webp', alt: 'Community style 3' },
-  { id: 4, image: '/images/instagram/post-4.webp', alt: 'Community style 4' },
-  { id: 5, image: '/images/instagram/post-5.webp', alt: 'Community style 5' },
+  { id: 1, image: '/images/instagram/post-1.webp', alt: 'Varna community style 1 - Minimal Black Tee' },
+  { id: 2, image: '/images/instagram/post-2.webp', alt: 'Varna community style 2 - Sage Streetwear Tee' },
+  { id: 3, image: '/images/instagram/post-3.webp', alt: 'Varna community style 3 - Aesthetic Cafe Streetwear' },
+  { id: 4, image: '/images/instagram/post-4.webp', alt: 'Varna community style 4 - 1% Better Everyday Tee' },
+  { id: 5, image: '/images/instagram/post-5.webp', alt: 'Varna community style 5 - F1 Graphic Backprint' },
 ]
 
 export default function InstagramFeed() {
@@ -89,7 +89,9 @@ export default function InstagramFeed() {
                   src={p.image}
                   alt={p.alt}
                   fill
-                  sizes="(max-width: 640px) 144px, 208px"
+                  sizes="(max-width: 640px) 288px, 416px"
+                  quality={95}
+                  unoptimized={true}
                   className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 {/* Instagram Overlay on Hover/Tap */}
