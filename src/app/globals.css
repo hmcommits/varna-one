@@ -112,3 +112,17 @@ body {
 .whatsapp-gentle-glow {
   animation: whatsappGentleGlow 4.5s ease-in-out infinite;
 }
+
+/* Unique orbital bubble timer animation for hero slider */
+@keyframes slideProgress {
+  from {
+    stroke-dashoffset: 81.68;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-slide-progress {
+  animation: slideProgress 6.5s linear forwards;
+}

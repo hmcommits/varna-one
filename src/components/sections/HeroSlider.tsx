@@ -187,34 +187,62 @@ export default function HeroSlider() {
         <ChevronRight size={22} />
       </button>
 
-      {/* Bottom Bar: Editorial Numbered Progress Bar (01 — 02 — 03) + Mobile Arrow Controls */}
+      {/* Bottom Bar: Unique & Modern Frosted Bubble / Round Indicators + Mobile Arrow Controls */}
       <div className="absolute bottom-3 md:bottom-6 left-4 md:left-10 right-4 md:right-auto z-30 flex items-center justify-between md:justify-start gap-4">
-        {/* Editorial Numbered Progress Bar */}
-        <div className="flex items-center gap-2.5 sm:gap-3 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+        {/* Floating Glassmorphic Bubble Pod */}
+        <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/20 shadow-2xl">
           {slides.map((_, i) => (
-            <div key={i} className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setCurrent(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`text-[11px] sm:text-xs font-mono tracking-widest transition-all cursor-pointer ${
-                  i === current
-                    ? 'text-[#e8d5b7] font-bold scale-110 drop-shadow'
-                    : 'text-white/45 hover:text-white/80'
-                }`}
-              >
-                0{i + 1}
-              </button>
-              {i < slides.length - 1 && (
-                <div className="w-6 sm:w-10 h-0.5 bg-white/20 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full bg-[#e8d5b7] transition-all duration-500 ${
-                      i === current ? 'w-full' : i < current ? 'w-full opacity-60' : 'w-0'
-                    }`}
-                  />
-                </div>
+            <button
+              key={i}
+              type="button"
+              onClick={() => setCurrent(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`group relative flex items-center justify-center transition-all duration-500 cursor-pointer ${
+                i === current
+                  ? 'w-7 h-7 sm:w-8 sm:h-8'
+                  : 'w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-50 hover:opacity-100 hover:scale-125'
+              }`}
+            >
+              {i === current ? (
+                <>
+                  {/* Outer Orbital Progress Ring (Modern Watch / Story Timer in 6.5s) */}
+                  <svg
+                    key={current}
+                    className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+                    viewBox="0 0 32 32"
+                  >
+                    {/* Subtle track background */}
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="13"
+                      stroke="rgba(255,255,255,0.18)"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                    {/* Animated filling stroke */}
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="13"
+                      stroke="#e8d5b7"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeDasharray="81.68"
+                      strokeDashoffset="81.68"
+                      fill="none"
+                      className="animate-slide-progress drop-shadow-[0_0_6px_rgba(232,213,183,0.9)]"
+                    />
+                  </svg>
+
+                  {/* Luminous Glowing Core Pearl */}
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#e8d5b7] shadow-[0_0_12px_#e8d5b7] animate-pulse" />
+                </>
+              ) : (
+                /* Inactive Bubble: Translucent frosted glass pearl */
+                <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/40 group-hover:bg-white group-hover:shadow-[0_0_10px_rgba(255,255,255,0.9)] border border-white/30 transition-all duration-300" />
               )}
-            </div>
+            </button>
           ))}
         </div>
 
