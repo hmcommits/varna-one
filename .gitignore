@@ -41,3 +41,7 @@ next-env.d.ts
 # editor directories
 .vscode/
 .idea/
+
+# raw images
+/raw-images/
+
