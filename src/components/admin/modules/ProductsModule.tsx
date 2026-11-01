@@ -148,11 +148,19 @@ export default function ProductsModule({
     setUploading(true)
     setUploadSuccessTick(false)
     try {
+      const adminToken =
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('varna_admin_token')
+          : null) ||
+        draft.settings?.passcode ||
+        'varna2026'
+
       const formData = new FormData()
       formData.append('file', file)
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
+        headers: { 'x-admin-token': adminToken },
         body: formData,
       })
 

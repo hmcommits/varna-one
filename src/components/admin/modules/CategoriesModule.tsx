@@ -121,10 +121,18 @@ export default function CategoriesModule({
   // Direct photo upload for an existing card
   const handleDirectUploadForCategory = async (catId: string, file: File) => {
     try {
+      const adminToken =
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('varna_admin_token')
+          : null) ||
+        draft.settings?.passcode ||
+        'varna2026'
+
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
+        headers: { 'x-admin-token': adminToken },
         body: formData,
       })
       const data = await res.json()
@@ -151,10 +159,18 @@ export default function CategoriesModule({
     setUploading(true)
     setUploadSuccess(false)
     try {
+      const adminToken =
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('varna_admin_token')
+          : null) ||
+        draft.settings?.passcode ||
+        'varna2026'
+
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
+        headers: { 'x-admin-token': adminToken },
         body: formData,
       })
       const data = await res.json()
