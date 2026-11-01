@@ -18,6 +18,11 @@ interface StoreContextType {
   discardDraft: () => void
   logEnquiry: (enquiry: Partial<EnquiryItem>) => Promise<void>
   activeStore: StoreState
+  catalogFilter: string
+  setCatalogFilter: (filter: string) => void
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  selectCatalogFilter: (filter: string, scrollToSection?: boolean) => void
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -29,6 +34,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [globalPreviewMode, setGlobalPreviewMode] = useState(false)
+  const [catalogFilter, setCatalogFilter] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const selectCatalogFilter = useCallback((filter: string, scrollToSection = true) => {
+    setCatalogFilter(filter)
+    if (scrollToSection && typeof window !== 'undefined') {
+      const el = document.getElementById('new-arrivals')
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, [])
 
   // 1. Initial Load: check API (MongoDB) or LocalStorage
   useEffect(() => {
@@ -171,6 +188,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         discardDraft,
         logEnquiry,
         activeStore,
+        catalogFilter,
+        setCatalogFilter,
+        searchQuery,
+        setSearchQuery,
+        selectCatalogFilter,
       }}
     >
       {children}

@@ -13,15 +13,24 @@ const DEFAULT_CATEGORIES = [
 ]
 
 export default function CategoryGrid() {
-  const { activeStore } = useStore()
+  const { activeStore, selectCatalogFilter } = useStore()
   const rawCategories = activeStore.categories?.length
     ? activeStore.categories
     : DEFAULT_CATEGORIES
 
   const categories = rawCategories.filter((c) => c.visible !== false)
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault()
+  const handleCategorySelect = (title: string) => {
+    // Map composite names like "T-Shirts & Jerseys" -> "T-Shirts" or direct title
+    let targetFilter = title
+    if (title.includes('T-Shirt')) targetFilter = 'T-Shirts'
+    else if (title.includes('Shirt')) targetFilter = 'Shirts'
+    else if (title.includes('Jeans')) targetFilter = 'Jeans'
+    else if (title.includes('Dress')) targetFilter = 'Dresses'
+    else if (title.includes('Top')) targetFilter = 'Tops'
+    else if (title.includes('Co-ord')) targetFilter = 'Co-ord Sets'
+
+    selectCatalogFilter(targetFilter, true)
   }
 
   return (
@@ -48,7 +57,7 @@ export default function CategoryGrid() {
           </div>
           <button
             type="button"
-            onClick={handleClick}
+            onClick={() => selectCatalogFilter('All', true)}
             className="text-xs sm:text-sm text-[#1a2e1a] font-semibold hover:underline flex items-center gap-1 group cursor-pointer"
           >
             View all categories{' '}
@@ -61,7 +70,7 @@ export default function CategoryGrid() {
           {categories.map((cat) => (
             <div
               key={cat.id || cat.title}
-              onClick={handleClick}
+              onClick={() => handleCategorySelect(cat.title)}
               className="group block cursor-pointer select-none"
             >
               {/* Mughal Arch Shaped Container */}

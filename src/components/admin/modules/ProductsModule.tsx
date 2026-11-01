@@ -33,7 +33,6 @@ const CATEGORIES = [
 ]
 
 const BADGES = ['None', 'New', 'Trending', 'Bestseller', 'Flash Sale'] as const
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '30', '32', '34', '36', '38']
 
 export default function ProductsModule({
   initialCategoryFilter,
@@ -51,12 +50,26 @@ export default function ProductsModule({
   )
   const [previewOpen, setPreviewOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadSuccessTick, setUploadSuccessTick] = useState(false)
 
-  // Temporary state for the color currently being assigned to an uploaded image
-  const [activeColorMode, setActiveColorMode] = useState<'existing' | 'new'>('new')
+  // Price input states to eliminate the "0299" leading zero bug
+  const [sellingPriceInput, setSellingPriceInput] = useState<string>('999')
+  const [originalPriceInput, setOriginalPriceInput] = useState<string>('1499')
+
+  // Sizes management
+  const [allSizes, setAllSizes] = useState<string[]>([
+    'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '28', '30', '32', '34', '36', '38'
+  ])
+  const [newCustomSize, setNewCustomSize] = useState('')
+
+  // Urgency custom input
+  const [customUrgencyText, setCustomUrgencyText] = useState('')
+
+  // Image Upload First & Color Pairing State
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null)
+  const [editingColorId, setEditingColorId] = useState<string | null>(null)
   const [newColorName, setNewColorName] = useState('')
   const [newColorHex, setNewColorHex] = useState('#c4855a')
-  const [selectedExistingColorId, setSelectedExistingColorId] = useState('')
 
   function createEmptyProduct(category = 'Shirts'): Product {
     return {
@@ -82,6 +95,26 @@ export default function ProductsModule({
     }
   }
 
+  // Synchronize inputs when opening a product for edit
+  React.useEffect(() => {
+    if (editingProduct) {
+      setSellingPriceInput(editingProduct.price ? String(editingProduct.price) : '')
+      setOriginalPriceInput(editingProduct.originalPrice ? String(editingProduct.originalPrice) : '')
+      setPendingImageUrl(null)
+      setUploadSuccessTick(false)
+      setEditingColorId(null)
+      setNewColorName('')
+      if (
+        editingProduct.stockUrgency !== 'In Stock' &&
+        editingProduct.stockUrgency !== 'Few Pieces Left' &&
+        editingProduct.stockUrgency !== 'Out of Stock'
+      ) {
+        setCustomUrgencyText(editingProduct.stockUrgency || '')
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingProduct?.id])
+
   // Filter products
   const products = draft.products || []
   const filteredProducts = products.filter((p) => {
@@ -89,12 +122,13 @@ export default function ProductsModule({
     return p.category === activeCategoryFilter
   })
 
-  // Handle Image Upload via API (auto WebP conversion)
+  // Handle Image Upload via API (Upload Photo FIRST)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !editingProduct) return
 
     setUploading(true)
+    setUploadSuccessTick(false)
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -110,32 +144,19 @@ export default function ProductsModule({
 
       const data = await res.json()
       const uploadedWebpUrl = data.url
+      setPendingImageUrl(uploadedWebpUrl)
+      setUploadSuccessTick(true)
 
-      // Determine color assignment
-      if (activeColorMode === 'new' || editingProduct.colors.length === 0) {
-        const colorName = newColorName.trim() || `Variant ${editingProduct.colors.length + 1}`
-        const newColor: ProductColor = {
-          id: `col-${Date.now()}`,
-          name: colorName,
-          hex: newColorHex,
-          image: uploadedWebpUrl,
-        }
-
-        setEditingProduct({
-          ...editingProduct,
-          colors: [...editingProduct.colors, newColor],
-        })
-
-        // Reset temporary color inputs
-        setNewColorName('')
-      } else {
-        // Assign to existing color
-        const updatedColors = editingProduct.colors.map((c) =>
-          c.id === selectedExistingColorId ? { ...c, image: uploadedWebpUrl } : c
-        )
-        setEditingProduct({
-          ...editingProduct,
-          colors: updatedColors,
+      // If replacing image of currently edited color variant:
+      if (editingColorId) {
+        setEditingProduct((prev) => {
+          if (!prev) return null
+          return {
+            ...prev,
+            colors: prev.colors.map((c) =>
+              c.id === editingColorId ? { ...c, image: uploadedWebpUrl } : c
+            ),
+          }
         })
       }
     } catch (err) {
@@ -143,6 +164,7 @@ export default function ProductsModule({
       alert('Failed to upload image. Please try again.')
     } finally {
       setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -154,6 +176,13 @@ export default function ProductsModule({
         const result = await eyeDropper.open()
         if (result?.sRGBHex) {
           setNewColorHex(result.sRGBHex)
+          // If hex matches an already defined color, reuse that color's name!
+          const match = editingProduct?.colors.find(
+            (c) => c.hex.toLowerCase() === result.sRGBHex.toLowerCase()
+          )
+          if (match && !editingColorId) {
+            setNewColorName(match.name)
+          }
         }
       } catch {
         // User canceled eyedropper selection
@@ -161,6 +190,88 @@ export default function ProductsModule({
     } else {
       alert('EyeDropper is supported on modern desktop browsers (Chrome, Edge). You can also click the color box to pick manually.')
     }
+  }
+
+  // Pair Uploaded Image with Color (Prevents duplicate variant naming for same hex)
+  const handleAssignColorToPendingImage = (name: string, hex: string) => {
+    if (!editingProduct || !pendingImageUrl) return
+
+    // If identical hex is already used in this product, reuse that color's name
+    const existingSameHex = editingProduct.colors.find(
+      (c) => c.hex.toLowerCase() === hex.toLowerCase()
+    )
+
+    const finalColorName = existingSameHex
+      ? existingSameHex.name
+      : name.trim() || `Variant ${editingProduct.colors.length + 1}`
+
+    const newColor: ProductColor = {
+      id: `col-${Date.now()}`,
+      name: finalColorName,
+      hex: hex,
+      image: pendingImageUrl,
+    }
+
+    setEditingProduct({
+      ...editingProduct,
+      colors: [...editingProduct.colors, newColor],
+    })
+
+    // Reset upload staging
+    setPendingImageUrl(null)
+    setUploadSuccessTick(false)
+    setNewColorName('')
+  }
+
+  // Edit existing uploaded image details
+  const handleSelectColorForEdit = (color: ProductColor) => {
+    setEditingColorId(color.id)
+    setNewColorName(color.name)
+    setNewColorHex(color.hex)
+    setPendingImageUrl(color.image)
+  }
+
+  const handleUpdateCurrentColor = () => {
+    if (!editingProduct || !editingColorId) return
+    const updated = editingProduct.colors.map((c) =>
+      c.id === editingColorId
+        ? {
+            ...c,
+            name: newColorName.trim() || c.name,
+            hex: newColorHex,
+            image: pendingImageUrl || c.image,
+          }
+        : c
+    )
+    setEditingProduct({
+      ...editingProduct,
+      colors: updated,
+    })
+    setEditingColorId(null)
+    setPendingImageUrl(null)
+    setNewColorName('')
+  }
+
+  const handleCancelColorEdit = () => {
+    setEditingColorId(null)
+    setPendingImageUrl(null)
+    setNewColorName('')
+  }
+
+  // Add custom size
+  const handleAddCustomSize = () => {
+    const trimmed = newCustomSize.trim().toUpperCase()
+    if (!trimmed) return
+    if (!allSizes.includes(trimmed)) {
+      setAllSizes([...allSizes, trimmed])
+    }
+    if (editingProduct && !editingProduct.sizes.includes(trimmed)) {
+      setEditingProduct({
+        ...editingProduct,
+        sizes: [...editingProduct.sizes, trimmed],
+      })
+    }
+    setNewCustomSize('')
   }
 
   // Save Product (in draft state)
@@ -421,10 +532,6 @@ export default function ProductsModule({
                             onClick={() => {
                               setEditingProduct(p)
                               setIsCreating(false)
-                              if (p.colors.length > 0) {
-                                setActiveColorMode('existing')
-                                setSelectedExistingColorId(p.colors[0].id)
-                              }
                             }}
                             className="p-1.5 rounded-lg bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#142319] transition-colors cursor-pointer"
                             title="Edit Product"
@@ -454,7 +561,7 @@ export default function ProductsModule({
       {/* PRODUCT EDITOR MODAL (CREATE / EDIT) */}
       {editingProduct && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-          <div className="bg-white border border-[#ebe5da] rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 shadow-2xl relative text-[#142319] space-y-6">
+          <div className="bg-white border border-[#ebe5da] rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-4 sm:p-7 shadow-2xl relative text-[#142319] space-y-6">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#ebe5da]">
               <div>
@@ -530,39 +637,75 @@ export default function ProductsModule({
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Selling Price (₹) *
-                </label>
+              {/* Selling Price with Green Main Highlight & 0299 leading zero fix */}
+              <div className="bg-[#eef7f0] p-3 rounded-2xl border border-[#b8e0bf]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-[#1e4a36]">
+                    Selling Price (₹) *
+                  </label>
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-[#d7eedc] text-[#1e4a36] px-2 py-0.5 rounded-full border border-[#b8e0bf]">
+                    Main / Customer Pays
+                  </span>
+                </div>
                 <input
-                  type="number"
-                  value={editingProduct.price}
-                  onChange={(e) =>
+                  type="text"
+                  inputMode="numeric"
+                  value={sellingPriceInput}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '')
+                    setSellingPriceInput(clean)
                     setEditingProduct({
                       ...editingProduct,
-                      price: Math.max(0, parseInt(e.target.value) || 0),
+                      price: clean === '' ? 0 : parseInt(clean, 10),
                     })
-                  }
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3.5 py-2.5 text-xs text-[#142319] outline-hidden font-bold"
+                  }}
+                  placeholder="e.g. 299"
+                  className="w-full bg-white border-2 border-[#206035] focus:border-[#14281a] focus:ring-1 focus:ring-[#14281a] rounded-xl px-3 py-2 text-sm font-bold text-[#142319] outline-hidden"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Original MRP (₹) *
-                </label>
+              {/* Original MRP with Red / Strikethrough Indication & 01232 leading zero fix */}
+              <div className="bg-[#fdf2f0] p-3 rounded-2xl border border-[#f8cfca]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-[#8b1e1e]">
+                    Original MRP (₹) *
+                  </label>
+                  <span className="text-[9px] font-medium uppercase tracking-wider bg-[#fadcd7] text-[#8b1e1e] px-2 py-0.5 rounded-full border border-[#f8cfca]">
+                    Display Only
+                  </span>
+                </div>
                 <input
-                  type="number"
-                  value={editingProduct.originalPrice}
-                  onChange={(e) =>
+                  type="text"
+                  inputMode="numeric"
+                  value={originalPriceInput}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '')
+                    setOriginalPriceInput(clean)
                     setEditingProduct({
                       ...editingProduct,
-                      originalPrice: Math.max(0, parseInt(e.target.value) || 0),
+                      originalPrice: clean === '' ? 0 : parseInt(clean, 10),
                     })
-                  }
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3.5 py-2.5 text-xs text-[#142319] outline-hidden"
+                  }}
+                  placeholder="e.g. 1499"
+                  className="w-full bg-white border border-[#c85a44] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-sm text-[#55231c] outline-hidden"
                 />
               </div>
+            </div>
+
+            {/* Product Description Field */}
+            <div>
+              <label className="block text-xs font-semibold text-[#142319] mb-1">
+                Product Description
+              </label>
+              <textarea
+                rows={3}
+                value={editingProduct.description || ''}
+                onChange={(e) =>
+                  setEditingProduct({ ...editingProduct, description: e.target.value })
+                }
+                placeholder="Describe the fabric, fit, styling drape, embroidery or unique details of this product..."
+                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl p-3 text-xs text-[#142319] outline-hidden placeholder-[#8c978f] leading-relaxed"
+              />
             </div>
 
             {/* Stock Urgency & Badges */}
@@ -572,19 +715,52 @@ export default function ProductsModule({
                   Stock Urgency Status
                 </label>
                 <select
-                  value={editingProduct.stockUrgency}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      stockUrgency: e.target.value as any,
-                    })
+                  value={
+                    editingProduct.stockUrgency === 'In Stock' ||
+                    editingProduct.stockUrgency === 'Few Pieces Left' ||
+                    editingProduct.stockUrgency === 'Out of Stock'
+                      ? editingProduct.stockUrgency
+                      : 'Custom'
                   }
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === 'Custom') {
+                      setEditingProduct({
+                        ...editingProduct,
+                        stockUrgency: customUrgencyText || 'Few Pieces Left',
+                      })
+                    } else {
+                      setEditingProduct({
+                        ...editingProduct,
+                        stockUrgency: val as any,
+                      })
+                    }
+                  }}
                   className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden"
                 >
-                  <option value="In Stock">In Stock</option>
-                  <option value="Only 3 left">Only 3 left (High Urgency)</option>
+                  <option value="In Stock">In Stock (Normal)</option>
+                  <option value="Few Pieces Left">Few Pieces Left (Urgency without hardcoded number)</option>
+                  <option value="Custom">Custom Urgency Text...</option>
                   <option value="Out of Stock">Out of Stock</option>
                 </select>
+
+                {editingProduct.stockUrgency !== 'In Stock' &&
+                  editingProduct.stockUrgency !== 'Few Pieces Left' &&
+                  editingProduct.stockUrgency !== 'Out of Stock' && (
+                    <input
+                      type="text"
+                      value={customUrgencyText}
+                      onChange={(e) => {
+                        setCustomUrgencyText(e.target.value)
+                        setEditingProduct({
+                          ...editingProduct,
+                          stockUrgency: e.target.value || 'Few Pieces Left',
+                        })
+                      }}
+                      placeholder="e.g., Only 5 Pieces Left or Limited Drop"
+                      className="mt-2 w-full bg-white border border-[#ded7cb] rounded-xl px-3 py-1.5 text-xs text-[#142319] outline-hidden"
+                    />
+                  )}
               </div>
 
               <div>
@@ -610,13 +786,13 @@ export default function ProductsModule({
               </div>
             </div>
 
-            {/* Available Sizes */}
-            <div className="pt-2 border-t border-[#ebe5da]">
-              <label className="block text-xs font-semibold text-[#142319] mb-2">
+            {/* Available Sizes with Custom Add Size Button on both sides */}
+            <div className="pt-2 border-t border-[#ebe5da] space-y-2">
+              <label className="block text-xs font-semibold text-[#142319]">
                 Available Sizes
               </label>
-              <div className="flex flex-wrap gap-2">
-                {SIZES.map((size) => {
+              <div className="flex flex-wrap items-center gap-2">
+                {allSizes.map((size) => {
                   const hasSize = editingProduct.sizes.includes(size)
                   return (
                     <button
@@ -639,6 +815,31 @@ export default function ProductsModule({
                   )
                 })}
               </div>
+
+              {/* Add Custom Size Inline Input */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  value={newCustomSize}
+                  onChange={(e) => setNewCustomSize(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddCustomSize()
+                    }
+                  }}
+                  placeholder="+ Custom size (e.g. 3XL, 28, Free)"
+                  className="w-48 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-1.5 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomSize}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#faf6f0] hover:bg-[#1c3624] text-[#142319] hover:text-white border border-[#ded7cb] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <Plus size={13} />
+                  <span>Add Size</span>
+                </button>
+              </div>
             </div>
 
             {/* COLOR & IMAGE MANAGER */}
@@ -652,135 +853,197 @@ export default function ProductsModule({
                     </span>
                   </h4>
                   <p className="text-xs text-[#6b7770] mt-0.5">
-                    Upload photos and pair each image with its color. When a customer picks that color, the main photo switches automatically!
+                    Upload photos first, then pair each image with its color. When a customer picks that color, the main photo switches automatically!
                   </p>
                 </div>
               </div>
 
-              {/* Current Colors & Associated Photos Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {editingProduct.colors.map((color) => (
-                  <div
-                    key={color.id}
-                    className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-3 flex items-start gap-3 relative group"
-                  >
-                    <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-[#ded7cb]">
-                      <Image
-                        src={color.image}
-                        alt={color.name}
-                        fill
-                        className="object-cover object-top"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0 pr-6">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-inner flex-shrink-0"
-                          style={{ backgroundColor: color.hex }}
-                        />
-                        <span className="text-xs font-bold text-[#142319] truncate">
-                          {color.name}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono text-[#6b7770] block">
-                        {color.hex}
-                      </span>
-                      <span className="text-[9px] text-[#206035] font-bold block mt-1">
-                        ✓ Active Photo Linked
-                      </span>
-                    </div>
-
-                    {/* Delete Color Option */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = editingProduct.colors.filter((c) => c.id !== color.id)
-                        setEditingProduct({ ...editingProduct, colors: updated })
-                      }}
-                      className="absolute top-2.5 right-2.5 text-[#8c978f] hover:text-[#b84840] transition-colors p-1"
-                      title="Remove Color"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Upload Image Section */}
-              <div className="bg-[#faf8f5] border border-dashed border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4">
-                <span className="text-xs font-bold text-[#142319] uppercase tracking-wider block">
-                  Step 1: Upload Next Image (Auto-Converts to WebP)
-                </span>
-
-                {/* Color Assignment Selector */}
-                <div className="space-y-3 bg-white p-3.5 rounded-xl border border-[#ebe5da]">
-                  <span className="text-[11px] font-semibold text-[#6b7770] block">
-                    Assign Color for this Image:
+              {/* Current Colors & Associated Photos Grid (Click to Edit Details) */}
+              {editingProduct.colors.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#6b7770] block">
+                    Uploaded Photos &amp; Colors ({editingProduct.colors.length}) — Click any card to edit details:
                   </span>
-
-                  {/* Choice: Existing vs New Color */}
-                  <div className="flex items-center gap-4">
-                    {editingProduct.colors.length > 0 && (
-                      <label className="flex items-center gap-1.5 text-xs text-[#142319] cursor-pointer font-medium">
-                        <input
-                          type="radio"
-                          name="colorMode"
-                          checked={activeColorMode === 'existing'}
-                          onChange={() => setActiveColorMode('existing')}
-                          className="text-[#1c3624] focus:ring-[#1c3624]"
-                        />
-                        <span>Assign to Existing Color</span>
-                      </label>
-                    )}
-
-                    <label className="flex items-center gap-1.5 text-xs text-[#142319] cursor-pointer font-medium">
-                          <input
-                            type="radio"
-                            name="colorMode"
-                            checked={activeColorMode === 'new' || editingProduct.colors.length === 0}
-                            onChange={() => setActiveColorMode('new')}
-                            className="text-[#1c3624] focus:ring-[#1c3624]"
-                          />
-                      <span>+ Create New Color Variant</span>
-                    </label>
-                  </div>
-
-                  {/* If Existing Color selected */}
-                  {activeColorMode === 'existing' && editingProduct.colors.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {editingProduct.colors.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => setSelectedExistingColorId(c.id)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
-                            selectedExistingColorId === c.id
-                              ? 'border-[#1c3624] bg-[#eef7f0] text-[#1c3624] font-bold shadow-2xs'
-                              : 'border-[#ded7cb] bg-white text-[#556358]'
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {editingProduct.colors.map((color) => {
+                      const isSelectedForEdit = editingColorId === color.id
+                      return (
+                        <div
+                          key={color.id}
+                          onClick={() => handleSelectColorForEdit(color)}
+                          className={`border rounded-2xl p-3 flex items-start gap-3 relative group cursor-pointer transition-all ${
+                            isSelectedForEdit
+                              ? 'border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs bg-white'
+                              : 'bg-[#faf8f5] border-[#ded7cb] hover:border-[#1c3624]'
                           }`}
                         >
-                          <span
-                            className="w-3 h-3 rounded-full border border-black/10"
-                            style={{ backgroundColor: c.hex }}
-                          />
-                          <span>{c.name}</span>
-                        </button>
-                      ))}
+                          <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-[#ded7cb]">
+                            <Image
+                              src={color.image}
+                              alt={color.name}
+                              fill
+                              className="object-cover object-top"
+                              unoptimized
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0 pr-6">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                              <span className="text-xs font-bold text-[#142319] truncate">
+                                {color.name}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-mono text-[#6b7770] block">
+                              {color.hex}
+                            </span>
+                            <span className="text-[9px] text-[#206035] font-bold block mt-1">
+                              {isSelectedForEdit ? '● Currently Editing' : '✓ Click to Edit'}
+                            </span>
+                          </div>
+
+                          {/* Delete Color Option */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const updated = editingProduct.colors.filter((c) => c.id !== color.id)
+                              setEditingProduct({ ...editingProduct, colors: updated })
+                              if (editingColorId === color.id) {
+                                setEditingColorId(null)
+                                setPendingImageUrl(null)
+                              }
+                            }}
+                            className="absolute top-2.5 right-2.5 text-[#8c978f] hover:text-[#b84840] transition-colors p-1"
+                            title="Remove Color"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 1: PHOTO UPLOAD FIRST */}
+              <div className="bg-[#faf8f5] border border-dashed border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#142319] uppercase tracking-wider">
+                    {editingColorId
+                      ? 'Edit Photo & Color Variant'
+                      : 'Step 1: Upload Product Photo First'}
+                  </span>
+                  {uploadSuccessTick && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#206035] bg-[#eef7f0] px-2.5 py-0.5 rounded-full border border-[#d6ecda]">
+                      <Check size={13} />
+                      <span>Image Ready &amp; Synced!</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Upload Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <label className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
+                    <Upload size={14} />
+                    <span>
+                      {uploading
+                        ? 'Uploading & Optimizing to Cloudinary WebP...'
+                        : editingColorId
+                        ? 'Replace Photo File'
+                        : 'Upload Photo (PNG, JPG, HEIC, WEBP)'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {uploading && (
+                    <div className="flex items-center gap-2 text-xs text-[#845d1d] font-medium">
+                      <div className="w-3.5 h-3.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
+                      <span>Converting to WebP &amp; syncing to Cloudinary CDN...</span>
                     </div>
                   )}
 
-                  {/* If New Color selected */}
-                  {(activeColorMode === 'new' || editingProduct.colors.length === 0) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {!uploading && pendingImageUrl && (
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-10 h-12 rounded-lg overflow-hidden border border-[#ded7cb] bg-white">
+                        <Image
+                          src={pendingImageUrl}
+                          alt="Uploaded Preview"
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-[#206035] flex items-center gap-1">
+                        <Check size={14} />
+                        <span>Ready for color assignment</span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* STEP 2: ASSIGN COLOR FOR THIS PHOTO */}
+                {(pendingImageUrl || editingColorId) && (
+                  <div className="space-y-3 bg-white p-4 rounded-xl border border-[#ebe5da] animate-in fade-in">
+                    <span className="text-[11px] font-bold text-[#142319] uppercase tracking-wider block">
+                      {editingColorId
+                        ? 'Update Color Variant Details:'
+                        : 'Step 2: Choose or Add Color for this Photo:'}
+                    </span>
+
+                    {/* Existing Colors in this product */}
+                    {editingProduct.colors.length > 0 && !editingColorId && (
+                      <div className="space-y-1.5">
+                        <span className="text-[11px] font-semibold text-[#6b7770] block">
+                          Pick from existing colors in this product:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from(
+                            new Map(editingProduct.colors.map((c) => [c.hex.toLowerCase(), c])).values()
+                          ).map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => {
+                                setNewColorName(c.name)
+                                setNewColorHex(c.hex)
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
+                                newColorHex.toLowerCase() === c.hex.toLowerCase()
+                                  ? 'border-[#1c3624] bg-[#eef7f0] text-[#1c3624] font-bold shadow-2xs'
+                                  : 'border-[#ded7cb] bg-white text-[#556358] hover:border-[#1c3624]'
+                              }`}
+                            >
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-inner"
+                                style={{ backgroundColor: c.hex }}
+                              />
+                              <span>{c.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Color Name & Hex picker */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ebe5da]">
                       <div>
                         <label className="block text-[11px] font-semibold text-[#6b7770] mb-1">
-                          New Color Name
+                          Color Name
                         </label>
                         <input
                           type="text"
                           value={newColorName}
                           onChange={(e) => setNewColorName(e.target.value)}
-                          placeholder="e.g., Desert Terracotta, Navy Blue"
+                          placeholder="e.g. Sage Green, Terracotta, Navy Blue"
                           className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
                         />
                       </div>
@@ -793,14 +1056,32 @@ export default function ProductsModule({
                           <input
                             type="color"
                             value={newColorHex}
-                            onChange={(e) => setNewColorHex(e.target.value)}
+                            onChange={(e) => {
+                              const hex = e.target.value
+                              setNewColorHex(hex)
+                              const match = editingProduct.colors.find(
+                                (c) => c.hex.toLowerCase() === hex.toLowerCase()
+                              )
+                              if (match && !editingColorId) {
+                                setNewColorName(match.name)
+                              }
+                            }}
                             className="w-9 h-9 rounded-xl bg-transparent border-0 cursor-pointer flex-shrink-0"
                             title="Native Color Picker"
                           />
                           <input
                             type="text"
                             value={newColorHex}
-                            onChange={(e) => setNewColorHex(e.target.value)}
+                            onChange={(e) => {
+                              const hex = e.target.value
+                              setNewColorHex(hex)
+                              const match = editingProduct.colors.find(
+                                (c) => c.hex.toLowerCase() === hex.toLowerCase()
+                              )
+                              if (match && !editingColorId) {
+                                setNewColorName(match.name)
+                              }
+                            }}
                             className="w-24 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-2.5 py-2 text-xs text-[#142319] outline-hidden font-mono"
                           />
                           {/* Eyedropper Button */}
@@ -816,26 +1097,38 @@ export default function ProductsModule({
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Upload Action */}
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
-                    <Upload size={14} />
-                    <span>{uploading ? 'Processing WebP...' : 'Upload Image File (PNG, JPG, HEIC)'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploading}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-[11px] text-[#6b7770]">
-                    Auto-converts to WebP with 85% compression
-                  </span>
-                </div>
+                    {/* Commit Color & Image Button */}
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      {editingColorId && (
+                        <button
+                          type="button"
+                          onClick={handleCancelColorEdit}
+                          className="px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
+                        >
+                          Cancel Editing
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editingColorId) {
+                            handleUpdateCurrentColor()
+                          } else {
+                            handleAssignColorToPendingImage(newColorName, newColorHex)
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Check size={14} />
+                        <span>
+                          {editingColorId ? 'Update Color Variant' : 'Pair Photo with this Color'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -852,58 +1145,55 @@ export default function ProductsModule({
                   </p>
                 </div>
 
-                {/* Main Toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
+                {/* Elegant Toggle Switch (Replaces Checkbox) */}
+                <div className="flex items-center gap-2.5">
                   <span className="text-xs font-semibold text-[#142319]">
-                    {editingProduct.customization?.enabled ? 'Customization ON' : 'Customization OFF'}
+                    {editingProduct.customization?.enabled ? 'Enabled' : 'Disabled'}
                   </span>
-                  <input
-                    type="checkbox"
-                    checked={editingProduct.customization?.enabled || false}
-                    onChange={(e) =>
+                  <button
+                    type="button"
+                    onClick={() =>
                       setEditingProduct({
                         ...editingProduct,
                         customization: {
                           ...editingProduct.customization,
-                          enabled: e.target.checked,
+                          enabled: !editingProduct.customization?.enabled,
                         },
                       })
                     }
-                    className="w-5 h-5 rounded text-[#1c3624] focus:ring-[#1c3624] cursor-pointer"
-                  />
-                </label>
+                    className={`w-12 h-6.5 rounded-full p-1 transition-colors cursor-pointer flex items-center ${
+                      editingProduct.customization?.enabled ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
+                        editingProduct.customization?.enabled ? 'translate-x-5.5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
-              {/* If Customization is ON */}
+              {/* If Customization is Enabled */}
               {editingProduct.customization?.enabled && (
                 <div className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#142319] uppercase tracking-wider">
-                      Customization Options Available for this Product
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleAddCustomization}
-                      className="text-xs text-[#206035] hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus size={14} />
-                      <span>Add Option</span>
-                    </button>
-                  </div>
+                  <span className="text-xs font-bold text-[#142319] uppercase tracking-wider block">
+                    Customization Options Available for this Product
+                  </span>
 
                   {editingProduct.customization.options.length === 0 ? (
                     <div className="py-2 text-xs text-[#6b7770]">
-                      No custom options added yet. Click &ldquo;Add Option&rdquo; above to set types and prices.
+                      No custom options configured yet. Click the button below to add options.
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {editingProduct.customization.options.map((opt, idx) => (
                         <div
                           key={opt.id}
-                          className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#ebe5da]"
+                          className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#ebe5da]"
                         >
                           <div className="flex-1">
-                            <label className="block text-[10px] text-[#6b7770] mb-0.5">
+                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
                               Customization Type (e.g. Pocket Monogram, Back DTF Print)
                             </label>
                             <input
@@ -920,13 +1210,13 @@ export default function ProductsModule({
                                   },
                                 })
                               }}
-                              placeholder="e.g., Pocket Monogram Embroidery, HD DTF Back Print"
+                              placeholder="e.g. Pocket Monogram Embroidery, HD DTF Back Print"
                               className="w-full bg-white border border-[#ded7cb] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
                             />
                           </div>
 
                           <div className="w-28">
-                            <label className="block text-[10px] text-[#6b7770] mb-0.5">
+                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
                               Fee (₹)
                             </label>
                             <input
@@ -950,20 +1240,30 @@ export default function ProductsModule({
                           <button
                             type="button"
                             onClick={() => handleRemoveCustomization(opt.id)}
-                            className="p-1.5 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] transition-colors mt-3"
-                            title="Remove"
+                            className="p-2 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] transition-colors mt-3 cursor-pointer"
+                            title="Remove Option"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       ))}
                     </div>
                   )}
 
+                  {/* Add Option Button Placed Below the Last Field, Matching Field Width */}
+                  <button
+                    type="button"
+                    onClick={handleAddCustomization}
+                    className="w-full py-2.5 px-4 rounded-xl border border-dashed border-[#206035] bg-white hover:bg-[#eef7f0] text-[#206035] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs mt-2"
+                  >
+                    <Plus size={15} />
+                    <span>+ Add Customization Option (e.g. Sleeve Monogram, DTF Print)</span>
+                  </button>
+
                   <div className="p-2.5 rounded-xl bg-[#eaf6ec] border border-[#cbe8d1] text-[11px] text-[#246b38] flex items-center gap-1.5 font-medium">
                     <Check size={13} />
                     <span>
-                      Customers will see the <strong>&ldquo;Customization Available&rdquo;</strong> badge on product cards!
+                      Customers browsing the storefront will see the <strong>&ldquo;Customization Available&rdquo;</strong> badge on this product card.
                     </span>
                   </div>
                 </div>
@@ -998,17 +1298,17 @@ export default function ProductsModule({
         onClose={() => setPreviewOpen(false)}
         title="Products & PDP Color-Sync Preview"
       >
-        <div className="p-6 space-y-8 bg-[#faf8f5]">
+        <div className="p-3 sm:p-6 space-y-6 bg-[#faf8f5]">
           <div>
-            <h3 className="font-display text-xl font-bold text-[#142319] mb-2">
+            <h3 className="font-display text-lg sm:text-xl font-bold text-[#142319] mb-1">
               Catalog Product Cards Preview
             </h3>
-            <p className="text-xs text-[#6b7770] mb-4">
+            <p className="text-xs text-[#6b7770] mb-3">
               Shows badges, prices, and the &ldquo;Customization Available&rdquo; label
             </p>
-            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+            <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar">
               {filteredProducts.slice(0, 4).map((p) => (
-                <div key={p.id} className="w-52 flex-shrink-0">
+                <div key={p.id} className="w-44 sm:w-48 flex-shrink-0">
                   <ProductCard
                     id={p.id}
                     name={p.name}
@@ -1024,21 +1324,22 @@ export default function ProductsModule({
                     badge={p.badge === 'None' ? undefined : p.badge}
                     category={p.category}
                     gender={p.gender}
+                    customization={p.customization}
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#ded7cb]">
-            <h3 className="font-display text-xl font-bold text-[#142319] mb-2">
-              Product Details Page (PDP) Preview
+          <div className="pt-4 border-t border-[#ded7cb]">
+            <h3 className="font-display text-lg sm:text-xl font-bold text-[#142319] mb-1">
+              Product Details Page (PDP) Live Preview
             </h3>
-            <p className="text-xs text-[#6b7770] mb-4">
-              Test clicking color swatches below to verify live image switching
+            <p className="text-xs text-[#6b7770] mb-3">
+              Test clicking color swatches below to verify live image switching &amp; customization add-on
             </p>
             <div className="rounded-2xl overflow-hidden border border-[#ded7cb] bg-white">
-              <ProductDetailsView />
+              <ProductDetailsView productId={filteredProducts[0]?.id || '1'} />
             </div>
           </div>
         </div>

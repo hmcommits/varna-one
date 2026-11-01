@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
+import { useStore } from '@/context/StoreContext'
 
 const slides = [
   {
@@ -13,7 +14,9 @@ const slides = [
     subtitle: 'Modern fits for every mood. From workdays to weekends.',
     scriptText: 'Looks for every you',
     ctaPrimary: 'Shop Men →',
+    ctaPrimaryFilter: 'Men',
     ctaSecondary: 'Shop Women',
+    ctaSecondaryFilter: 'Women',
     mobilePosition: 'object-[72%_center]',
   },
   {
@@ -25,7 +28,9 @@ const slides = [
     subtitle: 'Celebrate every occasion with style and grace.',
     scriptText: 'Dress to express',
     ctaPrimary: 'Shop Women →',
+    ctaPrimaryFilter: 'Women',
     ctaSecondary: 'Shop Men',
+    ctaSecondaryFilter: 'Men',
     mobilePosition: 'object-[78%_center]',
   },
   {
@@ -37,12 +42,15 @@ const slides = [
     subtitle: 'Premium linen collection for every season.',
     scriptText: 'Comfort meets class',
     ctaPrimary: 'Shop Now →',
+    ctaPrimaryFilter: 'All',
     ctaSecondary: 'View All',
+    ctaSecondaryFilter: 'All',
     mobilePosition: 'object-[65%_center]',
   },
 ]
 
 export default function HeroSlider() {
+  const { selectCatalogFilter } = useStore()
   const [current, setCurrent] = useState(0)
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
@@ -85,8 +93,8 @@ export default function HeroSlider() {
     }
   }
 
-  const handleActionClick = (e: React.MouseEvent) => {
-    e.preventDefault()
+  const handleCtaClick = (filter: string) => {
+    selectCatalogFilter(filter, true)
   }
 
   return (
@@ -96,6 +104,20 @@ export default function HeroSlider() {
       onTouchEnd={handleTouchEnd}
       className="relative w-full h-[320px] sm:h-[400px] md:h-[540px] lg:h-[600px] overflow-hidden bg-[#1a2e1a] select-none"
     >
+      {/* Invisible Interactive Tap Zones: Left tap -> Prev, Right tap -> Next */}
+      <div
+        onClick={prevSlide}
+        aria-label="Previous slide area"
+        className="absolute left-0 top-0 bottom-16 w-1/4 z-10 cursor-pointer"
+        title="Tap to see previous slide"
+      />
+      <div
+        onClick={nextSlide}
+        aria-label="Next slide area"
+        className="absolute right-0 top-0 bottom-16 w-1/3 z-10 cursor-pointer"
+        title="Tap to see next slide"
+      />
+
       {/* High-Resolution Background Slides with smooth crossfade */}
       {slides.map((s, idx) => (
         <div
@@ -123,8 +145,8 @@ export default function HeroSlider() {
       ))}
 
       {/* Slide Content */}
-      <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex flex-col justify-end md:justify-center pb-12 sm:pb-14 md:pb-0">
-        <div className="max-w-md md:max-w-lg text-white">
+      <div className="relative z-20 h-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex flex-col justify-end md:justify-center pb-12 sm:pb-14 md:pb-0 pointer-events-none">
+        <div className="max-w-md md:max-w-lg text-white pointer-events-auto">
           <p className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase mb-1 md:mb-2 text-[#e8d5b7]">
             {slides[current].badge}
           </p>
@@ -137,14 +159,14 @@ export default function HeroSlider() {
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               type="button"
-              onClick={handleActionClick}
+              onClick={() => handleCtaClick(slides[current].ctaPrimaryFilter)}
               className="bg-[#1a2e1a] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#2d4a2d] active:scale-95 transition-all shadow-md cursor-pointer border border-[#e8d5b7]/30"
             >
               {slides[current].ctaPrimary}
             </button>
             <button
               type="button"
-              onClick={handleActionClick}
+              onClick={() => handleCtaClick(slides[current].ctaSecondaryFilter)}
               className="border border-[#e8d5b7]/70 backdrop-blur-md bg-black/25 text-[#e8d5b7] hover:text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-white/20 active:scale-95 transition-all cursor-pointer shadow-md"
             >
               {slides[current].ctaSecondary}

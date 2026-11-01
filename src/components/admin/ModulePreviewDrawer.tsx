@@ -90,17 +90,42 @@ export default function ModulePreviewDrawer({
       </div>
 
       {/* Preview Stage Container */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex items-start justify-center bg-[#142319]/25 backdrop-blur-xs">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-6 flex items-start justify-center bg-[#0a120c]/70 backdrop-blur-md">
         <div
-          className={`transition-all duration-300 mx-auto rounded-3xl overflow-hidden shadow-2xl border border-[#ded7cb] bg-[#faf8f5] text-[#142319] ${
+          className={`transition-all duration-300 mx-auto overflow-hidden bg-[#faf8f5] text-[#142319] ${
             viewport === 'mobile'
-              ? 'w-[375px] max-w-full'
+              ? 'w-[375px] max-w-full rounded-[40px] border-8 border-[#1f2d22] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] my-2'
               : viewport === 'tablet'
-              ? 'w-[768px] max-w-full'
-              : 'w-full max-w-6xl'
+              ? 'w-[768px] max-w-full rounded-[32px] border-8 border-[#1f2d22] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] my-2'
+              : 'w-full max-w-6xl rounded-3xl border border-[#ded7cb] shadow-2xl my-2'
           }`}
         >
-          {children}
+          {/* Mobile Speaker & Camera Island Bar */}
+          {viewport === 'mobile' && (
+            <div className="bg-[#1f2d22] py-2 flex items-center justify-center">
+              <div className="w-20 h-4 bg-black rounded-full flex items-center justify-end px-2">
+                <div className="w-2 h-2 rounded-full bg-[#1f2d22]" />
+              </div>
+            </div>
+          )}
+
+          {/* Tablet Camera Indicator */}
+          {viewport === 'tablet' && (
+            <div className="bg-[#1f2d22] py-1.5 flex items-center justify-center">
+              <div className="w-2.5 h-2.5 rounded-full bg-black/60" />
+            </div>
+          )}
+
+          <div className="max-h-[82vh] overflow-y-auto overflow-x-hidden">
+            {children}
+          </div>
+
+          {/* Mobile Bottom Home Indicator Bar */}
+          {viewport === 'mobile' && (
+            <div className="bg-[#faf8f5] py-2 flex items-center justify-center border-t border-[#ebe5da]">
+              <div className="w-28 h-1 bg-black/40 rounded-full" />
+            </div>
+          )}
         </div>
       </div>
     </div>

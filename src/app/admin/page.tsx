@@ -159,11 +159,14 @@ export default function AdminDashboardPage() {
     }
   }
 
+  const toastTimerRef = React.useRef<NodeJS.Timeout | null>(null)
+
   const showSavedToast = () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     setSaveSuccessToast(true)
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setSaveSuccessToast(false)
-    }, 3000)
+    }, 3500)
   }
 
   const handleLogout = () => {
@@ -201,18 +204,55 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#142319] flex">
-      {/* Save Success Floating Notification Banner */}
+      {/* Save Success Floating Notification Banner with Depleting Progress Bar & Dismiss */}
       {saveSuccessToast && (
-        <div className="fixed top-5 right-5 z-[100] bg-[#1c3624] text-white border border-[#25D366]/40 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center flex-shrink-0">
-            <Check size={18} />
+        <div className="fixed top-5 right-5 z-[100] bg-[#1c3624] text-white border border-[#25D366]/40 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 w-80 max-w-[90vw]">
+          <div className="p-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center flex-shrink-0">
+                <Check size={18} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white">Changes Saved Live!</p>
+                <p className="text-[10px] text-[#e8dccb] leading-tight">
+                  Synchronized to MongoDB Atlas &amp; Cloudinary CDN
+                </p>
+              </div>
+            </div>
+
+            {/* Small Cross Icon to Dismiss */}
+            <button
+              type="button"
+              onClick={() => {
+                if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+                setSaveSuccessToast(false)
+              }}
+              className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition-colors flex-shrink-0"
+              aria-label="Close notification"
+            >
+              <X size={13} />
+            </button>
           </div>
-          <div>
-            <p className="text-xs font-bold text-white">Changes Saved Live!</p>
-            <p className="text-[11px] text-[#e8dccb]">
-              Synchronized to MongoDB Atlas &amp; Cloudinary CDN
-            </p>
+
+          {/* Thin Depleting Progress Bar */}
+          <div className="w-full h-1 bg-black/30 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#25D366] to-[#a3e9b8]"
+              style={{
+                animation: 'toastProgress 3.5s linear forwards',
+              }}
+            />
           </div>
+          <style jsx>{`
+            @keyframes toastProgress {
+              from {
+                width: 100%;
+              }
+              to {
+                width: 0%;
+              }
+            }
+          `}</style>
         </div>
       )}
 
@@ -225,6 +265,14 @@ export default function AdminDashboardPage() {
         onSaveAndContinue={handleSaveAndContinue}
         isSaving={isSaving}
       />
+
+      {/* Mobile Backdrop for Sidebar */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 z-35 bg-black/50 backdrop-blur-xs lg:hidden"
+        />
+      )}
 
       {/* SIDEBAR (Desktop & Mobile Drawer) - Deep Forest Green Luxury */}
       <aside

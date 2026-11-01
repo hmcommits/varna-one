@@ -25,13 +25,6 @@ import { useStore } from '@/context/StoreContext'
 import { defaultStoreData } from '@/data/defaultStoreData'
 import { ProductColor } from '@/types/store'
 
-const sizeOptions = [
-  { size: 'S', chest: '38"', status: 'In stock' },
-  { size: 'M', chest: '40"', status: 'Only 3 left' },
-  { size: 'L', chest: '42"', status: 'In stock' },
-  { size: 'XL', chest: '44"', status: 'In stock' },
-  { size: 'XXL', chest: '46"', status: 'Limited stock' },
-]
 
 const sizeChartData = [
   { size: 'S', chestIn: '38', chestCm: '96.5', shoulderIn: '17.5', lengthIn: '28.5' },
@@ -41,32 +34,39 @@ const sizeChartData = [
   { size: 'XXL', chestIn: '46', chestCm: '117.0', shoulderIn: '20.2', lengthIn: '30.5' },
 ]
 
-export default function ProductDetailsView() {
+interface ProductDetailsViewProps {
+  productId?: string
+}
+
+export default function ProductDetailsView({ productId }: ProductDetailsViewProps = {}) {
   const { activeStore, logEnquiry } = useStore()
 
-  // Find linen shirt product or default fallback
+  // Find product by id (or fallback to linen-shirt / first product)
   const product =
-    activeStore.products?.find((p) => p.id === '1') || defaultStoreData.products[0]
+    activeStore.products?.find(
+      (p) => p.id === productId || (productId === 'linen-shirt' && p.id === '1')
+    ) ||
+    activeStore.products?.[0] ||
+    defaultStoreData.products[0]
 
   const colors: ProductColor[] =
     product.colors?.length > 0 ? product.colors : defaultStoreData.products[0].colors
 
-  const [selectedColor, setSelectedColor] = useState<ProductColor>(colors[0])
+  const availableSizes =
+    product.sizes && product.sizes.length > 0
+      ? product.sizes
+      : ['S', 'M', 'L', 'XL', 'XXL']
+
+  const [selectedColor, setSelectedColor] = useState<ProductColor>(colors[0] || { id: 'c1', name: 'Default', hex: '#111', image: '' })
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  const [selectedSize, setSelectedSize] = useState('M')
+  const [selectedSize, setSelectedSize] = useState(availableSizes[0] || 'M')
   const [quantity, setQuantity] = useState(1)
   const [wishlisted, setWishlisted] = useState(false)
   const [showSizeModal, setShowSizeModal] = useState(false)
 
   // Customization state
-  const hasCustomization = product.customization?.enabled ?? true
-  const customOptions = product.customization?.options || [
-    {
-      id: 'dtf-1',
-      type: 'Allow Custom DTF Print / Monogram Embroidery',
-      price: 150,
-    },
-  ]
+  const hasCustomization = product.customization?.enabled ?? false
+  const customOptions = product.customization?.options || []
   const [customEmbroidery, setCustomEmbroidery] = useState(false)
   const [selectedCustomOptionIdx, setSelectedCustomOptionIdx] = useState(0)
   const [customNotes, setCustomNotes] = useState('')
@@ -139,11 +139,17 @@ export default function ProductDetailsView() {
 
   // Dynamic WhatsApp Concierge Order Link
   const buildWhatsAppMessage = () => {
+    const currentUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/products/${product.id}`
+        : `https://varna.store/products/${product.id}`
+
     let msg = `Hi Varna! I'd like to order the *${product.name}*:\n\n`
     msg += `• *Color:* ${selectedColor.name}\n`
-    msg += `• *Size:* ${selectedSize} (${sizeOptions.find((s) => s.size === selectedSize)?.chest})\n`
+    msg += `• *Size:* ${selectedSize}\n`
     msg += `• *Quantity:* ${quantity}\n`
     msg += `• *Total Amount:* ₹${totalPrice.toLocaleString('en-IN')}\n`
+    msg += `• *Product Link:* ${currentUrl}\n`
 
     if (customEmbroidery) {
       msg += `• *Custom Request:* ${activeCustomOption?.type || 'Custom Print'} (+₹${activeCustomOption?.price || 150})`
@@ -171,11 +177,16 @@ export default function ProductDetailsView() {
     })
   }
 
+  const productShareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/products/${product.id}`
+      : `https://varna.store/products/${product.id}`
+
   const whatsappOrderUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
     buildWhatsAppMessage()
   )}`
   const whatsappQuestionUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-    `Hi Varna! I have a question about the ${product.name} (Size ${selectedSize}, ${selectedColor.name}). Can you help me with sizing & fabric photos?`
+    `Hi Varna! I have a question about the ${product.name} (Size ${selectedSize}, ${selectedColor.name}).\n• Product Link: ${productShareUrl}\nCan you help me with sizing & fabric photos?`
   )}`
 
   const handleShare = async () => {
@@ -361,10 +372,10 @@ export default function ProductDetailsView() {
             {/* Brand & Category Tag */}
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#1a2e1a]">
-                VARNA SIGNATURE LINEN
+                {product.category || 'VARNA LUXURY'} • {product.gender || 'UNISEX'}
               </span>
               <span className="text-xs font-medium text-[#7d7062]">
-                Ref: <span className="font-mono text-[#1a1a1a]">VAR-MLS-001</span>
+                Ref: <span className="font-mono text-[#1a1a1a]">VAR-{product.id.slice(-6).toUpperCase()}</span>
               </span>
             </div>
 
@@ -374,8 +385,8 @@ export default function ProductDetailsView() {
             </h1>
 
             {/* Tagline / Subtitle */}
-            <p className="text-xs sm:text-sm text-[#7d7062] mb-3">
-              Tailored from 100% European flax fibers. Relaxed regular fit with spread collar and curved hem.
+            <p className="text-xs sm:text-sm text-[#7d7062] mb-3 leading-relaxed">
+              {product.description || 'Crafted with premium materials. Relaxed modern fit tailored for all-day comfort.'}
             </p>
 
             {/* Star Rating & Review Count */}
@@ -467,26 +478,19 @@ export default function ProductDetailsView() {
               </div>
 
               {/* Size Buttons */}
-              <div className="grid grid-cols-5 gap-2 mb-2">
-                {sizeOptions.map((opt) => (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {availableSizes.map((sz) => (
                   <button
-                    key={opt.size}
+                    key={sz}
                     type="button"
-                    onClick={() => setSelectedSize(opt.size)}
-                    className={`py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold border transition-all text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                      selectedSize === opt.size
+                    onClick={() => setSelectedSize(sz)}
+                    className={`py-2 px-3.5 rounded-xl text-xs sm:text-sm font-bold border transition-all text-center flex items-center justify-center cursor-pointer min-w-[44px] ${
+                      selectedSize === sz
                         ? 'bg-[#1a2e1a] text-white border-[#1a2e1a] shadow-md scale-[1.02]'
                         : 'bg-white text-[#1a1a1a] border-[#e8d5b7]/80 hover:border-[#1a2e1a] hover:text-[#1a2e1a]'
                     }`}
                   >
-                    <span>{opt.size}</span>
-                    <span
-                      className={`text-[9px] font-normal ${
-                        selectedSize === opt.size ? 'text-[#e8d5b7]' : 'text-[#8a7d6e]'
-                      }`}
-                    >
-                      {opt.chest}
-                    </span>
+                    <span>{sz}</span>
                   </button>
                 ))}
               </div>
@@ -686,20 +690,24 @@ export default function ProductDetailsView() {
               {/* Tab Content */}
               <div className="text-xs sm:text-sm text-[#63574a] space-y-2.5 leading-relaxed">
                 {activeTab === 'details' && (
-                  <ul className="space-y-1.5 list-disc list-inside">
-                    <li>
-                      <strong className="text-[#1a1a1a]">Fit:</strong> Relaxed regular fit crafted to drape cleanly without restricting mobility.
-                    </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Collar:</strong> Refined semi-spread collar with soft fusing that holds shape.
-                    </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Hem:</strong> Subtly curved hem; looks equally stylish tucked in or worn untucked.
-                    </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Buttons:</strong> Mother-of-pearl finished resin buttons secured with lock-stitch.
-                    </li>
-                  </ul>
+                  <div className="space-y-3">
+                    {product.description && (
+                      <p className="text-xs sm:text-sm text-[#1a1a1a] leading-relaxed bg-[#faf8f4] p-3 rounded-xl border border-[#e8d5b7]/60">
+                        {product.description}
+                      </p>
+                    )}
+                    <ul className="space-y-1.5 list-disc list-inside">
+                      <li>
+                        <strong className="text-[#1a1a1a]">Fit:</strong> Relaxed regular fit crafted to drape cleanly without restricting mobility.
+                      </li>
+                      <li>
+                        <strong className="text-[#1a1a1a]">Category:</strong> {product.category || 'Apparel'} • {product.gender || 'Unisex'}
+                      </li>
+                      <li>
+                        <strong className="text-[#1a1a1a]">Stock Urgency:</strong> {product.stockUrgency || 'In Stock'}
+                      </li>
+                    </ul>
+                  </div>
                 )}
 
                 {activeTab === 'fabric' && (

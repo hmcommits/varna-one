@@ -17,9 +17,8 @@ const navLinks = [
 
 export default function Navbar() {
   const router = useRouter()
-  const { activeStore } = useStore()
+  const { activeStore, searchQuery, setSearchQuery, selectCatalogFilter } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
 
   // 5-Tap Easter Egg Detection
   const [tapCount, setTapCount] = useState(0)
@@ -69,6 +68,29 @@ export default function Navbar() {
     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
   const storeName = activeStore.settings?.storeName || 'Varna'
   const subtitle = activeStore.settings?.subtitle || 'Custom Wear & Prints'
+
+  const handleNavLinkClick = (label: string, e: React.MouseEvent) => {
+    if (label === 'Men') {
+      e.preventDefault()
+      selectCatalogFilter('Men', true)
+      setMobileOpen(false)
+    } else if (label === 'Women') {
+      e.preventDefault()
+      selectCatalogFilter('Women', true)
+      setMobileOpen(false)
+    } else if (label === 'New Arrivals' || label === 'Collections') {
+      e.preventDefault()
+      selectCatalogFilter('All', true)
+      setMobileOpen(false)
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const el = document.getElementById('new-arrivals')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 
   return (
     <>
@@ -157,6 +179,7 @@ export default function Navbar() {
               <Link
                 key={link.label}
                 href={link.href}
+                onClick={(e) => handleNavLinkClick(link.label, e)}
                 className={`text-sm font-medium tracking-wide transition-colors py-1 relative group cursor-pointer ${
                   link.isRed ? 'text-[#c85a44] font-semibold' : 'text-[#3d362e] hover:text-[#1a2e1a]'
                 }`}
@@ -170,11 +193,19 @@ export default function Navbar() {
           {/* Right Action: Clean Search Bar */}
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs">
-              <Search size={15} className="text-[#8a7d6e] flex-shrink-0" />
+              <Search
+                size={15}
+                className="text-[#8a7d6e] flex-shrink-0 cursor-pointer"
+                onClick={() => {
+                  const el = document.getElementById('new-arrivals')
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search t-shirts, jerseys, hoodies..."
                 className="bg-transparent text-xs outline-none w-48 lg:w-64 text-[#1a1a1a] placeholder-[#8a7d6e]"
               />
@@ -192,6 +223,7 @@ export default function Navbar() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search designs..."
                 className="bg-transparent text-xs outline-none w-full text-[#1a1a1a] placeholder-[#8a7d6e]"
               />
@@ -203,7 +235,7 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={(e) => handleNavLinkClick(link.label, e)}
                   className={`text-sm py-2 px-3 rounded-lg font-medium transition-colors cursor-pointer ${
                     link.isRed ? 'text-[#c85a44] font-semibold bg-[#c85a44]/5' : 'text-[#3d362e] hover:bg-[#faf8f4]'
                   }`}

@@ -1,16 +1,24 @@
 import type { Metadata } from 'next'
 import ProductDetailsView from '@/components/product/ProductDetailsView'
 
+export const dynamicParams = true
+
 export const metadata: Metadata = {
-  title: 'Premium Pure Linen Casual Shirt | Varna Custom Wear & Prints',
+  title: 'Product Details | Varna Custom Wear & Prints',
   description:
-    'Tailored from 100% natural European flax fibers. Relaxed regular fit with spread collar and curved hem. Custom embroidery, DTF prints & WhatsApp concierge ordering.',
+    'Curated premium apparel, custom prints, embroidery & direct WhatsApp concierge ordering.',
 }
 
 export function generateStaticParams() {
   return [{ id: '1' }, { id: 'linen-shirt' }]
 }
 
-export default function ProductPage() {
-  return <ProductDetailsView />
+interface ProductPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function ProductPage({ params }: ProductPageProps) {
+  return <ProductDetailsView productId={params.id} />
 }

@@ -26,7 +26,7 @@ export interface Product {
   originalPrice: number
   rating: number
   reviewCount: number
-  stockUrgency: 'In Stock' | 'Only 3 left' | 'Out of Stock'
+  stockUrgency: 'In Stock' | 'Few Pieces Left' | 'Only 3 left' | 'Out of Stock' | string
   badge?: 'None' | 'New' | 'Trending' | 'Bestseller' | 'Flash Sale'
   sizes: string[]
   colors: ProductColor[]
