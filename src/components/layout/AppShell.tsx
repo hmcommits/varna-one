@@ -12,7 +12,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isAdminRoute = pathname?.startsWith('/admin')
 
   if (isAdminRoute) {
-    return <main className="min-h-screen bg-[#0b120c] text-[#f4efe6]">{children}</main>
+    return <main className="min-h-screen bg-[#faf8f5] text-[#142319]">{children}</main>
   }
 
   return (

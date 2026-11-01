@@ -126,15 +126,15 @@ export default function HomepageModule() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#111a13] border border-[#c4a675]/30 rounded-3xl p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs">
         <div>
-          <span className="text-[10px] font-bold tracking-widest uppercase text-[#c4a675] font-mono">
+          <span className="text-[10px] font-bold tracking-widest uppercase text-[#845d1d] font-mono">
             VISUAL MERCHANDISING
           </span>
-          <h2 className="font-display text-xl sm:text-2xl font-bold text-[#f4efe6]">
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-[#142319] mt-0.5">
             Homepage Editor &amp; Banners
           </h2>
-          <p className="text-xs text-[#a89d8f] mt-0.5">
+          <p className="text-xs text-[#6b7770] mt-0.5">
             Top announcement bar (max 3 texts), ticker marquee, dynamic split promo banners &amp; trust guarantees
           </p>
         </div>
@@ -142,28 +142,28 @@ export default function HomepageModule() {
         <button
           type="button"
           onClick={() => setPreviewOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-[#f4efe6] transition-colors cursor-pointer self-start sm:self-auto"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer self-start sm:self-auto"
         >
-          <Eye size={14} className="text-[#c4a675]" />
+          <Eye size={14} className="text-[#845d1d]" />
           <span>Preview Homepage Sections</span>
         </button>
       </div>
 
       {/* 1. TOP GREEN ANNOUNCEMENT BAR (MAX 3 FIELDS) */}
-      <div className="bg-[#111a13] border border-[#c4a675]/30 rounded-3xl p-5 sm:p-6 space-y-4">
+      <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-display text-base font-bold text-white flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#1a2e1a] border border-[#25D366]/40" />
-              <span>Top Green Announcement Bar</span>
+            <h3 className="font-display text-base font-bold text-[#142319] flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#1c3624] border border-[#1c3624]" />
+              <span>Top Announcement Bar</span>
             </h3>
-            <p className="text-xs text-[#a89d8f]">
-              The green bar running at the very top of the website. Enter up to 3 rotating announcements.
+            <p className="text-xs text-[#6b7770]">
+              The announcement bar running at the very top of the storefront. Enter up to 3 rotating announcements.
             </p>
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-xs text-[#e8d5b7]">
+            <span className="text-xs font-semibold text-[#142319]">
               {homepage.topBarVisible ? 'Visible ON' : 'Hidden OFF'}
             </span>
             <input
@@ -175,7 +175,7 @@ export default function HomepageModule() {
                   homepage: { ...prev.homepage, topBarVisible: e.target.checked },
                 }))
               }
-              className="w-4 h-4 rounded text-[#25D366] focus:ring-[#25D366]"
+              className="w-4 h-4 rounded text-[#1c3624] focus:ring-[#1c3624] cursor-pointer"
             />
           </label>
         </div>
@@ -184,18 +184,18 @@ export default function HomepageModule() {
         <div className="space-y-3 pt-2">
           {(homepage.topBarTexts || []).map((text, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <span className="text-xs font-mono text-[#c4a675] w-16">Text {idx + 1}:</span>
+              <span className="text-xs font-mono font-bold text-[#845d1d] w-16">Text {idx + 1}:</span>
               <input
                 type="text"
                 value={text}
                 onChange={(e) => handleUpdateTopBarText(idx, e.target.value)}
                 placeholder="Enter announcement text..."
-                className="flex-1 bg-[#0b120c] border border-white/10 focus:border-[#c4a675] rounded-xl px-3.5 py-2 text-xs text-white outline-none"
+                className="flex-1 bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3.5 py-2 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
               />
               <button
                 type="button"
                 onClick={() => handleRemoveTopBarText(idx)}
-                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                className="p-2 text-[#b84840] hover:bg-[#fdf0ef] rounded-lg transition-colors cursor-pointer"
                 title="Remove this text"
               >
                 <Trash2 size={13} />
@@ -207,7 +207,7 @@ export default function HomepageModule() {
             <button
               type="button"
               onClick={handleAddTopBarText}
-              className="mt-2 text-xs text-[#25D366] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+              className="mt-2 text-xs text-[#206035] hover:underline font-bold flex items-center gap-1 cursor-pointer"
             >
               <Plus size={13} />
               <span>+ Add Field ({(homepage.topBarTexts?.length || 0)} of 3 used)</span>
@@ -217,12 +217,12 @@ export default function HomepageModule() {
       </div>
 
       {/* 2. TRENDING TICKER MARQUEE */}
-      <div className="bg-[#111a13] border border-[#c4a675]/30 rounded-3xl p-5 sm:p-6 space-y-4">
+      <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div>
-          <h3 className="font-display text-base font-bold text-white">
+          <h3 className="font-display text-base font-bold text-[#142319]">
             Trending Ticker Chips (Marquee Bar)
           </h3>
-          <p className="text-xs text-[#a89d8f]">
+          <p className="text-xs text-[#6b7770]">
             The horizontal running ticker below the hero. Add or remove promotion chips.
           </p>
         </div>
@@ -232,13 +232,13 @@ export default function HomepageModule() {
           {(homepage.tickerChips || []).map((chip, idx) => (
             <span
               key={idx}
-              className="inline-flex items-center gap-2 bg-[#0b120c] border border-[#c4a675]/30 text-[#e8d5b7] px-3 py-1.5 rounded-full text-xs font-semibold"
+              className="inline-flex items-center gap-2 bg-[#faf6f0] border border-[#ded7cb] text-[#142319] px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-2xs"
             >
               <span>{chip}</span>
               <button
                 type="button"
                 onClick={() => handleRemoveTickerChip(idx)}
-                className="text-[#7d7062] hover:text-red-400 cursor-pointer"
+                className="text-[#8c978f] hover:text-[#b84840] cursor-pointer"
                 title="Delete Chip"
               >
                 <Trash2 size={11} />
@@ -254,28 +254,28 @@ export default function HomepageModule() {
             value={newChipText}
             onChange={(e) => setNewChipText(e.target.value)}
             placeholder="e.g., ⚡ FLAT 20% OFF FIRST CUSTOM ORDER"
-            className="flex-1 bg-[#0b120c] border border-white/10 focus:border-[#c4a675] rounded-xl px-3 py-2 text-xs text-white outline-none"
+            className="flex-1 bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
           />
           <button
             type="submit"
-            className="py-2 px-3.5 bg-[#c4a675] hover:bg-[#b59560] text-black font-bold text-xs rounded-xl transition-all cursor-pointer"
+            className="py-2 px-4 bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-97 cursor-pointer"
           >
             + Add Chip
           </button>
         </form>
       </div>
 
-      {/* 3. DYNAMIC SPLIT PROMO BANNERS (ADD / DELETE WITH ADAPTIVE GRID) */}
-      <div className="bg-[#111a13] border border-[#c4a675]/30 rounded-3xl p-5 sm:p-6 space-y-4">
+      {/* 3. DYNAMIC SPLIT PROMO BANNERS */}
+      <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-display text-base font-bold text-white flex items-center gap-2">
+            <h3 className="font-display text-base font-bold text-[#142319] flex items-center gap-2">
               <span>Split Promo Banners</span>
-              <span className="text-[10px] bg-[#1a2e1a] text-[#25D366] px-2 py-0.5 rounded-full font-mono">
+              <span className="text-[10px] bg-[#eaf6ec] text-[#246b38] border border-[#cbe8d1] px-2 py-0.5 rounded-full font-mono font-bold">
                 Adaptive Grid Layout
               </span>
             </h3>
-            <p className="text-xs text-[#a89d8f]">
+            <p className="text-xs text-[#6b7770]">
               Add or delete promo banners. The storefront automatically balances 1, 2, 3, or 4 banners with perfect aesthetics!
             </p>
           </div>
@@ -283,7 +283,7 @@ export default function HomepageModule() {
           <button
             type="button"
             onClick={handleAddBanner}
-            className="flex items-center gap-1 py-1.5 px-3 bg-[#25D366] hover:bg-[#1fb355] text-black font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1 py-1.5 px-3.5 bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-97 cursor-pointer"
           >
             <Plus size={13} />
             <span>+ Add Banner</span>
@@ -295,16 +295,16 @@ export default function HomepageModule() {
           {(homepage.promoBanners || []).map((banner, idx) => (
             <div
               key={banner.id}
-              className="bg-[#0b120c] border border-white/10 rounded-2xl p-4 space-y-3 relative group"
+              className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 space-y-3 relative group shadow-2xs"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#c4a675] font-bold">
+                <span className="text-[10px] font-mono text-[#845d1d] font-bold">
                   Banner #{idx + 1}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleDeleteBanner(banner.id)}
-                  className="text-[#7d7062] hover:text-red-400 p-1 transition-colors cursor-pointer"
+                  className="text-[#8c978f] hover:text-[#b84840] p-1 transition-colors cursor-pointer"
                   title="Delete Banner"
                 >
                   <Trash2 size={13} />
@@ -312,7 +312,7 @@ export default function HomepageModule() {
               </div>
 
               {/* Banner Preview Thumbnail */}
-              <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/10">
+              <div className="relative aspect-16/9 rounded-xl overflow-hidden bg-white border border-[#ded7cb]">
                 <Image
                   src={banner.image}
                   alt={banner.title}
@@ -324,43 +324,43 @@ export default function HomepageModule() {
               {/* Fields */}
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] text-[#a89d8f] mb-0.5">Headline</label>
+                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Headline</label>
                   <input
                     type="text"
                     value={banner.title}
                     onChange={(e) => handleUpdateBanner(banner.id, 'title', e.target.value)}
-                    className="w-full bg-[#111a13] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
+                    className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-[#a89d8f] mb-0.5">Subtitle / Tag</label>
+                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Subtitle / Tag</label>
                   <input
                     type="text"
                     value={banner.subtitle}
                     onChange={(e) => handleUpdateBanner(banner.id, 'subtitle', e.target.value)}
-                    className="w-full bg-[#111a13] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
+                    className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] text-[#a89d8f] mb-0.5">Button CTA</label>
+                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Button CTA</label>
                     <input
                       type="text"
                       value={banner.ctaText}
                       onChange={(e) => handleUpdateBanner(banner.id, 'ctaText', e.target.value)}
-                      className="w-full bg-[#111a13] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-[#a89d8f] mb-0.5">Image Path / URL</label>
+                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Image Path / URL</label>
                     <input
                       type="text"
                       value={banner.image}
                       onChange={(e) => handleUpdateBanner(banner.id, 'image', e.target.value)}
-                      className="w-full bg-[#111a13] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none font-mono text-[10px]"
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-mono text-[10px]"
                     />
                   </div>
                 </div>
@@ -371,13 +371,13 @@ export default function HomepageModule() {
       </div>
 
       {/* 4. TRUST BADGES ("WHY VARNA") */}
-      <div className="bg-[#111a13] border border-[#c4a675]/30 rounded-3xl p-5 sm:p-6 space-y-4">
+      <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div>
-          <h3 className="font-display text-base font-bold text-white">
+          <h3 className="font-display text-base font-bold text-[#142319]">
             Trust Badges &amp; Guarantees (&ldquo;Why Varna&rdquo;)
           </h3>
-          <p className="text-xs text-[#a89d8f]">
-            The 4 service guarantees displayed to build confidence
+          <p className="text-xs text-[#6b7770]">
+            The 4 service guarantees displayed to build customer confidence
           </p>
         </div>
 
@@ -385,19 +385,19 @@ export default function HomepageModule() {
           {(homepage.trustBadges || []).map((badge) => (
             <div
               key={badge.id}
-              className="bg-[#0b120c] border border-white/10 rounded-2xl p-3.5 space-y-2"
+              className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-3.5 space-y-2 shadow-2xs"
             >
               <input
                 type="text"
                 value={badge.title}
                 onChange={(e) => handleUpdateBadge(badge.id, 'title', e.target.value)}
-                className="w-full bg-[#111a13] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white font-bold outline-none"
+                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] font-bold outline-hidden"
               />
               <textarea
                 value={badge.desc}
                 onChange={(e) => handleUpdateBadge(badge.id, 'desc', e.target.value)}
                 rows={2}
-                className="w-full bg-[#111a13] border border-white/10 rounded-lg p-2 text-[11px] text-[#a89d8f] outline-none resize-none"
+                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg p-2 text-[11px] text-[#6b7770] outline-hidden resize-none"
               />
             </div>
           ))}
@@ -410,7 +410,7 @@ export default function HomepageModule() {
         onClose={() => setPreviewOpen(false)}
         title="Homepage Sections Preview"
       >
-        <div className="bg-[#faf8f4] space-y-6 pb-6">
+        <div className="bg-[#faf8f5] space-y-6 pb-6">
           <TopBar />
           <TrendingTicker />
           <div className="px-4">

@@ -44,31 +44,31 @@ export default function AdminLoginPage() {
     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
 
   return (
-    <div className="min-h-screen bg-[#0b120c] text-[#f4efe6] flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden selection:bg-[#c4a675] selection:text-black">
+    <div className="min-h-screen bg-[#faf8f5] text-[#142319] flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden">
       {/* Ambient background glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#1a2e1a]/40 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-[#c4a675]/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#eef7f0]/80 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-[#fcf5e9]/90 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Top Bar */}
       <div className="max-w-6xl mx-auto w-full flex items-center justify-between z-10">
         <Link
           href="/"
-          className="flex items-center gap-1.5 text-xs text-[#a89d8f] hover:text-[#e8d5b7] transition-colors font-medium py-2"
+          className="flex items-center gap-1.5 text-xs text-[#6b7770] hover:text-[#142319] transition-colors font-medium py-2"
         >
           <ArrowLeft size={14} />
           <span>Back to Storefront</span>
         </Link>
-        <span className="text-[10px] tracking-widest uppercase text-[#c4a675] font-mono bg-white/5 border border-[#c4a675]/20 px-2.5 py-1 rounded-full">
+        <span className="text-[10px] tracking-widest uppercase text-[#845d1d] font-mono bg-white border border-[#ded7cb] px-3 py-1 rounded-full shadow-2xs font-bold">
           Single Entrypoint Authenticator
         </span>
       </div>
 
       {/* Centered Login Card */}
       <div className="max-w-md w-full mx-auto my-auto z-10">
-        <div className="bg-[#111a13]/90 border border-[#c4a675]/30 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+        <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-8 shadow-xl">
           {/* Logo & Header */}
           <div className="text-center mb-6">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full p-2 bg-gradient-to-b from-[#1a2e1a] to-[#0b120c] border border-[#c4a675]/40 shadow-[0_0_25px_rgba(196,166,117,0.2)]">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full p-2 bg-[#1c3624] border border-[#ded7cb] shadow-xs">
               <Image
                 src={logoSrc}
                 alt="Varna"
@@ -77,10 +77,10 @@ export default function AdminLoginPage() {
                 priority
               />
             </div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f4efe6] tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#142319] tracking-tight">
               Varna Command Vault
             </h1>
-            <p className="text-xs text-[#a89d8f] mt-1">
+            <p className="text-xs text-[#6b7770] mt-1">
               Authorized Personnel Storefront Management
             </p>
           </div>
@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#e8d5b7] mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-[#142319] mb-1.5 uppercase tracking-wider">
                 Master Security Passcode
               </label>
               <div className="relative">
@@ -102,19 +102,19 @@ export default function AdminLoginPage() {
                   placeholder="Enter vault passcode..."
                   autoFocus
                   required
-                  className={`w-full bg-[#0b120c] border rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-[#685e52] focus:outline-none transition-all ${
+                  className={`w-full bg-white border rounded-xl py-3 pl-10 pr-4 text-sm text-[#142319] placeholder-[#8c978f] focus:outline-hidden transition-all ${
                     error
                       ? 'border-red-500 ring-2 ring-red-500/20'
-                      : 'border-[#c4a675]/40 focus:border-[#c4a675] focus:ring-2 focus:ring-[#c4a675]/20'
+                      : 'border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624]'
                   }`}
                 />
                 <Lock
                   size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#c4a675]"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#845d1d]"
                 />
               </div>
               {error && (
-                <p className="text-xs text-red-400 mt-1.5 font-medium flex items-center gap-1">
+                <p className="text-xs text-[#b84840] mt-1.5 font-medium flex items-center gap-1">
                   <span>Invalid passcode. Please verify or use demo fill below.</span>
                 </p>
               )}
@@ -123,7 +123,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#1a2e1a] via-[#244224] to-[#1a2e1a] hover:from-[#244224] hover:to-[#2e542e] border border-[#c4a675]/50 text-[#e8d5b7] hover:text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? 'Authenticating...' : 'Unlock Command Vault'}</span>
               <ArrowRight size={16} />
@@ -131,27 +131,27 @@ export default function AdminLoginPage() {
           </form>
 
           {/* Demo Quick Fill Helper */}
-          <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-            <span className="text-[#a89d8f]">Demo Evaluation?</span>
+          <div className="mt-5 pt-4 border-t border-[#ebe5da] flex items-center justify-between text-xs">
+            <span className="text-[#6b7770]">Demo Evaluation?</span>
             <button
               type="button"
               onClick={handleQuickDemoFill}
-              className="text-[#c4a675] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-[#1c3624] hover:underline font-bold flex items-center gap-1 cursor-pointer"
             >
-              <KeyRound size={12} />
+              <KeyRound size={12} className="text-[#845d1d]" />
               <span>Quick Demo Fill ({masterPasscode})</span>
             </button>
           </div>
         </div>
 
         {/* Security badge footer */}
-        <div className="text-center mt-6 flex items-center justify-center gap-1.5 text-[11px] text-[#7d7062]">
-          <ShieldCheck size={14} className="text-[#25D366]" />
+        <div className="text-center mt-6 flex items-center justify-center gap-1.5 text-[11px] text-[#6b7770]">
+          <ShieldCheck size={14} className="text-[#206035]" />
           <span>Varna Direct WhatsApp Concierge Architecture • Next.js 14</span>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto w-full text-center text-[10px] text-[#554c41] py-2 z-10 font-mono">
+      <div className="max-w-6xl mx-auto w-full text-center text-[10px] text-[#8c978f] py-2 z-10 font-mono">
         VARNA PROTOCOL SECURE ENCLAVE
       </div>
     </div>

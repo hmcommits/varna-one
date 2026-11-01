@@ -47,3 +47,6 @@ next-env.d.ts
 # raw images
 /raw-images/
 
+# local store fallback
+src/data/store.json
+
