@@ -1,42 +1,56 @@
 'use client'
 import { useRef } from 'react'
-import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react'
+import { Star, ChevronLeft, ChevronRight, Quote, CheckCircle2 } from 'lucide-react'
+import { useStore } from '@/context/StoreContext'
+import { ReviewItem } from '@/types/store'
 
-const reviews = [
+const DEFAULT_REVIEWS: ReviewItem[] = [
   {
-    id: 1,
-    name: 'Rohan S., Bengaluru',
-    text: 'Amazing quality and perfect fit! The fabric is so comfortable and the designs are just wow. Will definitely shop again.',
+    id: 'rev-1',
+    name: 'Arjun Menon',
+    city: 'Bengaluru',
     rating: 5,
+    title: 'Cloud-soft from day 1',
+    comment:
+      'Most linen shirts under 2k feel stiff and scratchy until washed 5 times. This one was supple and breathable right out of the box. Ordered Size L, fits spot on.',
+    verified: true,
+    date: 'Verified Buyer • 3 days ago',
   },
   {
-    id: 2,
-    name: 'Priya M., Mumbai',
-    text: 'Loved the linen shirt and floral maxi dress. True to Indian sizes, rich fabrics, and delivered in just 2 days!',
+    id: 'rev-2',
+    name: 'Vikram Sengupta',
+    city: 'Mumbai',
     rating: 5,
+    title: 'Perfect for coastal heat',
+    comment:
+      'Wore the Desert Terracotta shade for a sundowner in Goa. Kept me cool through the evening humidity. Concierge on WhatsApp dispatched it within a day!',
+    verified: true,
+    date: 'Verified Buyer • 1 week ago',
   },
   {
-    id: 3,
-    name: 'Ankit V., Delhi',
-    text: 'Finally a brand that gets everyday men’s fashion right without breaking the bank. The co-ord set looks even better in person.',
-    rating: 5,
-  },
-  {
-    id: 4,
-    name: 'Sneha K., Pune',
-    text: 'The crop top and relaxed jeans pair so well! Super flattering cut and the colors stay vibrant even after multiple washes.',
+    id: 'rev-3',
+    name: 'Rohan Kapoor',
+    city: 'Delhi',
     rating: 4,
-  },
-  {
-    id: 5,
-    name: 'Vikram D., Hyderabad',
-    text: 'Breathable linen, premium stitching, and hassle-free exchange service. Highly recommend Varna for daily elevated wear.',
-    rating: 5,
+    title: 'Custom monogram looks elite',
+    comment:
+      'Asked for my initials embroidered on the left cuff via WhatsApp. They sent a quick mockup preview before stitching. Premium feel throughout.',
+    verified: true,
+    date: 'Verified Buyer • 2 weeks ago',
   },
 ]
 
 export default function CustomerReviews() {
+  const { activeStore } = useStore()
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const reviewConfig = activeStore.reviews || {
+    averageRating: 4.6,
+    totalReviewsCount: 120,
+    items: DEFAULT_REVIEWS,
+  }
+
+  const reviews = reviewConfig.items?.length ? reviewConfig.items : DEFAULT_REVIEWS
 
   const scroll = (dir: 'left' | 'right') => {
     if (!scrollRef.current) return
@@ -60,18 +74,26 @@ export default function CustomerReviews() {
             What our community says
           </h3>
           <div className="flex items-center gap-2 mb-2">
-            <div className="flex">
+            <div className="flex text-amber-500">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star
                   key={s}
                   size={18}
-                  className="fill-[#c47d2b] text-[#c47d2b]"
+                  className={
+                    s <= Math.round(reviewConfig.averageRating)
+                      ? 'fill-amber-500 text-amber-500'
+                      : 'text-gray-300'
+                  }
                 />
               ))}
             </div>
-            <span className="text-base font-bold text-[#1a1a1a]">4.7 / 5</span>
+            <span className="text-base font-bold text-[#1a1a1a]">
+              {reviewConfig.averageRating} / 5
+            </span>
           </div>
-          <p className="text-xs text-[#7d7062]">Based on 2,500+ verified customer reviews across India.</p>
+          <p className="text-xs text-[#7d7062]">
+            Based on {reviewConfig.totalReviewsCount}+ verified customer reviews across India.
+          </p>
         </div>
 
         {/* Right - Interactive Review Cards Track with Working Arrows */}
@@ -94,26 +116,39 @@ export default function CustomerReviews() {
             {reviews.map((r) => (
               <div
                 key={r.id}
-                className="flex-shrink-0 w-72 sm:w-80 bg-[#faf8f4] rounded-2xl p-5 sm:p-6 border border-[#e8d5b7]/60 hover:border-[#c4a675] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                className="flex-shrink-0 w-72 sm:w-80 bg-[#faf8f4] rounded-2xl p-5 sm:p-6 border border-[#e8d5b7]/60 hover:border-[#c4a675] shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
-                  <Quote size={28} className="text-[#1a2e1a]/25 mb-3" />
+                  <div className="flex items-center justify-between mb-2">
+                    <Quote size={24} className="text-[#1a2e1a]/25" />
+                    {r.verified && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-300 px-2 py-0.5 rounded-full">
+                        <CheckCircle2 size={10} />
+                        <span>Verified Buyer</span>
+                      </span>
+                    )}
+                  </div>
+                  {r.title && (
+                    <h4 className="font-display font-bold text-sm text-[#1a1a1a] mb-1.5">
+                      &quot;{r.title}&quot;
+                    </h4>
+                  )}
                   <p className="text-xs sm:text-sm text-[#3d362e] leading-relaxed mb-4 italic">
-                    &quot;{r.text}&quot;
+                    &quot;{r.comment}&quot;
                   </p>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-[#e8d5b7]/40">
                   <span className="text-xs sm:text-sm font-bold text-[#1a1a1a]">
-                    — {r.name}
+                    — {r.name}{r.city ? `, ${r.city}` : ''}
                   </span>
-                  <div className="flex gap-0.5">
+                  <div className="flex gap-0.5 text-amber-500">
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Star
                         key={s}
                         size={12}
                         className={
                           s <= r.rating
-                            ? 'fill-[#c47d2b] text-[#c47d2b]'
+                            ? 'fill-amber-500 text-amber-500'
                             : 'text-[#e8d5b7] fill-[#f0ece4]'
                         }
                       />

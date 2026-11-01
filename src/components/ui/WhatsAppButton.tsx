@@ -1,13 +1,39 @@
 'use client'
 import Image from 'next/image'
-
-const WHATSAPP_NUMBER = '916363145972'
-const DEFAULT_MESSAGE = encodeURIComponent(
-  "Hi Varna! I'm interested in your styles and would like to place an enquiry."
-)
+import { useStore } from '@/context/StoreContext'
 
 export default function WhatsAppButton() {
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${DEFAULT_MESSAGE}`
+  const { activeStore, logEnquiry } = useStore()
+
+  const wa = activeStore.whatsapp || {
+    phoneNumber: '916363145972',
+    floatingButtonVisible: true,
+    floatingButtonText: 'Enquire',
+    luminousGlow: true,
+    templateGeneral:
+      "Hi Varna! I'm browsing your storefront and would like to ask a few questions about your collections and custom printing.",
+  }
+
+  if (wa.floatingButtonVisible === false) {
+    return null
+  }
+
+  const phone = wa.phoneNumber || '916363145972'
+  const message =
+    wa.templateGeneral ||
+    "Hi Varna! I'm browsing your storefront and would like to ask a few questions about your collections and custom printing."
+  const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+
+  const handleClick = () => {
+    logEnquiry({
+      productName: 'General Floating Concierge',
+      color: 'N/A',
+      size: 'N/A',
+      quantity: 1,
+      source: 'Floating Concierge',
+      completed: false,
+    })
+  }
 
   return (
     <div
@@ -16,12 +42,15 @@ export default function WhatsAppButton() {
     >
       <div className="relative">
         {/* Ambient breathing luminous glow */}
-        <span className="absolute -inset-1.5 sm:-inset-2 rounded-full bg-[#25D366] whatsapp-gentle-glow -z-10 pointer-events-none blur-[2px]" />
+        {wa.luminousGlow !== false && (
+          <span className="absolute -inset-1.5 sm:-inset-2 rounded-full bg-[#25D366] whatsapp-gentle-glow -z-10 pointer-events-none blur-[2px]" />
+        )}
 
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleClick}
           aria-label="Enquire on WhatsApp"
           className="inline-flex items-center gap-2.5 sm:gap-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base px-4 sm:px-5 py-2.5 sm:py-3 rounded-full shadow-[0_8px_24px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.65)] hover:scale-105 active:scale-95 transition-all duration-300 ring-4 ring-white/95 cursor-pointer group"
         >
@@ -40,8 +69,8 @@ export default function WhatsAppButton() {
           </div>
 
           {/* Text */}
-          <span className="tracking-wide font-bold drop-shadow-sm pr-0.5">
-            Enquire
+          <span className="tracking-wide font-bold drop-shadow-xs pr-0.5">
+            {wa.floatingButtonText || 'Enquire'}
           </span>
         </a>
       </div>

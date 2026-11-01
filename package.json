@@ -11,7 +11,9 @@
     "generate-placeholders": "node scripts/generate-webp-placeholders.mjs"
   },
   "dependencies": {
+    "cloudinary": "^2.11.0",
     "lucide-react": "^1.65.0",
+    "mongodb": "^7.8.0",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18"

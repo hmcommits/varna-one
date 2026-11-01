@@ -1,96 +1,20 @@
 'use client'
 import { useState, useRef } from 'react'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
-import ProductCard, { ProductCardProps } from '@/components/ui/ProductCard'
+import ProductCard from '@/components/ui/ProductCard'
+import { useStore } from '@/context/StoreContext'
+import { Product } from '@/types/store'
 
 const filters = ['All', 'Men', 'Women', 'Shirts', 'T-Shirts', 'Jeans']
 
-const allProducts: ProductCardProps[] = [
-  {
-    id: '1',
-    name: 'Linen Shirt',
-    image: '/images/products/linen-shirt.webp',
-    price: 999,
-    originalPrice: 1499,
-    rating: 4.6,
-    reviewCount: 120,
-    colors: ['#c4855a', '#1a2e1a', '#2c4a6e'],
-    badge: 'New',
-    category: 'Shirts',
-    gender: 'Men',
-  },
-  {
-    id: '2',
-    name: 'Floral Maxi Dress',
-    image: '/images/products/floral-maxi-dress.webp',
-    price: 1599,
-    originalPrice: 2499,
-    rating: 4.6,
-    reviewCount: 98,
-    colors: ['#d4655a', '#e8a090', '#5a3a5a'],
-    badge: 'Trending',
-    category: 'Dresses',
-    gender: 'Women',
-  },
-  {
-    id: '3',
-    name: 'Striped Jersey Tee',
-    image: '/images/products/striped-jersey-tee.webp',
-    price: 799,
-    originalPrice: 1299,
-    rating: 4.3,
-    reviewCount: 210,
-    colors: ['#2c4a6e', '#ffffff', '#1a1a1a'],
-    badge: 'Bestseller',
-    category: 'T-Shirts',
-    gender: 'Men',
-  },
-  {
-    id: '4',
-    name: 'Ribbed Crop Top',
-    image: '/images/products/ribbed-crop-top.webp',
-    price: 699,
-    originalPrice: 999,
-    rating: 4.5,
-    reviewCount: 87,
-    colors: ['#e8c4a0', '#c4855a', '#8c6a4a'],
-    badge: 'New',
-    category: 'Tops',
-    gender: 'Women',
-  },
-  {
-    id: '5',
-    name: 'Relaxed Fit Jeans',
-    image: '/images/products/relaxed-fit-jeans.webp',
-    price: 1489,
-    originalPrice: 2299,
-    rating: 4.8,
-    reviewCount: 180,
-    colors: ['#2c4a6e', '#4a6a8c', '#1a1a1a'],
-    badge: 'Trending',
-    category: 'Jeans',
-    gender: 'Men',
-  },
-  {
-    id: '6',
-    name: 'Printed Co-ord Set',
-    image: '/images/products/printed-coord-set.webp',
-    price: 1799,
-    originalPrice: 2999,
-    rating: 4.7,
-    reviewCount: 65,
-    colors: ['#5a3a2a', '#c4855a', '#1a2e1a'],
-    badge: 'Bestseller',
-    category: 'Co-ord Sets',
-    gender: 'Women',
-  },
-]
-
 export default function NewArrivals() {
+  const { activeStore } = useStore()
   const [activeFilter, setActiveFilter] = useState('All')
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const filteredProducts = allProducts.filter((p) => {
+  const products: Product[] = activeStore.products || []
+
+  const filteredProducts = products.filter((p) => {
     if (activeFilter === 'All') return true
     if (activeFilter === 'Men') return p.gender === 'Men'
     if (activeFilter === 'Women') return p.gender === 'Women'
@@ -171,7 +95,21 @@ export default function NewArrivals() {
             className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1"
           >
             {filteredProducts.map((p) => (
-              <ProductCard key={p.id} {...p} />
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                name={p.name}
+                image={p.colors?.[0]?.image || '/images/products/linen-shirt.webp'}
+                price={p.price}
+                originalPrice={p.originalPrice}
+                rating={p.rating}
+                reviewCount={p.reviewCount}
+                colors={p.colors}
+                badge={p.badge}
+                category={p.category}
+                gender={p.gender}
+                customization={p.customization}
+              />
             ))}
           </div>
 

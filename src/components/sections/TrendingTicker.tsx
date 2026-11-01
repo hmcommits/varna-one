@@ -1,11 +1,23 @@
 'use client'
+import { useStore } from '@/context/StoreContext'
 
-const items = [
-  'Relaxed Shirts', 'Oversized Tees', 'Festive Kurtas', 'Everyday Dresses',
-  'Linen Collection', 'Co-ord Sets', 'Premium Denims', 'Custom Hoodies',
+const DEFAULT_ITEMS = [
+  'Relaxed Shirts',
+  'Oversized Tees',
+  'Festive Kurtas',
+  'Everyday Dresses',
+  'Linen Collection',
+  'Co-ord Sets',
+  'Premium Denims',
+  'Custom Hoodies',
 ]
 
 export default function TrendingTicker() {
+  const { activeStore } = useStore()
+  const items = activeStore.homepage?.tickerChips?.length
+    ? activeStore.homepage.tickerChips
+    : DEFAULT_ITEMS
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
   }

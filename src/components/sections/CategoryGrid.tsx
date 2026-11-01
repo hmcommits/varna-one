@@ -1,17 +1,25 @@
 'use client'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
+import { useStore } from '@/context/StoreContext'
 
-const categories = [
-  { label: 'Shirts', image: '/images/categories/shirts.webp' },
-  { label: 'Tops & Blouses', image: '/images/categories/tops-blouses.webp' },
-  { label: 'T-Shirts & Jerseys', image: '/images/categories/tshirts-jerseys.webp' },
-  { label: 'Dresses', image: '/images/categories/dresses.webp' },
-  { label: 'Jeans & Trousers', image: '/images/categories/jeans-trousers.webp' },
-  { label: 'Co-ord Sets', image: '/images/categories/coord-sets.webp' },
+const DEFAULT_CATEGORIES = [
+  { id: '1', title: 'Shirts', image: '/images/categories/shirts.webp', visible: true },
+  { id: '2', title: 'Tops & Blouses', image: '/images/categories/tops-blouses.webp', visible: true },
+  { id: '3', title: 'T-Shirts & Jerseys', image: '/images/categories/tshirts-jerseys.webp', visible: true },
+  { id: '4', title: 'Dresses', image: '/images/categories/dresses.webp', visible: true },
+  { id: '5', title: 'Jeans & Trousers', image: '/images/categories/jeans-trousers.webp', visible: true },
+  { id: '6', title: 'Co-ord Sets', image: '/images/categories/coord-sets.webp', visible: true },
 ]
 
 export default function CategoryGrid() {
+  const { activeStore } = useStore()
+  const rawCategories = activeStore.categories?.length
+    ? activeStore.categories
+    : DEFAULT_CATEGORIES
+
+  const categories = rawCategories.filter((c) => c.visible !== false)
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
   }
@@ -48,11 +56,11 @@ export default function CategoryGrid() {
           </button>
         </div>
 
-        {/* 6 Authentic Mughal Arch-shaped Category Cards */}
+        {/* Authentic Mughal Arch-shaped Category Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
           {categories.map((cat) => (
             <div
-              key={cat.label}
+              key={cat.id || cat.title}
               onClick={handleClick}
               className="group block cursor-pointer select-none"
             >
@@ -60,7 +68,7 @@ export default function CategoryGrid() {
               <div className="relative overflow-hidden bg-[#e8d5b7] mughal-arch-clip aspect-[3/4] mb-2.5 shadow-sm group-hover:shadow-md transition-all duration-300">
                 <Image
                   src={cat.image}
-                  alt={cat.label}
+                  alt={cat.title}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 16vw"
                   className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -89,7 +97,7 @@ export default function CategoryGrid() {
               </div>
 
               <p className="text-xs sm:text-sm font-semibold text-center text-[#1a1a1a] group-hover:text-[#1a2e1a] transition-colors">
-                {cat.label}
+                {cat.title}
               </p>
             </div>
           ))}

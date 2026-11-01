@@ -1,8 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Search, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useStore } from '@/context/StoreContext'
 
 const navLinks = [
   { label: 'New Arrivals', href: '/#new-arrivals' },
@@ -14,8 +16,41 @@ const navLinks = [
 ]
 
 export default function Navbar() {
+  const router = useRouter()
+  const { activeStore } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+
+  // 5-Tap Easter Egg Detection
+  const [tapCount, setTapCount] = useState(0)
+  const [isUnlocking, setIsUnlocking] = useState(false)
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleLogoTap = (e: React.MouseEvent) => {
+    const nextCount = tapCount + 1
+    setTapCount(nextCount)
+
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
+
+    if (nextCount >= 5) {
+      e.preventDefault()
+      setIsUnlocking(true)
+      setTapCount(0)
+      setTimeout(() => {
+        setIsUnlocking(false)
+        router.push('/admin/login')
+      }, 500)
+      return
+    }
+
+    tapTimerRef.current = setTimeout(() => {
+      setTapCount(0)
+    }, 2500)
+  }
+
+  const logoSrc = activeStore.settings?.logoUrl || '/images/logo/varna-emblem.webp'
+  const storeName = activeStore.settings?.storeName || 'Varna'
+  const subtitle = activeStore.settings?.subtitle || 'Custom Wear & Prints'
 
   return (
     <header className="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#e8d5b7]/50 shadow-xs transition-all">
@@ -30,15 +65,27 @@ export default function Navbar() {
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
-        {/* Brand Logo with the Emblem */}
+        {/* Brand Logo with the Emblem & 5-Tap Unlock Trigger */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer group py-1"
+          onClick={handleLogoTap}
+          className={`flex items-center gap-2.5 hover:opacity-90 transition-all cursor-pointer group py-1 relative select-none ${
+            isUnlocking ? 'scale-105' : ''
+          }`}
+          title="Varna Custom Wear"
         >
-          <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
+          <div
+            className={`relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 transition-transform duration-300 rounded-full ${
+              isUnlocking
+                ? 'ring-4 ring-[#c4a675] shadow-[0_0_20px_#c4a675] animate-pulse'
+                : tapCount > 0
+                ? 'ring-2 ring-[#c4a675]/40'
+                : ''
+            }`}
+          >
             <Image
-              src="/images/logo/varna-emblem.webp"
-              alt="Varna Custom Wear & Prints"
+              src={logoSrc}
+              alt={storeName}
               fill
               sizes="48px"
               priority
@@ -47,10 +94,10 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-display italic text-xl sm:text-2xl font-bold text-[#1a2e1a] tracking-tight leading-none">
-              Varna
+              {storeName}
             </span>
             <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider text-[#7d7062] uppercase mt-0.5 hidden xs:block">
-              Custom Wear &amp; Prints
+              {subtitle}
             </span>
           </div>
         </Link>

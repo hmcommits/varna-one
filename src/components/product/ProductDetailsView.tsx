@@ -19,37 +19,11 @@ import {
   HelpCircle,
   X,
   ArrowLeft,
+  CheckCircle2,
 } from 'lucide-react'
-
-const WHATSAPP_NUMBER = '916363145972'
-
-interface ColorOption {
-  id: string
-  name: string
-  subtitle: string
-  hex: string
-}
-
-const colorOptions: ColorOption[] = [
-  {
-    id: 'terracotta',
-    name: 'Desert Terracotta',
-    subtitle: 'Warm earthy luxury',
-    hex: '#c4855a',
-  },
-  {
-    id: 'olive',
-    name: 'Deep Forest Olive',
-    subtitle: 'Signature Varna evergreen',
-    hex: '#1a2e1a',
-  },
-  {
-    id: 'navy',
-    name: 'Royal Navy Indigo',
-    subtitle: 'Crisp evening coastal tone',
-    hex: '#2c4a6e',
-  },
-]
+import { useStore } from '@/context/StoreContext'
+import { defaultStoreData } from '@/data/defaultStoreData'
+import { ProductColor } from '@/types/store'
 
 const sizeOptions = [
   { size: 'S', chest: '38"', status: 'In stock' },
@@ -57,27 +31,6 @@ const sizeOptions = [
   { size: 'L', chest: '42"', status: 'In stock' },
   { size: 'XL', chest: '44"', status: 'In stock' },
   { size: 'XXL', chest: '46"', status: 'Limited stock' },
-]
-
-const galleryImages = [
-  {
-    src: '/images/products/linen-shirt.webp',
-    alt: 'Premium Pure Linen Shirt - Front Look',
-    label: 'Front Look',
-    badge: 'Main View',
-  },
-  {
-    src: '/images/categories/shirts.webp',
-    alt: 'Pure Linen Fabric Texture & Spread Collar',
-    label: 'Fabric & Collar',
-    badge: 'Close-Up',
-  },
-  {
-    src: '/images/banners/men-banner.webp',
-    alt: 'On-Model Casual Drape & Editorial Fit',
-    label: 'Editorial Drape',
-    badge: 'On Model',
-  },
 ]
 
 const sizeChartData = [
@@ -116,19 +69,68 @@ const pairedProducts = [
 ]
 
 export default function ProductDetailsView() {
+  const { activeStore, logEnquiry } = useStore()
+
+  // Find linen shirt product or default fallback
+  const product =
+    activeStore.products?.find((p) => p.id === '1') || defaultStoreData.products[0]
+
+  const colors: ProductColor[] =
+    product.colors?.length > 0 ? product.colors : defaultStoreData.products[0].colors
+
+  const [selectedColor, setSelectedColor] = useState<ProductColor>(colors[0])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  const [selectedColor, setSelectedColor] = useState(colorOptions[0])
   const [selectedSize, setSelectedSize] = useState('M')
   const [quantity, setQuantity] = useState(1)
   const [wishlisted, setWishlisted] = useState(false)
   const [showSizeModal, setShowSizeModal] = useState(false)
+
+  // Customization state
+  const hasCustomization = product.customization?.enabled ?? true
+  const customOptions = product.customization?.options || [
+    {
+      id: 'dtf-1',
+      type: 'Allow Custom DTF Print / Monogram Embroidery',
+      price: 150,
+    },
+  ]
   const [customEmbroidery, setCustomEmbroidery] = useState(false)
+  const [selectedCustomOptionIdx, setSelectedCustomOptionIdx] = useState(0)
   const [customNotes, setCustomNotes] = useState('')
+
   const [activeTab, setActiveTab] = useState<'details' | 'fabric' | 'shipping' | 'custom'>('details')
   const [copiedLink, setCopiedLink] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
+  // Build gallery dynamically from product colors
+  const galleryImages = colors.map((c, i) => ({
+    src: c.image || '/images/products/linen-shirt.webp',
+    alt: `${product.name} - ${c.name}`,
+    label: c.name,
+    badge: i === 0 ? 'Front Look' : i === 1 ? 'Fabric & Collar' : 'Editorial Drape',
+    colorId: c.id,
+  }))
+
+  // Sync color selection -> auto-switch main image
+  const handleColorSelect = (c: ProductColor) => {
+    setSelectedColor(c)
+    const idx = galleryImages.findIndex((g) => g.colorId === c.id)
+    if (idx !== -1) {
+      setSelectedImageIndex(idx)
+    }
+  }
+
+  // Sync thumbnail click -> auto-select color
+  const handleThumbnailClick = (idx: number) => {
+    setSelectedImageIndex(idx)
+    const matchedColor = colors.find((c) => c.id === galleryImages[idx]?.colorId)
+    if (matchedColor) {
+      setSelectedColor(matchedColor)
+    }
+  }
+
+  // Mobile Touch Gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null)
     setTouchStart(e.targetTouches[0].clientX)
@@ -142,38 +144,63 @@ export default function ProductDetailsView() {
     if (!touchStart || !touchEnd) return
     const distance = touchStart - touchEnd
     if (distance > 45) {
-      setSelectedImageIndex((prev) => (prev + 1) % galleryImages.length)
+      const nextIdx = (selectedImageIndex + 1) % galleryImages.length
+      handleThumbnailClick(nextIdx)
     } else if (distance < -45) {
-      setSelectedImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
+      const prevIdx = (selectedImageIndex - 1 + galleryImages.length) % galleryImages.length
+      handleThumbnailClick(prevIdx)
     }
   }
 
-  const price = 999
-  const originalPrice = 1499
+  const price = product.price || 999
+  const originalPrice = product.originalPrice || 1499
   const discount = Math.round(((originalPrice - price) / originalPrice) * 100)
-  const totalPrice = (price + (customEmbroidery ? 150 : 0)) * quantity
+
+  const activeCustomOption = customOptions[selectedCustomOptionIdx] || customOptions[0]
+  const customCost = customEmbroidery ? activeCustomOption?.price || 150 : 0
+  const totalPrice = (price + customCost) * quantity
+
+  const whatsappPhone = activeStore.whatsapp?.phoneNumber || '916363145972'
 
   // Dynamic WhatsApp Concierge Order Link
   const buildWhatsAppMessage = () => {
-    let msg = `Hi Varna! I'd like to order the *Premium Pure Linen Casual Shirt*:\n\n`
+    let msg = `Hi Varna! I'd like to order the *${product.name}*:\n\n`
     msg += `• *Color:* ${selectedColor.name}\n`
     msg += `• *Size:* ${selectedSize} (${sizeOptions.find((s) => s.size === selectedSize)?.chest})\n`
     msg += `• *Quantity:* ${quantity}\n`
     msg += `• *Total Amount:* ₹${totalPrice.toLocaleString('en-IN')}\n`
 
-    if (customEmbroidery && customNotes.trim()) {
-      msg += `• *Custom Request:* Monogram/Embroidery ("${customNotes.trim()}")\n`
-    } else if (customEmbroidery) {
-      msg += `• *Custom Request:* Custom Embroidery / Monogram required\n`
+    if (customEmbroidery) {
+      msg += `• *Custom Request:* ${activeCustomOption?.type || 'Custom Print'} (+₹${activeCustomOption?.price || 150})`
+      if (customNotes.trim()) {
+        msg += ` — "${customNotes.trim()}"`
+      }
+      msg += `\n`
     }
 
     msg += `\nPlease confirm product availability & dispatch timeline!`
     return msg
   }
 
-  const whatsappOrderUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`
-  const whatsappQuestionUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    `Hi Varna! I have a question about the Premium Pure Linen Casual Shirt (Size ${selectedSize}, ${selectedColor.name}). Can you help me with sizing & fabric photos?`
+  const handleOrderClick = () => {
+    logEnquiry({
+      productName: product.name,
+      color: selectedColor.name,
+      size: selectedSize,
+      quantity,
+      customNotes: customEmbroidery
+        ? `${activeCustomOption?.type}: ${customNotes || 'Requested'}`
+        : undefined,
+      source: 'Product Details Page',
+      completed: false,
+    })
+  }
+
+  const whatsappOrderUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+    buildWhatsAppMessage()
+  )}`
+  const whatsappQuestionUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+    `Hi Varna! I have a question about the ${product.name} (Size ${selectedSize}, ${selectedColor.name}). Can you help me with sizing & fabric photos?`
   )}`
 
   const handleShare = async () => {
@@ -188,8 +215,12 @@ export default function ProductDetailsView() {
     }
   }
 
+  const safeImageIndex =
+    selectedImageIndex < galleryImages.length ? selectedImageIndex : 0
+  const currentImage = galleryImages[safeImageIndex] || galleryImages[0]
+
   return (
-    <div className="bg-[#faf8f4] min-h-screen pt-4 sm:pt-8 pb-28 sm:pb-16">
+    <div className="bg-[#faf8f4] min-h-screen pt-4 sm:pt-8 pb-32 sm:pb-20">
       {/* Breadcrumbs Navigation */}
       <div className="max-w-7xl mx-auto px-4 mb-4 sm:mb-6">
         <nav className="flex items-center gap-1.5 text-xs text-[#7d7062]">
@@ -202,15 +233,18 @@ export default function ProductDetailsView() {
           </Link>
           <ChevronRight size={13} className="text-[#c4a675]" />
           <Link href="/#men" className="hover:text-[#1a2e1a] transition-colors font-medium">
-            Men
+            {product.gender || 'Men'}
           </Link>
           <ChevronRight size={13} className="text-[#c4a675]" />
-          <Link href="/#new-arrivals" className="hover:text-[#1a2e1a] transition-colors font-medium">
-            Shirts
+          <Link
+            href="/#new-arrivals"
+            className="hover:text-[#1a2e1a] transition-colors font-medium"
+          >
+            {product.category || 'Shirts'}
           </Link>
           <ChevronRight size={13} className="text-[#c4a675]" />
           <span className="text-[#1a1a1a] font-semibold truncate">
-            Premium Pure Linen Shirt
+            {product.name}
           </span>
         </nav>
       </div>
@@ -220,16 +254,16 @@ export default function ProductDetailsView() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* LEFT COLUMN: Multi-angle Product Gallery (lg:col-span-7) */}
           <div className="lg:col-span-7 flex flex-col md:flex-row gap-4">
-            {/* Thumbnail Strip: Column on desktop, horizontal row on mobile */}
-            <div className="order-2 md:order-1 flex md:flex-col gap-2.5 sm:gap-3 overflow-x-auto md:overflow-visible pb-1 md:pb-0 no-scrollbar flex-shrink-0">
+            {/* Thumbnail Strip: Rock-solid non-collapsing dimensions on all devices */}
+            <div className="order-2 md:order-1 flex md:flex-col gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar shrink-0 max-w-full">
               {galleryImages.map((img, idx) => (
                 <button
-                  key={img.src}
+                  key={`${img.src}-${idx}`}
                   type="button"
-                  onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative w-[76px] h-[98px] sm:w-[86px] sm:h-[110px] md:w-[92px] md:h-[118px] rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer bg-[#f0ece4] ${
-                    selectedImageIndex === idx
-                      ? 'border-[#1a2e1a] shadow-md ring-2 ring-[#1a2e1a]/25 scale-102'
+                  onClick={() => handleThumbnailClick(idx)}
+                  className={`relative w-[76px] min-w-[76px] h-[98px] sm:w-[86px] sm:min-w-[86px] sm:h-[110px] md:w-[92px] md:min-w-[92px] md:h-[118px] rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer bg-[#f0ece4] ${
+                    safeImageIndex === idx
+                      ? 'border-[#1a2e1a] shadow-md ring-2 ring-[#1a2e1a]/25 scale-[1.02]'
                       : 'border-[#e8d5b7]/80 hover:border-[#1a2e1a]/50 opacity-75 hover:opacity-100'
                   }`}
                   aria-label={`View ${img.label}`}
@@ -256,8 +290,8 @@ export default function ProductDetailsView() {
               onTouchEnd={handleTouchEnd}
             >
               <Image
-                src={galleryImages[selectedImageIndex].src}
-                alt={galleryImages[selectedImageIndex].alt}
+                src={currentImage.src}
+                alt={currentImage.alt}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 55vw"
@@ -267,14 +301,19 @@ export default function ProductDetailsView() {
               {/* Badges Over Image */}
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                 <span className="bg-[#1a2e1a] text-[#faf8f4] text-xs font-bold px-3 py-1 rounded-full shadow-md tracking-wide">
-                  New Arrival
+                  {product.badge || 'New Arrival'}
                 </span>
-                <span className="bg-[#c85a44] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md">
-                  {discount}% OFF
-                </span>
-                <span className="bg-white/90 backdrop-blur-md text-[#1a2e1a] text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm border border-[#e8d5b7]">
-                  100% Pure Flax Linen
-                </span>
+                {discount > 0 && (
+                  <span className="bg-[#c85a44] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md">
+                    {discount}% OFF
+                  </span>
+                )}
+                {hasCustomization && (
+                  <span className="bg-white/90 backdrop-blur-md text-[#1a2e1a] text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm border border-[#e8d5b7] flex items-center gap-1">
+                    <Scissors size={11} className="text-[#c4a675]" />
+                    <span>Customization Available</span>
+                  </span>
+                )}
               </div>
 
               {/* Wishlist & Share Floating Buttons */}
@@ -314,31 +353,28 @@ export default function ProductDetailsView() {
               </div>
 
               {/* Subtle visual caption footer */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 sm:p-6 text-white flex items-end justify-between pointer-events-none">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent p-4 sm:p-6 text-white flex items-end justify-between pointer-events-none">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-[#e8d5b7] font-semibold">
-                    {galleryImages[selectedImageIndex].label}
+                    {currentImage.label}
                   </p>
                   <p className="text-sm font-medium opacity-90 hidden sm:block">
                     Natural Breathable Weave • Enzyme Softened
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* Visual dots */}
                   <div className="flex sm:hidden items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full">
                     {galleryImages.map((_, dotIdx) => (
                       <span
                         key={dotIdx}
                         className={`h-1.5 rounded-full transition-all ${
-                          selectedImageIndex === dotIdx
-                            ? 'w-4 bg-white'
-                            : 'w-1.5 bg-white/50'
+                          safeImageIndex === dotIdx ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
                         }`}
                       />
                     ))}
                   </div>
                   <span className="text-[11px] bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-white font-medium">
-                    {selectedImageIndex + 1} of {galleryImages.length}
+                    {safeImageIndex + 1} of {galleryImages.length}
                   </span>
                 </div>
               </div>
@@ -359,7 +395,7 @@ export default function ProductDetailsView() {
 
             {/* Product Title */}
             <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1a1a1a] leading-tight mb-2">
-              Premium Pure Linen Casual Shirt
+              {product.name}
             </h1>
 
             {/* Tagline / Subtitle */}
@@ -371,10 +407,13 @@ export default function ProductDetailsView() {
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[#e8d5b7]/50">
               <div className="flex items-center gap-1 bg-[#1a2e1a]/10 px-2.5 py-1 rounded-full">
                 <Star size={13} className="fill-[#c47d2b] text-[#c47d2b]" />
-                <span className="text-xs font-bold text-[#1a2e1a]">4.6</span>
+                <span className="text-xs font-bold text-[#1a2e1a]">{product.rating || 4.6}</span>
               </div>
               <span className="text-xs text-[#7d7062]">
-                <strong className="text-[#1a1a1a] font-semibold">120 verified reviews</strong> • 96% fit as expected
+                <strong className="text-[#1a1a1a] font-semibold">
+                  {product.reviewCount || 120} verified reviews
+                </strong>{' '}
+                • 96% fit as expected
               </span>
             </div>
 
@@ -384,12 +423,16 @@ export default function ProductDetailsView() {
                 <span className="font-display text-3xl sm:text-4xl font-bold text-[#1a1a1a]">
                   ₹{price.toLocaleString('en-IN')}
                 </span>
-                <span className="text-base sm:text-lg text-[#8a7d6e] line-through">
-                  ₹{originalPrice.toLocaleString('en-IN')}
-                </span>
-                <span className="bg-[#c85a44]/10 text-[#c85a44] text-xs font-bold px-2 py-0.5 rounded-full">
-                  Save ₹{(originalPrice - price).toLocaleString('en-IN')} ({discount}%)
-                </span>
+                {originalPrice > price && (
+                  <>
+                    <span className="text-base sm:text-lg text-[#8a7d6e] line-through">
+                      ₹{originalPrice.toLocaleString('en-IN')}
+                    </span>
+                    <span className="bg-[#c85a44]/10 text-[#c85a44] text-xs font-bold px-2 py-0.5 rounded-full">
+                      Save ₹{(originalPrice - price).toLocaleString('en-IN')} ({discount}%)
+                    </span>
+                  </>
+                )}
               </div>
               <p className="text-[11px] text-[#7d7062] flex items-center gap-1.5">
                 <span className="text-[#1a2e1a] font-semibold">✓ Inclusive of all taxes</span>
@@ -398,23 +441,25 @@ export default function ProductDetailsView() {
               </p>
             </div>
 
-            {/* COLOR SELECTOR */}
+            {/* COLOR SELECTOR (Clicking updates color & auto-switches main image!) */}
             <div className="mb-5">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   Select Color:{' '}
                   <span className="text-[#1a2e1a] font-bold">{selectedColor.name}</span>
                 </label>
-                <span className="text-[11px] text-[#7d7062]">{selectedColor.subtitle}</span>
+                <span className="text-[11px] text-[#7d7062]">
+                  {colors.length} shades available
+                </span>
               </div>
-              <div className="flex items-center gap-3">
-                {colorOptions.map((c) => (
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {colors.map((c) => (
                   <button
-                    key={c.id}
+                    key={c.id || c.name}
                     type="button"
-                    onClick={() => setSelectedColor(c)}
+                    onClick={() => handleColorSelect(c)}
                     className={`group relative flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                      selectedColor.id === c.id
+                      selectedColor.id === c.id || selectedColor.name === c.name
                         ? 'border-[#1a2e1a] bg-[#1a2e1a]/5 text-[#1a2e1a] shadow-xs ring-1 ring-[#1a2e1a]'
                         : 'border-[#e8d5b7]/80 bg-white text-[#63574a] hover:border-[#1a2e1a]/40'
                     }`}
@@ -423,7 +468,7 @@ export default function ProductDetailsView() {
                       className="w-4 h-4 rounded-full border border-black/15 shadow-inner"
                       style={{ backgroundColor: c.hex }}
                     />
-                    <span>{c.name.split(' ')[1] || c.name}</span>
+                    <span>{c.name}</span>
                   </button>
                 ))}
               </div>
@@ -455,7 +500,7 @@ export default function ProductDetailsView() {
                     onClick={() => setSelectedSize(opt.size)}
                     className={`py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold border transition-all text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                       selectedSize === opt.size
-                        ? 'bg-[#1a2e1a] text-white border-[#1a2e1a] shadow-md scale-102'
+                        ? 'bg-[#1a2e1a] text-white border-[#1a2e1a] shadow-md scale-[1.02]'
                         : 'bg-white text-[#1a1a1a] border-[#e8d5b7]/80 hover:border-[#1a2e1a] hover:text-[#1a2e1a]'
                     }`}
                   >
@@ -476,16 +521,16 @@ export default function ProductDetailsView() {
                 <p className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#25D366] inline-block animate-pulse" />
                   <span>
-                    Model is 6&apos;1&quot; wearing size <strong>L (42)</strong> •{' '}
+                    Stock urgency:{' '}
                     <span className="text-[#1a2e1a] font-semibold">
-                      {sizeOptions.find((s) => s.size === selectedSize)?.status}
+                      {product.stockUrgency || 'In Stock'}
                     </span>
                   </span>
                 </p>
               </div>
             </div>
 
-            {/* QUANTITY & CUSTOM MONOGRAM OPTION */}
+            {/* QUANTITY & CUSTOMIZATION OPTION */}
             <div className="space-y-4 mb-6">
               {/* Quantity row */}
               <div className="flex items-center justify-between bg-white rounded-xl p-3 border border-[#e8d5b7]/60">
@@ -517,51 +562,73 @@ export default function ProductDetailsView() {
                 </div>
               </div>
 
-              {/* Varna Custom Embroidery / Print Toggle (Special Brand Feature) */}
-              <div className="bg-[#faf8f4] border border-[#e8d5b7] rounded-xl p-3.5 space-y-2.5">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={customEmbroidery}
-                    onChange={(e) => setCustomEmbroidery(e.target.checked)}
-                    className="mt-0.5 rounded text-[#1a2e1a] focus:ring-[#1a2e1a] w-4 h-4 cursor-pointer"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs sm:text-sm font-semibold text-[#1a1a1a]">
-                        Add Custom Monogram / Logo Embroidery
-                      </span>
-                      <span className="text-[10px] bg-[#1a2e1a] text-white px-2 py-0.5 rounded-full font-bold">
-                        +₹150
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#7d7062] mt-0.5">
-                      Get your initials on the cuff, pocket emblem, or DTF custom print.
-                    </p>
-                  </div>
-                </label>
-
-                {customEmbroidery && (
-                  <div className="pt-2 border-t border-[#e8d5b7]/60">
+              {/* Varna Custom Print / Embroidery Add-On */}
+              {hasCustomization && (
+                <div className="bg-[#faf8f4] border border-[#e8d5b7] rounded-xl p-3.5 space-y-2.5">
+                  <label className="flex items-start gap-2.5 cursor-pointer select-none">
                     <input
-                      type="text"
-                      value={customNotes}
-                      onChange={(e) => setCustomNotes(e.target.value)}
-                      placeholder="e.g., Initials 'HB' on left cuff (Thread: Champagne Gold)"
-                      className="w-full bg-white border border-[#e8d5b7] rounded-lg px-3 py-2 text-xs text-[#1a1a1a] placeholder-[#9e9080] focus:outline-none focus:border-[#1a2e1a]"
+                      type="checkbox"
+                      checked={customEmbroidery}
+                      onChange={(e) => setCustomEmbroidery(e.target.checked)}
+                      className="mt-0.5 rounded text-[#1a2e1a] focus:ring-[#1a2e1a] w-4 h-4 cursor-pointer accent-[#1a2e1a]"
                     />
-                  </div>
-                )}
-              </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs sm:text-sm font-semibold text-[#1a1a1a]">
+                          {activeCustomOption?.type || 'Add Custom Print / Embroidery'}
+                        </span>
+                        <span className="text-[10px] bg-[#1a2e1a] text-white px-2 py-0.5 rounded-full font-bold">
+                          +₹{activeCustomOption?.price || 150}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#7d7062] mt-0.5">
+                        Get custom initials on cuff, pocket emblem, or DTF high-density graphic.
+                      </p>
+                    </div>
+                  </label>
+
+                  {customEmbroidery && (
+                    <div className="pt-2 border-t border-[#e8d5b7]/60 space-y-2">
+                      {customOptions.length > 1 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {customOptions.map((opt, idx) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setSelectedCustomOptionIdx(idx)}
+                              className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                selectedCustomOptionIdx === idx
+                                  ? 'bg-[#1a2e1a] text-white border-[#1a2e1a]'
+                                  : 'bg-white text-[#63574a] border-[#e8d5b7]'
+                              }`}
+                            >
+                              <span>{opt.type}</span>
+                              <span className="ml-1 opacity-80">(+₹{opt.price})</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        value={customNotes}
+                        onChange={(e) => setCustomNotes(e.target.value)}
+                        placeholder="e.g., Initials 'HB' on left cuff (Thread: Champagne Gold)"
+                        className="w-full bg-white border border-[#e8d5b7] rounded-lg px-3 py-2 text-xs text-[#1a1a1a] placeholder-[#9e9080] focus:outline-hidden focus:border-[#1a2e1a]"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* ACTION BUTTONS (WHATSAPP CONCIERGE FLOW) */}
+            {/* ACTION BUTTONS (WHATSAPP DIRECT ORDER FLOW) */}
             <div className="space-y-3 mb-6">
               {/* Primary Direct WhatsApp Order CTA */}
               <a
                 href={whatsappOrderUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleOrderClick}
                 className="group relative w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-6 bg-[#1a2e1a] hover:bg-[#25D366] text-white rounded-2xl text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer overflow-hidden"
               >
                 <div className="relative w-5 h-5 flex-shrink-0">
@@ -581,6 +648,7 @@ export default function ProductDetailsView() {
                 href={whatsappQuestionUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleOrderClick}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-[#faf8f4] text-[#1a2e1a] rounded-xl text-xs sm:text-sm font-semibold border border-[#e8d5b7] hover:border-[#1a2e1a] shadow-xs transition-all cursor-pointer"
               >
                 <HelpCircle size={15} />
@@ -618,7 +686,6 @@ export default function ProductDetailsView() {
 
             {/* DETAILED TABS SECTION */}
             <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8d5b7]/60 shadow-xs">
-              {/* Tab Navigation */}
               <div className="flex items-center gap-2 border-b border-[#e8d5b7]/50 pb-2 mb-4 overflow-x-auto no-scrollbar">
                 {[
                   { key: 'details', label: 'Details & Fit' },
@@ -657,9 +724,6 @@ export default function ProductDetailsView() {
                     <li>
                       <strong className="text-[#1a1a1a]">Buttons:</strong> Mother-of-pearl finished resin buttons secured with lock-stitch.
                     </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Model Info:</strong> 6&apos;1&quot; height, 39&quot; chest, wearing Size L (42).
-                    </li>
                   </ul>
                 )}
 
@@ -691,7 +755,7 @@ export default function ProductDetailsView() {
                       <li>Special bulk discounts starting from 5+ units.</li>
                     </ul>
                     <a
-                      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                      href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
                         "Hi Varna! I'm interested in custom printing / embroidery for the Linen Shirt. Can we discuss options and bulk pricing?"
                       )}`}
                       target="_blank"
@@ -739,66 +803,53 @@ export default function ProductDetailsView() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1 bg-[#1a2e1a] text-white px-3 py-1.5 rounded-xl font-bold text-sm shadow-sm">
                   <Star size={14} className="fill-[#e8d5b7] text-[#e8d5b7]" />
-                  <span>4.6 / 5.0</span>
+                  <span>{activeStore.reviews?.averageRating || 4.6} / 5.0</span>
                 </div>
-                <span className="text-xs text-[#7d7062]">Based on 120 verified orders</span>
+                <span className="text-xs text-[#7d7062]">
+                  Based on {activeStore.reviews?.totalReviewsCount || 120} verified orders
+                </span>
               </div>
             </div>
 
             {/* Review Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              {[
-                {
-                  name: 'Arjun Menon',
-                  city: 'Bengaluru',
-                  rating: 5,
-                  title: 'Cloud-soft from day 1',
-                  comment:
-                    'Most linen shirts under 2k feel stiff and itchy until washed 5 times. This one was supple and breathable right out of the box. Ordered Size L, fits spot on.',
-                  date: 'Verified Buyer • 3 days ago',
-                },
-                {
-                  name: 'Vikram Sengupta',
-                  city: 'Mumbai',
-                  rating: 5,
-                  title: 'Perfect for coastal heat',
-                  comment:
-                    'Wore the Desert Terracotta shade for a sundowner in Goa. Kept me cool through the evening humidity. Concierge on WhatsApp dispatched it within a day!',
-                  date: 'Verified Buyer • 1 week ago',
-                },
-                {
-                  name: 'Rohan Kapoor',
-                  city: 'Delhi',
-                  rating: 4,
-                  title: 'Custom monogram looks elite',
-                  comment:
-                    'Asked for my initials embroidered on the left cuff via WhatsApp. They sent a quick mockup preview before stitching. Premium feel throughout.',
-                  date: 'Verified Buyer • 2 weeks ago',
-                },
-              ].map((rev, i) => (
+              {(activeStore.reviews?.items || []).slice(0, 3).map((rev) => (
                 <div
-                  key={i}
+                  key={rev.id}
                   className="bg-white rounded-2xl p-5 border border-[#e8d5b7]/60 shadow-xs flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center gap-1 mb-2">
-                      {Array.from({ length: rev.rating }).map((_, s) => (
-                        <Star key={s} size={13} className="fill-[#c47d2b] text-[#c47d2b]" />
-                      ))}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex text-amber-500">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            size={12}
+                            className={
+                              s <= rev.rating ? 'fill-amber-500 text-amber-500' : 'text-gray-300'
+                            }
+                          />
+                        ))}
+                      </div>
+                      {rev.verified && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-300 px-2 py-0.5 rounded-full">
+                          <CheckCircle2 size={10} />
+                          <span>Verified</span>
+                        </span>
+                      )}
                     </div>
-                    <h3 className="text-sm font-bold text-[#1a1a1a] mb-1.5">{rev.title}</h3>
-                    <p className="text-xs text-[#63574a] leading-relaxed mb-4">
-                      &ldquo;{rev.comment}&rdquo;
+                    {rev.title && (
+                      <h4 className="font-display font-bold text-xs text-[#1a1a1a] mb-1">
+                        &quot;{rev.title}&quot;
+                      </h4>
+                    )}
+                    <p className="text-xs text-[#63574a] leading-relaxed mb-3">
+                      &quot;{rev.comment}&quot;
                     </p>
                   </div>
-                  <div className="pt-3 border-t border-[#faf8f4] flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold text-[#1a1a1a]">{rev.name}</p>
-                      <p className="text-[10px] text-[#8a7d6e]">{rev.city}</p>
-                    </div>
-                    <span className="text-[9px] text-[#1a2e1a] font-semibold bg-[#1a2e1a]/10 px-2 py-0.5 rounded-full">
-                      Verified
-                    </span>
+                  <div className="pt-2 border-t border-[#f0ece4] text-[11px] text-[#7d7062] flex items-center justify-between">
+                    <span className="font-bold text-[#1a1a1a]">{rev.name}</span>
+                    <span>{rev.city}</span>
                   </div>
                 </div>
               ))}
@@ -806,43 +857,43 @@ export default function ProductDetailsView() {
           </div>
         </section>
 
-        {/* "COMPLETE THE LOOK" / RELATED PRODUCTS */}
-        <section className="mt-14 sm:mt-20 pt-10 border-t border-[#e8d5b7]/60 mb-12">
+        {/* PAIR IT WITH SECTION */}
+        <section className="mt-14 sm:mt-20 pt-10 border-t border-[#e8d5b7]/60">
           <div className="flex items-end justify-between mb-6">
             <div>
               <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
-                CURATED PAIRINGS
+                COMPLETE THE LOOK
               </p>
               <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1a1a1a]">
-                Complete The Look
+                Pairs Naturally With
               </h2>
             </div>
-            <Link
-              href="/#new-arrivals"
-              className="text-xs font-semibold text-[#1a2e1a] hover:underline flex items-center gap-1"
-            >
-              Browse all <ChevronRight size={13} />
-            </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {pairedProducts.map((p) => (
               <div
                 key={p.id}
-                className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 shadow-xs flex items-center gap-3.5 hover:shadow-md transition-shadow group"
+                className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 flex items-center gap-3 shadow-xs hover:shadow-md transition-shadow"
               >
-                <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] flex-shrink-0">
-                  <Image src={p.image} alt={p.name} fill className="object-cover object-top group-hover:scale-105 transition-transform" />
+                <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0">
+                  <Image
+                    src={p.image}
+                    alt={p.name}
+                    fill
+                    sizes="64px"
+                    className="object-cover object-top"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-semibold text-[#8a7d6e] uppercase tracking-wider block">
+                  <span className="text-[10px] text-[#c4a675] font-bold uppercase tracking-wider block truncate">
                     {p.category}
                   </span>
-                  <h3 className="text-xs sm:text-sm font-semibold text-[#1a1a1a] truncate mb-1">
+                  <h4 className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] truncate">
                     {p.name}
-                  </h3>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xs sm:text-sm font-bold text-[#1a1a1a]">
+                  </h4>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <span className="text-xs font-bold text-[#1a1a1a]">
                       ₹{p.price.toLocaleString('en-IN')}
                     </span>
                     <span className="text-[10px] text-[#8a7d6e] line-through">
@@ -850,7 +901,7 @@ export default function ProductDetailsView() {
                     </span>
                   </div>
                   <a
-                    href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                    href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
                       `Hi Varna! I'm interested in ordering the ${p.name} alongside the Linen Shirt.`
                     )}`}
                     target="_blank"
@@ -910,7 +961,11 @@ export default function ProductDetailsView() {
                   {sizeChartData.map((row) => (
                     <tr
                       key={row.size}
-                      className={row.size === selectedSize ? 'bg-[#1a2e1a]/5 font-semibold text-[#1a2e1a]' : ''}
+                      className={
+                        row.size === selectedSize
+                          ? 'bg-[#1a2e1a]/5 font-semibold text-[#1a2e1a]'
+                          : ''
+                      }
                     >
                       <td className="py-2 px-3 font-bold">{row.size}</td>
                       <td className="py-2 px-3">{row.chestIn}&quot;</td>
@@ -926,16 +981,16 @@ export default function ProductDetailsView() {
             {/* Sizing Tips */}
             <div className="bg-[#faf8f4] p-3.5 rounded-xl text-[11px] text-[#63574a] space-y-1 mb-5 border border-[#e8d5b7]/50">
               <p className="font-semibold text-[#1a1a1a]">How to Measure:</p>
-              <p>• <strong>Chest:</strong> Measure around the fullest part of your chest, keeping the tape level under your arms.</p>
-              <p>• <strong>Length:</strong> Measure from the highest point of the shoulder down to the bottom hem.</p>
-              <p>• <strong>Fit:</strong> Standard regular fit. If you like a relaxed oversized streetwear drape, we recommend choosing one size up.</p>
+              <p>• <strong>Chest:</strong> Measure around fullest part of chest under arms.</p>
+              <p>• <strong>Length:</strong> Measure from highest point of shoulder to hem.</p>
+              <p>• <strong>Fit:</strong> Standard regular fit. For relaxed oversized streetwear, choose one size up.</p>
             </div>
 
             {/* WhatsApp direct size help */}
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#7d7062]">Confused about your size?</span>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
                   "Hi Varna! I'm not sure which size of the Linen Shirt to choose. My chest is around __ inches. Can you guide me?"
                 )}`}
                 target="_blank"
