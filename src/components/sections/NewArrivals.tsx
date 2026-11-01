@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react'
 import ProductCard from '@/components/ui/ProductCard'
 import { useStore } from '@/context/StoreContext'
 import { Product } from '@/types/store'
@@ -37,6 +37,8 @@ export default function NewArrivals() {
   const handleAction = (e: React.MouseEvent) => {
     e.preventDefault()
   }
+
+  const showScrollButtons = filteredProducts.length > 3
 
   return (
     <section className="bg-[#faf8f4] py-10 md:py-16 px-4">
@@ -77,52 +79,77 @@ export default function NewArrivals() {
           </div>
         </div>
 
-        {/* Horizontal Scroll Product Carousel with Smooth Responsive Controls */}
-        <div className="relative group/carousel">
-          {/* Scroll Left Button */}
-          <button
-            type="button"
-            onClick={() => scroll('left')}
-            aria-label="Scroll left"
-            className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
-          >
-            <ChevronLeft size={20} />
-          </button>
-
-          {/* Product Items Track */}
-          <div
-            ref={scrollRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1"
-          >
-            {filteredProducts.map((p) => (
-              <ProductCard
-                key={p.id}
-                id={p.id}
-                name={p.name}
-                image={p.colors?.[0]?.image || '/images/products/linen-shirt.webp'}
-                price={p.price}
-                originalPrice={p.originalPrice}
-                rating={p.rating}
-                reviewCount={p.reviewCount}
-                colors={p.colors}
-                badge={p.badge}
-                category={p.category}
-                gender={p.gender}
-                customization={p.customization}
-              />
-            ))}
+        {/* Content Area */}
+        {filteredProducts.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-[#e8d5b7]/60 p-8 sm:p-12 text-center max-w-lg mx-auto shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-[#1a2e1a]/10 text-[#1a2e1a] flex items-center justify-center mx-auto mb-3">
+              <Sparkles size={20} />
+            </div>
+            <h3 className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
+              No styles currently in &ldquo;{activeFilter}&rdquo;
+            </h3>
+            <p className="text-xs text-[#7d7062] mt-1.5 max-w-sm mx-auto">
+              Our curated pieces in this category are being updated. Switch to &ldquo;All&rdquo; or enquire via WhatsApp for custom designs.
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveFilter('All')}
+              className="mt-4 px-5 py-2 rounded-xl bg-[#1a2e1a] hover:bg-[#25D366] text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+            >
+              View All Active Styles
+            </button>
           </div>
+        ) : (
+          <div className="relative group/carousel">
+            {/* Scroll Left Button */}
+            {showScrollButtons && (
+              <button
+                type="button"
+                onClick={() => scroll('left')}
+                aria-label="Scroll left"
+                className="absolute left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
 
-          {/* Scroll Right Button */}
-          <button
-            type="button"
-            onClick={() => scroll('right')}
-            aria-label="Scroll right"
-            className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
+            {/* Product Items Track */}
+            <div
+              ref={scrollRef}
+              className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1"
+            >
+              {filteredProducts.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  image={p.colors?.[0]?.image || '/images/products/linen-shirt.webp'}
+                  price={p.price}
+                  originalPrice={p.originalPrice}
+                  rating={p.rating}
+                  reviewCount={p.reviewCount}
+                  colors={p.colors}
+                  badge={p.badge}
+                  category={p.category}
+                  gender={p.gender}
+                  customization={p.customization}
+                />
+              ))}
+            </div>
+
+            {/* Scroll Right Button */}
+            {showScrollButtons && (
+              <button
+                type="button"
+                onClick={() => scroll('right')}
+                aria-label="Scroll right"
+                className="absolute right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 sm:w-10 h-8 sm:h-10 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-full flex items-center justify-center shadow-lg border border-[#e8d5b7]/80 active:scale-90 transition-all cursor-pointer"
+              >
+                <ChevronRight size={20} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </section>
   )

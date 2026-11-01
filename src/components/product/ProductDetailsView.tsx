@@ -41,33 +41,6 @@ const sizeChartData = [
   { size: 'XXL', chestIn: '46', chestCm: '117.0', shoulderIn: '20.2', lengthIn: '30.5' },
 ]
 
-const pairedProducts = [
-  {
-    id: '5',
-    name: 'Relaxed Fit Jeans',
-    image: '/images/products/relaxed-fit-jeans.webp',
-    price: 1489,
-    originalPrice: 2299,
-    category: 'Bottomwear',
-  },
-  {
-    id: '3',
-    name: 'Striped Jersey Tee',
-    image: '/images/products/striped-jersey-tee.webp',
-    price: 799,
-    originalPrice: 1299,
-    category: 'Inner Staple',
-  },
-  {
-    id: '2',
-    name: 'Floral Maxi Dress',
-    image: '/images/products/floral-maxi-dress.webp',
-    price: 1599,
-    originalPrice: 2499,
-    category: 'Gifting / Her',
-  },
-]
-
 export default function ProductDetailsView() {
   const { activeStore, logEnquiry } = useStore()
 
@@ -858,63 +831,96 @@ export default function ProductDetailsView() {
         </section>
 
         {/* PAIR IT WITH SECTION */}
-        <section className="mt-14 sm:mt-20 pt-10 border-t border-[#e8d5b7]/60">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
-                COMPLETE THE LOOK
-              </p>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1a1a1a]">
-                Pairs Naturally With
-              </h2>
+        {activeStore.products?.filter((p) => p.id !== product.id).length > 0 ? (
+          <section className="mt-14 sm:mt-20 pt-10 border-t border-[#e8d5b7]/60">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
+                  COMPLETE THE LOOK
+                </p>
+                <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1a1a1a]">
+                  Pairs Naturally With
+                </h2>
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {pairedProducts.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 flex items-center gap-3 shadow-xs hover:shadow-md transition-shadow"
-              >
-                <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0">
-                  <Image
-                    src={p.image}
-                    alt={p.name}
-                    fill
-                    sizes="64px"
-                    className="object-cover object-top"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] text-[#c4a675] font-bold uppercase tracking-wider block truncate">
-                    {p.category}
-                  </span>
-                  <h4 className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] truncate">
-                    {p.name}
-                  </h4>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-xs font-bold text-[#1a1a1a]">
-                      ₹{p.price.toLocaleString('en-IN')}
-                    </span>
-                    <span className="text-[10px] text-[#8a7d6e] line-through">
-                      ₹{p.originalPrice.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                  <a
-                    href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                      `Hi Varna! I'm interested in ordering the ${p.name} alongside the Linen Shirt.`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-[#1a2e1a] font-bold hover:underline mt-1"
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {activeStore.products
+                .filter((p) => p.id !== product.id)
+                .slice(0, 3)
+                .map((p) => (
+                  <div
+                    key={p.id}
+                    className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 flex items-center gap-3 shadow-xs hover:shadow-md transition-shadow"
                   >
-                    Enquire Pair →
-                  </a>
+                    <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0">
+                      <Image
+                        src={p.colors?.[0]?.image || '/images/products/linen-shirt.webp'}
+                        alt={p.name}
+                        fill
+                        sizes="64px"
+                        className="object-cover object-top"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] text-[#c4a675] font-bold uppercase tracking-wider block truncate">
+                        {p.category}
+                      </span>
+                      <h4 className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] truncate">
+                        {p.name}
+                      </h4>
+                      <div className="flex items-baseline gap-1.5 mt-0.5">
+                        <span className="text-xs font-bold text-[#1a1a1a]">
+                          ₹{p.price.toLocaleString('en-IN')}
+                        </span>
+                        {p.originalPrice > p.price && (
+                          <span className="text-[10px] text-[#8a7d6e] line-through">
+                            ₹{p.originalPrice.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+                          `Hi Varna! I'm interested in ordering the ${p.name} alongside the ${product.name}.`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-[#1a2e1a] font-bold hover:underline mt-1"
+                      >
+                        Enquire Pair →
+                      </a>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </section>
+        ) : (
+          <section className="mt-14 sm:mt-20 pt-10 border-t border-[#e8d5b7]/60">
+            <div className="bg-white rounded-3xl border border-[#e8d5b7]/60 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+              <div className="flex items-center gap-4 text-center sm:text-left">
+                <div className="w-12 h-12 rounded-2xl bg-[#1a2e1a] text-white flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={22} className="text-[#e8d5b7]" />
+                </div>
+                <div>
+                  <h3 className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
+                    Looking for styling advice or custom pair recommendations?
+                  </h3>
+                  <p className="text-xs text-[#7d7062] mt-0.5">
+                    Our studio stylists are online daily on WhatsApp to help with fabric swatches, sizing, and personalized matching.
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
+              <a
+                href={whatsappQuestionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 rounded-full bg-[#1a2e1a] hover:bg-[#25D366] text-white text-xs font-bold transition-all shadow-md whitespace-nowrap cursor-pointer flex-shrink-0"
+              >
+                Chat with Stylist →
+              </a>
+            </div>
+          </section>
+        )}
       </div>
 
       {/* SIZE CHART MODAL POPUP */}

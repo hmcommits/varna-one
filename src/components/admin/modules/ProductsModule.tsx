@@ -162,7 +162,7 @@ export default function ProductsModule({
         if (result && result.sRGBHex) {
           setNewColorHex(result.sRGBHex)
         }
-      } catch (e) {
+      } catch (_e) {
         // user canceled or not supported
       }
     } else {

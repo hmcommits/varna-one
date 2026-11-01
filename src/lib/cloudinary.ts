@@ -3,19 +3,27 @@ import sharp from 'sharp'
 import fs from 'fs'
 import path from 'path'
 
-const isCloudinaryConfigured = Boolean(
-  process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET
-)
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+const apiKey = process.env.CLOUDINARY_API_KEY
+const apiSecret = process.env.CLOUDINARY_API_SECRET
+const cloudinaryUrl = process.env.CLOUDINARY_URL
+
+const isCloudinaryConfigured = Boolean((cloudName && apiKey && apiSecret) || cloudinaryUrl)
 
 if (isCloudinaryConfigured) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true,
-  })
+  if (cloudName && apiKey && apiSecret) {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+      secure: true,
+    })
+  } else if (cloudinaryUrl) {
+    cloudinary.config({
+      cloudinary_url: cloudinaryUrl,
+      secure: true,
+    })
+  }
 }
 
 export async function processAndUploadImage(

@@ -43,6 +43,15 @@ export async function GET() {
         // remove mongo internal _id
         const { _id: _, ...storeData } = config
         return NextResponse.json(storeData)
+      } else {
+        // Seed MongoDB Atlas on first connect
+        const initialData = readLocalStore() || defaultStoreData
+        await db.collection('config').updateOne(
+          { _id: 'store_config' as any },
+          { $set: { ...initialData, _id: 'store_config' } },
+          { upsert: true }
+        )
+        return NextResponse.json(initialData)
       }
     }
 
