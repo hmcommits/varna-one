@@ -2,8 +2,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { ArrowRight, MessageSquare, Sparkles } from 'lucide-react'
-
-const WHATSAPP_NUMBER = '916363145972'
+import { useStore } from '@/context/StoreContext'
 
 const topicOptions = [
   { id: 'enquiry', label: 'Enquiry' },
@@ -13,8 +12,11 @@ const topicOptions = [
 ]
 
 export default function Newsletter() {
+  const { activeStore, logEnquiry } = useStore()
   const [selectedTopic, setSelectedTopic] = useState('Enquiry')
   const [message, setMessage] = useState('')
+
+  const whatsappPhone = activeStore.whatsapp?.phoneNumber || '916363145972'
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,8 +26,20 @@ export default function Newsletter() {
       ? `Hi Varna! [${selectedTopic}]: ${trimmed}`
       : `Hi Varna! I would like to share an ${selectedTopic.toLowerCase()} regarding your custom wear and collection.`
 
-    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(textToSend)}`
+    // Log the lead to MongoDB Atlas and admin enquiries module
+    logEnquiry({
+      productName: `Storefront [${selectedTopic}]`,
+      color: 'N/A',
+      size: 'N/A',
+      quantity: 1,
+      customNotes: trimmed || `Customer submitted a ${selectedTopic.toLowerCase()} enquiry`,
+      source: 'Floating Concierge',
+      completed: false,
+    })
+
+    const waUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(textToSend)}`
     window.open(waUrl, '_blank')
+    setMessage('')
   }
 
   return (

@@ -124,9 +124,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         lastUpdated: new Date().toISOString(),
       }
 
+      const adminToken =
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('varna_admin_token')
+          : null) ||
+        updatedDraft.settings?.passcode ||
+        'varna2026'
+
       const res = await fetch('/api/admin/store', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': adminToken,
+        },
         body: JSON.stringify(updatedDraft),
       })
 

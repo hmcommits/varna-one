@@ -77,10 +77,29 @@ export default function CategoriesModule({
     setIsCreating(false)
   }
 
-  // Delete category
+  // Delete category with assigned products safety warning
   const handleDeleteCategory = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (confirm('Are you sure you want to delete this category card?')) {
+    const targetCat = categories.find((c) => c.id === id)
+    const targetTitle = targetCat?.title || 'this category'
+
+    // Check if any products in inventory currently belong to this category
+    const assignedProducts = (draft.products || []).filter(
+      (p) => p.category?.trim().toLowerCase() === targetCat?.title?.trim().toLowerCase()
+    )
+
+    let confirmMessage = `Are you sure you want to delete category "${targetTitle}"?`
+    if (assignedProducts.length > 0) {
+      const sampleNames = assignedProducts
+        .slice(0, 3)
+        .map((p) => p.name)
+        .join(', ')
+      const remainingCount =
+        assignedProducts.length > 3 ? ` and ${assignedProducts.length - 3} more` : ''
+      confirmMessage = `⚠️ WARNING: ${assignedProducts.length} product(s) (${sampleNames}${remainingCount}) are currently assigned to "${targetTitle}".\n\nDeleting this category will remove its collection tile from the storefront and category filter.\n\nDo you still want to permanently delete "${targetTitle}"?`
+    }
+
+    if (confirm(confirmMessage)) {
       updateDraft((prev) => ({
         ...prev,
         categories: (prev.categories || []).filter((c) => c.id !== id),

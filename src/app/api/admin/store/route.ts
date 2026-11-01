@@ -74,10 +74,45 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const providedToken =
+      req.headers.get('x-admin-token') ||
+      req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+
+    const db = await getMongoDb()
+
+    // Determine expected passcode from env, MongoDB, or local config
+    let expectedPasscode: string =
+      process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
+
+    if (!expectedPasscode) {
+      if (db) {
+        const existing = await db
+          .collection('config')
+          .findOne({ _id: 'store_config' as any })
+        expectedPasscode =
+          existing?.settings?.passcode ||
+          defaultStoreData.settings.passcode ||
+          'varna2026'
+      } else {
+        const local = readLocalStore()
+        expectedPasscode =
+          local?.settings?.passcode ||
+          defaultStoreData.settings.passcode ||
+          'varna2026'
+      }
+    }
+
+    // Security Gate: Reject unauthenticated requests
+    if (!providedToken || providedToken.trim() !== expectedPasscode.trim()) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid or missing administrator authorization token' },
+        { status: 401 }
+      )
+    }
+
     const body: StoreState = await req.json()
     body.lastUpdated = new Date().toISOString()
 
-    const db = await getMongoDb()
     let savedToMongo = false
 
     if (db) {

@@ -22,7 +22,7 @@ interface ProductsModuleProps {
   openCreateOnMount?: boolean
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   'Shirts',
   'T-Shirts',
   'Dresses',
@@ -38,9 +38,18 @@ export default function ProductsModule({
   openCreateOnMount,
 }: ProductsModuleProps) {
   const { draft, updateDraft } = useStore()
+
+  // Dynamically derive categories from CategoriesModule (draft.categories)
+  const categoriesList = Array.from(
+    new Set([
+      ...((draft.categories || []).map((c) => c.title.trim()).filter(Boolean)),
+      ...DEFAULT_CATEGORIES,
+    ])
+  )
+
   const [editingProduct, setEditingProduct] = useState<Product | null>(
     openCreateOnMount
-      ? createEmptyProduct(initialCategoryFilter || 'Shirts')
+      ? createEmptyProduct(initialCategoryFilter || categoriesList[0] || 'Shirts')
       : null
   )
   const [isCreating, setIsCreating] = useState(Boolean(openCreateOnMount))
@@ -411,7 +420,7 @@ export default function ProductsModule({
 
       {/* Category Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        {['All', ...CATEGORIES].map((cat) => (
+        {['All', ...categoriesList].map((cat) => (
           <button
             key={cat}
             type="button"
@@ -653,7 +662,7 @@ export default function ProductsModule({
                   }
                   className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden"
                 >
-                  {CATEGORIES.map((cat) => (
+                  {categoriesList.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>

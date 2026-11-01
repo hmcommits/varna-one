@@ -26,12 +26,32 @@ import { defaultStoreData } from '@/data/defaultStoreData'
 import { ProductColor } from '@/types/store'
 
 
-const sizeChartData = [
-  { size: 'S', chestIn: '38', chestCm: '96.5', shoulderIn: '17.5', lengthIn: '28.5' },
-  { size: 'M', chestIn: '40', chestCm: '101.5', shoulderIn: '18.0', lengthIn: '29.0' },
-  { size: 'L', chestIn: '42', chestCm: '106.5', shoulderIn: '18.7', lengthIn: '29.5' },
-  { size: 'XL', chestIn: '44', chestCm: '111.5', shoulderIn: '19.5', lengthIn: '30.0' },
-  { size: 'XXL', chestIn: '46', chestCm: '117.0', shoulderIn: '20.2', lengthIn: '30.5' },
+const topsSizeChart = [
+  { size: 'XS', chestIn: '36', col2: '17.0', col3: '28.0' },
+  { size: 'S', chestIn: '38', col2: '17.5', col3: '28.5' },
+  { size: 'M', chestIn: '40', col2: '18.0', col3: '29.0' },
+  { size: 'L', chestIn: '42', col2: '18.7', col3: '29.5' },
+  { size: 'XL', chestIn: '44', col2: '19.5', col3: '30.0' },
+  { size: 'XXL', chestIn: '46', col2: '20.2', col3: '30.5' },
+  { size: '3XL', chestIn: '48', col2: '20.8', col3: '31.0' },
+]
+
+const bottomsSizeChart = [
+  { size: '28', chestIn: '28', col2: '36', col3: '39.0' },
+  { size: '30', chestIn: '30', col2: '38', col3: '40.0' },
+  { size: '32', chestIn: '32', col2: '40', col3: '41.0' },
+  { size: '34', chestIn: '34', col2: '42', col3: '41.5' },
+  { size: '36', chestIn: '36', col2: '44', col3: '42.0' },
+  { size: '38', chestIn: '38', col2: '46', col3: '42.5' },
+]
+
+const dressesSizeChart = [
+  { size: 'XS', chestIn: '32', col2: '26', col3: '44.0' },
+  { size: 'S', chestIn: '34', col2: '28', col3: '45.0' },
+  { size: 'M', chestIn: '36', col2: '30', col3: '46.0' },
+  { size: 'L', chestIn: '38', col2: '32', col3: '47.0' },
+  { size: 'XL', chestIn: '40', col2: '34', col3: '47.5' },
+  { size: 'XXL', chestIn: '42', col2: '36', col3: '48.0' },
 ]
 
 interface ProductDetailsViewProps {
@@ -48,6 +68,8 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     ) ||
     activeStore.products?.[0] ||
     defaultStoreData.products[0]
+
+  const catLower = (product.category || '').toLowerCase()
 
   const colors: ProductColor[] =
     product.colors?.length > 0 ? product.colors : defaultStoreData.products[0].colors
@@ -146,33 +168,55 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
   const whatsappPhone = activeStore.whatsapp?.phoneNumber || '916363145972'
 
-  // Dynamic WhatsApp Concierge Order Link
+  // Dynamic WhatsApp Concierge Order Link - Evaluates editable Admin templatePdp
   const buildWhatsAppMessage = () => {
     const currentUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/products/${product.id}`
         : `https://varna.store/products/${product.id}`
 
+    const formattedPrice = `₹${totalPrice.toLocaleString('en-IN')}`
+
+    let customNotesBlock = ''
+    if (selectedCustomOptions.length > 0) {
+      customNotesBlock += `\n• *Custom Options Selected:*\n`
+      selectedCustomOptions.forEach((opt) => {
+        customNotesBlock += `   - ${opt.type} (+₹${opt.price})\n`
+      })
+      if (customNotes.trim()) {
+        customNotesBlock += `• *Custom Notes:* "${customNotes.trim()}"\n`
+      }
+    } else if (customNotes.trim()) {
+      customNotesBlock += `\n• *Custom Notes:* "${customNotes.trim()}"\n`
+    }
+
+    if (isBulkOrder) {
+      customNotesBlock += `\n*Note:* This is a bulk enquiry for ${quantity} units. Please share wholesale tier pricing and dispatch schedule.`
+    }
+
+    // Evaluate activeStore.whatsapp?.templatePdp if configured
+    const template = activeStore.whatsapp?.templatePdp
+    if (template && template.includes('{product_name}')) {
+      return template
+        .replace(/{product_name}/g, product.name)
+        .replace(/{color}/g, selectedColor.name)
+        .replace(/{size}/g, selectedSize)
+        .replace(/{quantity}/g, String(quantity))
+        .replace(/{price}/g, formattedPrice)
+        .replace(/{product_url}/g, currentUrl)
+        .replace(/{custom_notes}/g, customNotesBlock)
+    }
+
+    // Standard high-converting default format
     let msg = `Hi Varna! I'd like to order the *${product.name}*:\n\n`
     msg += `• *Color:* ${selectedColor.name}\n`
     msg += `• *Size:* ${selectedSize}\n`
     msg += `• *Quantity:* ${quantity} ${isBulkOrder ? '(Bulk Order Request)' : 'unit(s)'}\n`
-    msg += `• *Total Amount:* ₹${totalPrice.toLocaleString('en-IN')}\n`
+    msg += `• *Total Amount:* ${formattedPrice}\n`
     msg += `• *Product Link:* ${currentUrl}\n`
+    msg += customNotesBlock
 
-    if (selectedCustomOptions.length > 0) {
-      msg += `• *Custom Options Selected:*\n`
-      selectedCustomOptions.forEach((opt) => {
-        msg += `   - ${opt.type} (+₹${opt.price})\n`
-      })
-      if (customNotes.trim()) {
-        msg += `• *Custom Notes:* "${customNotes.trim()}"\n`
-      }
-    }
-
-    if (isBulkOrder) {
-      msg += `\n*Note:* This is a bulk enquiry. Please share wholesale tier pricing and dispatch schedule.`
-    } else {
+    if (!isBulkOrder) {
       msg += `\nPlease confirm product availability & dispatch timeline!`
     }
     return msg
@@ -1116,7 +1160,11 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               <div className="flex items-center gap-2">
                 <Ruler size={18} className="text-[#1a2e1a]" />
                 <h3 className="font-display text-lg font-bold text-[#1a1a1a]">
-                  Linen Shirt Size Guide
+                  {catLower.includes('jean') || catLower.includes('trouser') || catLower.includes('pant')
+                    ? `${product.category || 'Jeans'} Sizing Guide`
+                    : catLower.includes('dress') || catLower.includes('coord') || catLower.includes('co-ord')
+                    ? `${product.category || 'Dress'} Sizing Guide`
+                    : `${product.category || 'Shirt'} Sizing Guide`}
                 </h3>
               </div>
               <button
@@ -1129,46 +1177,73 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               </button>
             </div>
 
-            {/* Measurement Chart Table */}
-            <div className="overflow-x-auto mb-4">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#faf8f4] text-[#1a1a1a] font-bold border-b border-[#e8d5b7]">
-                  <tr>
-                    <th className="py-2.5 px-3">Size</th>
-                    <th className="py-2.5 px-3">Chest (In)</th>
-                    <th className="py-2.5 px-3">Chest (Cm)</th>
-                    <th className="py-2.5 px-3">Shoulder (In)</th>
-                    <th className="py-2.5 px-3">Length (In)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e8d5b7]/50 text-[#63574a]">
-                  {sizeChartData.map((row) => (
-                    <tr
-                      key={row.size}
-                      className={
-                        row.size === selectedSize
-                          ? 'bg-[#1a2e1a]/5 font-semibold text-[#1a2e1a]'
-                          : ''
-                      }
-                    >
-                      <td className="py-2 px-3 font-bold">{row.size}</td>
-                      <td className="py-2 px-3">{row.chestIn}&quot;</td>
-                      <td className="py-2 px-3">{row.chestCm} cm</td>
-                      <td className="py-2 px-3">{row.shoulderIn}&quot;</td>
-                      <td className="py-2 px-3">{row.lengthIn}&quot;</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* Category-Specific Measurement Chart Table */}
+            {(() => {
+              const isBottom = catLower.includes('jean') || catLower.includes('trouser') || catLower.includes('pant')
+              const isDress = catLower.includes('dress') || catLower.includes('coord') || catLower.includes('co-ord')
+              const chartData = isBottom ? bottomsSizeChart : isDress ? dressesSizeChart : topsSizeChart
+              const col1 = isBottom ? 'Waist' : isDress ? 'Bust' : 'Chest'
+              const col2 = isBottom ? 'Hip' : isDress ? 'Waist' : 'Shoulder'
+              const col3 = isBottom ? 'Length' : 'Length'
 
-            {/* Sizing Tips */}
-            <div className="bg-[#faf8f4] p-3.5 rounded-xl text-[11px] text-[#63574a] space-y-1 mb-5 border border-[#e8d5b7]/50">
-              <p className="font-semibold text-[#1a1a1a]">How to Measure:</p>
-              <p>• <strong>Chest:</strong> Measure around fullest part of chest under arms.</p>
-              <p>• <strong>Length:</strong> Measure from highest point of shoulder to hem.</p>
-              <p>• <strong>Fit:</strong> Standard regular fit. For relaxed oversized streetwear, choose one size up.</p>
-            </div>
+              return (
+                <>
+                  <div className="overflow-x-auto mb-4">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-[#faf8f4] text-[#1a1a1a] font-bold border-b border-[#e8d5b7]">
+                        <tr>
+                          <th className="py-2.5 px-3">Size</th>
+                          <th className="py-2.5 px-3">{col1} (In)</th>
+                          <th className="py-2.5 px-3">{col2} (In)</th>
+                          <th className="py-2.5 px-3">{col3} (In)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e8d5b7]/50 text-[#63574a]">
+                        {chartData.map((row) => (
+                          <tr
+                            key={row.size}
+                            className={
+                              row.size === selectedSize
+                                ? 'bg-[#1a2e1a]/5 font-semibold text-[#1a2e1a]'
+                                : ''
+                            }
+                          >
+                            <td className="py-2 px-3 font-bold">{row.size}</td>
+                            <td className="py-2 px-3">{row.chestIn}&quot;</td>
+                            <td className="py-2 px-3">{row.col2}&quot;</td>
+                            <td className="py-2 px-3">{row.col3}&quot;</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Sizing Tips */}
+                  <div className="bg-[#faf8f4] p-3.5 rounded-xl text-[11px] text-[#63574a] space-y-1 mb-5 border border-[#e8d5b7]/50">
+                    <p className="font-semibold text-[#1a1a1a]">How to Measure:</p>
+                    {isBottom ? (
+                      <>
+                        <p>• <strong>Waist:</strong> Measure around your natural waistline where waistband rests.</p>
+                        <p>• <strong>Hip:</strong> Measure around fullest part of your hips.</p>
+                        <p>• <strong>Length:</strong> Outseam from top of waistband to bottom leg hem.</p>
+                      </>
+                    ) : isDress ? (
+                      <>
+                        <p>• <strong>Bust:</strong> Measure around fullest part of chest under arms.</p>
+                        <p>• <strong>Waist:</strong> Measure around narrowest part of waist.</p>
+                        <p>• <strong>Length:</strong> Measure from highest point of shoulder to lower hemline.</p>
+                      </>
+                    ) : (
+                      <>
+                        <p>• <strong>Chest:</strong> Measure around fullest part of chest under arms.</p>
+                        <p>• <strong>Length:</strong> Measure from highest point of shoulder to hem.</p>
+                        <p>• <strong>Fit:</strong> Standard tailored fit. For relaxed streetwear drape, size up.</p>
+                      </>
+                    )}
+                  </div>
+                </>
+              )
+            })()}
 
             {/* WhatsApp direct size help */}
             <div className="flex items-center justify-between">

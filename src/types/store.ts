@@ -105,12 +105,21 @@ export interface TrustBadgeItem {
   iconKey: 'truck' | 'rotate' | 'scissors' | 'shield'
 }
 
+export interface WhyVarnaItem {
+  id: string
+  title: string
+  sub: string
+  iconKey?: 'shield' | 'sparkles' | 'layers' | 'users'
+}
+
 export interface HomepageConfig {
   topBarVisible: boolean
   topBarTexts: string[] // max 3 text entries
   tickerChips: string[]
   promoBanners: PromoBanner[]
   trustBadges: TrustBadgeItem[]
+  whyVarnaTitle?: string
+  whyVarnaItems?: WhyVarnaItem[]
 }
 
 export interface WhatsAppConfig {

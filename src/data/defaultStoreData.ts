@@ -244,6 +244,13 @@ export const defaultStoreData: StoreState = {
         iconKey: 'shield',
       },
     ],
+    whyVarnaTitle: 'Why Shop Varna?',
+    whyVarnaItems: [
+      { id: 'wv-1', title: 'Premium Quality', sub: 'Crafted for comfort', iconKey: 'shield' },
+      { id: 'wv-2', title: 'Trendy Designs', sub: 'Styles for every occasion', iconKey: 'sparkles' },
+      { id: 'wv-3', title: 'Custom Printing', sub: 'Tees, Jerseys & Hoodies', iconKey: 'layers' },
+      { id: 'wv-4', title: 'Loved by 1M+', sub: 'A growing community', iconKey: 'users' },
+    ],
   },
   whatsapp: {
     phoneNumber: '916363145972',

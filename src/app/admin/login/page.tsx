@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useStore } from '@/context/StoreContext'
-import { Lock, ArrowRight, ShieldCheck, ArrowLeft, KeyRound } from 'lucide-react'
+import { Lock, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AdminLoginPage() {
@@ -28,6 +28,7 @@ export default function AdminLoginPage() {
     if (passcode.trim() === masterPasscode) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('varna_admin_session', 'true')
+        sessionStorage.setItem('varna_admin_token', passcode.trim())
         localStorage.setItem('varna_admin_authenticated', 'true')
       }
       router.push('/admin')
@@ -35,11 +36,6 @@ export default function AdminLoginPage() {
       setError(true)
       setLoading(false)
     }
-  }
-
-  const handleQuickDemoFill = () => {
-    setPasscode(masterPasscode)
-    setError(false)
   }
 
   const logoSrc =
@@ -132,19 +128,6 @@ export default function AdminLoginPage() {
               <ArrowRight size={16} />
             </button>
           </form>
-
-          {/* Demo Quick Fill Helper */}
-          <div className="mt-5 pt-4 border-t border-[#ebe5da] flex items-center justify-between text-xs">
-            <span className="text-[#6b7770]">Demo Evaluation?</span>
-            <button
-              type="button"
-              onClick={handleQuickDemoFill}
-              className="text-[#1c3624] hover:underline font-bold flex items-center gap-1 cursor-pointer"
-            >
-              <KeyRound size={12} className="text-[#845d1d]" />
-              <span>Quick Demo Fill ({masterPasscode})</span>
-            </button>
-          </div>
         </div>
 
         {/* Security badge footer */}

@@ -2,13 +2,14 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
-import { PromoBanner } from '@/types/store'
+import { PromoBanner, WhyVarnaItem } from '@/types/store'
 import { Plus, Trash2, Eye } from 'lucide-react'
 import ModulePreviewDrawer from '../ModulePreviewDrawer'
 import TopBar from '@/components/layout/TopBar'
 import TrendingTicker from '@/components/sections/TrendingTicker'
 import PromoBanners from '@/components/sections/PromoBanners'
 import TrustBadges from '@/components/sections/TrustBadges'
+import WhyVarna from '@/components/sections/WhyVarna'
 
 export default function HomepageModule() {
   const { draft, updateDraft } = useStore()
@@ -120,6 +121,33 @@ export default function HomepageModule() {
     updateDraft((prev) => ({
       ...prev,
       homepage: { ...prev.homepage, trustBadges: updated },
+    }))
+  }
+
+  // Why Varna Pillars
+  const defaultWhyVarnaItems: WhyVarnaItem[] = [
+    { id: 'wv-1', iconKey: 'shield', title: 'Premium Quality', sub: 'Crafted for comfort' },
+    { id: 'wv-2', iconKey: 'sparkles', title: 'Trendy Designs', sub: 'Styles for every occasion' },
+    { id: 'wv-3', iconKey: 'layers', title: 'Custom Printing', sub: 'Tees, Jerseys & Hoodies' },
+    { id: 'wv-4', iconKey: 'users', title: 'Loved by 1M+', sub: 'A growing community' },
+  ]
+  const whyVarnaItems = homepage.whyVarnaItems?.length ? homepage.whyVarnaItems : defaultWhyVarnaItems
+  const whyVarnaTitle = homepage.whyVarnaTitle || 'Why Shop Varna?'
+
+  const handleUpdateWhyVarnaTitle = (val: string) => {
+    updateDraft((prev) => ({
+      ...prev,
+      homepage: { ...prev.homepage, whyVarnaTitle: val },
+    }))
+  }
+
+  const handleUpdateWhyVarnaItem = (id: string, field: 'title' | 'sub', val: string) => {
+    const updated = whyVarnaItems.map((item) =>
+      item.id === id ? { ...item, [field]: val } : item
+    )
+    updateDraft((prev) => ({
+      ...prev,
+      homepage: { ...prev.homepage, whyVarnaItems: updated },
     }))
   }
 
@@ -404,6 +432,66 @@ export default function HomepageModule() {
         </div>
       </div>
 
+      {/* 5. WHY SHOP VARNA? BRAND PILLARS */}
+      <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
+        <div>
+          <h3 className="font-display text-base font-bold text-[#142319] flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#845d1d] border border-[#845d1d]" />
+            <span>Why Shop Varna? (Brand Pillars)</span>
+          </h3>
+          <p className="text-xs text-[#6b7770]">
+            Customize the headline and core value props highlighted to customers above testimonials
+          </p>
+        </div>
+
+        {/* Section Heading */}
+        <div className="pt-1">
+          <label className="block text-xs font-bold text-[#142319] mb-1">
+            Section Title
+          </label>
+          <input
+            type="text"
+            value={whyVarnaTitle}
+            onChange={(e) => handleUpdateWhyVarnaTitle(e.target.value)}
+            placeholder="e.g. Why Shop Varna?"
+            className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3.5 py-2 text-xs text-[#142319] font-bold outline-hidden"
+          />
+        </div>
+
+        {/* 4 Brand Pillar Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          {whyVarnaItems.map((item, idx) => (
+            <div
+              key={item.id}
+              className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-3.5 space-y-2 shadow-2xs"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase text-[#845d1d]">
+                  Pillar {idx + 1}
+                </span>
+                <span className="text-[10px] text-[#6b7770] font-mono">
+                  Icon: {item.iconKey || 'shield'}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={item.title}
+                onChange={(e) => handleUpdateWhyVarnaItem(item.id, 'title', e.target.value)}
+                placeholder="Pillar title..."
+                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] font-bold outline-hidden"
+              />
+              <input
+                type="text"
+                value={item.sub}
+                onChange={(e) => handleUpdateWhyVarnaItem(item.id, 'sub', e.target.value)}
+                placeholder="Pillar subtitle..."
+                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-[11px] text-[#6b7770] outline-hidden"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* PREVIEW DRAWER */}
       <ModulePreviewDrawer
         isOpen={previewOpen}
@@ -418,6 +506,9 @@ export default function HomepageModule() {
           </div>
           <div className="px-4">
             <TrustBadges />
+          </div>
+          <div className="px-4">
+            <WhyVarna />
           </div>
         </div>
       </ModulePreviewDrawer>
