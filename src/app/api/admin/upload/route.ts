@@ -72,10 +72,17 @@ export async function POST(req: Request) {
       )
     }
 
-    // 4. File type check
-    if (file.type && !file.type.startsWith('image/') && !file.name.match(/\.(png|jpe?g|webp|heic|avif)$/i)) {
+    // 4. File type check - Supports all image formats (JPEG, PNG, WEBP, HEIC, HEIF, AVIF, GIF, SVG, TIFF, BMP, JFIF)
+    const isImage =
+      (file.type && file.type.startsWith('image/')) ||
+      Boolean(file.name.match(/\.(jpe?g|png|webp|heic|heif|avif|gif|svg|tiff?|bmp|jfif)$/i))
+
+    if (!isImage) {
       return NextResponse.json(
-        { error: 'Invalid file format. Only images (PNG, JPG, HEIC, WEBP) are supported.' },
+        {
+          error:
+            'Invalid file format. Please upload a valid image file (JPEG, PNG, WEBP, HEIC, HEIF, AVIF, GIF, SVG, TIFF, BMP, JFIF).',
+        },
         { status: 400 }
       )
     }
