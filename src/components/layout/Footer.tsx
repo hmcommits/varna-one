@@ -1,9 +1,17 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
+import { useStore } from '@/context/StoreContext'
 
-const shopLinks = ['New Arrivals', 'Men', 'Women', 'Collections', 'Sale']
+const shopLinks = [
+  { label: 'New Arrivals', href: '/#new-arrivals' },
+  { label: 'Men', href: '/#men' },
+  { label: 'Women', href: '/#women' },
+  { label: 'Collections', href: '/#collections' },
+  { label: 'Sale', href: '/#sale' },
+]
 const helpLinks = ['Custom Orders', 'Bulk Enquiries', 'Size Guide', 'FAQs', 'Contact Us']
 
 const WHATSAPP_ENQUIRY_URL =
@@ -11,12 +19,61 @@ const WHATSAPP_ENQUIRY_URL =
 
 export default function Footer() {
   const router = useRouter()
+  const pathname = usePathname()
+  const { activeStore, selectCatalogFilter } = useStore()
   const [tapCount, setTapCount] = useState(0)
   const tapTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     router.prefetch('/admin/login')
   }, [router])
+
+  const handleShopLinkClick = (label: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    const isHome = pathname === '/'
+
+    if (label === 'Men') {
+      selectCatalogFilter('Men', isHome)
+      if (!isHome) router.push('/#men')
+      else window.history.replaceState(null, '', '#men')
+    } else if (label === 'Women') {
+      selectCatalogFilter('Women', isHome)
+      if (!isHome) router.push('/#women')
+      else window.history.replaceState(null, '', '#women')
+    } else if (label === 'New Arrivals') {
+      selectCatalogFilter('All', isHome)
+      if (!isHome) router.push('/#new-arrivals')
+      else window.history.replaceState(null, '', '#new-arrivals')
+    } else if (label === 'Collections') {
+      if (isHome) {
+        const collectionsEl = document.getElementById('collections')
+        if (collectionsEl) collectionsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        else selectCatalogFilter('All', true)
+        window.history.replaceState(null, '', '#collections')
+      } else {
+        selectCatalogFilter('All', false)
+        router.push('/#collections')
+      }
+    } else if (label === 'Sale') {
+      const hasActiveSale = (activeStore.promotions || []).some(
+        (p) => p.active && p.saleProducts && p.saleProducts.length > 0
+      )
+      if (hasActiveSale) {
+        if (isHome) {
+          const saleEl = document.getElementById('sale')
+          if (saleEl) saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          else selectCatalogFilter('Sale', true)
+          window.history.replaceState(null, '', '#sale')
+        } else {
+          router.push('/#sale')
+        }
+      } else {
+        selectCatalogFilter('All', isHome)
+        if (!isHome) router.push('/#new-arrivals')
+        else window.history.replaceState(null, '', '#new-arrivals')
+      }
+    }
+  }
 
   const handleFooterLogoTap = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -89,13 +146,14 @@ export default function Footer() {
           <h4 className="font-semibold text-white uppercase tracking-wider text-xs mb-3">Shop</h4>
           <ul className="space-y-2">
             {shopLinks.map((link) => (
-              <li key={link}>
-                <a
-                  href={`#${link.toLowerCase().replace(/\s+/g, '-')}`}
+              <li key={link.label}>
+                <Link
+                  href={link.href}
+                  onClick={(e) => handleShopLinkClick(link.label, e)}
                   className="hover:text-white transition-colors"
                 >
-                  {link}
-                </a>
+                  {link.label}
+                </Link>
               </li>
             ))}
           </ul>

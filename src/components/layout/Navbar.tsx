@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Search, Menu, X, Shield, Lock } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useStore } from '@/context/StoreContext'
 
 const navLinks = [
@@ -16,6 +16,7 @@ const navLinks = [
 
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const { activeStore, searchQuery, setSearchQuery, selectCatalogFilter } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -69,42 +70,89 @@ export default function Navbar() {
   const subtitle = activeStore.settings?.subtitle || 'Custom Wear & Prints'
 
   const handleNavLinkClick = (label: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    const isHome = pathname === '/'
+
     if (label === 'Men') {
-      e.preventDefault()
-      selectCatalogFilter('Men', true)
+      selectCatalogFilter('Men', isHome)
+      if (!isHome) {
+        router.push('/#men')
+      } else {
+        window.history.replaceState(null, '', '#men')
+      }
       setMobileOpen(false)
     } else if (label === 'Women') {
-      e.preventDefault()
-      selectCatalogFilter('Women', true)
+      selectCatalogFilter('Women', isHome)
+      if (!isHome) {
+        router.push('/#women')
+      } else {
+        window.history.replaceState(null, '', '#women')
+      }
       setMobileOpen(false)
-    } else if (label === 'New Arrivals' || label === 'Collections') {
-      e.preventDefault()
-      selectCatalogFilter('All', true)
+    } else if (label === 'New Arrivals') {
+      selectCatalogFilter('All', isHome)
+      if (!isHome) {
+        router.push('/#new-arrivals')
+      } else {
+        window.history.replaceState(null, '', '#new-arrivals')
+      }
+      setMobileOpen(false)
+    } else if (label === 'Collections') {
+      if (isHome) {
+        const collectionsEl = document.getElementById('collections')
+        if (collectionsEl) {
+          collectionsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          selectCatalogFilter('All', true)
+        }
+        window.history.replaceState(null, '', '#collections')
+      } else {
+        selectCatalogFilter('All', false)
+        router.push('/#collections')
+      }
       setMobileOpen(false)
     } else if (label === 'Sale') {
-      e.preventDefault()
       const hasActiveSale = (activeStore.promotions || []).some(
         (p) => p.active && p.saleProducts && p.saleProducts.length > 0
       )
       if (hasActiveSale) {
-        const saleEl = document.getElementById('sale')
-        if (saleEl) {
-          saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        if (isHome) {
+          const saleEl = document.getElementById('sale')
+          if (saleEl) {
+            saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          } else {
+            selectCatalogFilter('Sale', true)
+          }
+          window.history.replaceState(null, '', '#sale')
         } else {
-          selectCatalogFilter('Sale', true)
+          router.push('/#sale')
         }
       } else {
         // When no active sale exists, redirect directly to product list
-        selectCatalogFilter('All', true)
+        selectCatalogFilter('All', isHome)
+        if (!isHome) {
+          router.push('/#new-arrivals')
+        } else {
+          window.history.replaceState(null, '', '#new-arrivals')
+        }
       }
       setMobileOpen(false)
     }
   }
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleSearchTrigger = () => {
+    setMobileOpen(false)
+    if (pathname === '/') {
       const el = document.getElementById('new-arrivals')
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      router.push('/#new-arrivals')
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearchTrigger()
     }
   }
 
@@ -212,10 +260,7 @@ export default function Navbar() {
               <Search
                 size={15}
                 className="text-[#8a7d6e] flex-shrink-0 cursor-pointer"
-                onClick={() => {
-                  const el = document.getElementById('new-arrivals')
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
+                onClick={handleSearchTrigger}
               />
               <input
                 type="text"

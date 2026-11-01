@@ -1,15 +1,26 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useStore } from '@/context/StoreContext'
 import ProductCard from '@/components/ui/ProductCard'
 import { Flame, Check, Copy } from 'lucide-react'
 
 export default function SaleSection() {
-  const { draft } = useStore()
+  const { activeStore } = useStore()
   const [copiedCode, setCopiedCode] = useState(false)
 
+  // Scroll into view if #sale hash is targeted
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.toLowerCase() === '#sale') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('sale')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 120)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
   // Find the first active promotion with curated sale products
-  const activeSale = (draft.promotions || []).find(
+  const activeSale = (activeStore.promotions || []).find(
     (p) => p.active && p.saleProducts && p.saleProducts.length > 0
   )
 
@@ -18,7 +29,7 @@ export default function SaleSection() {
     return null
   }
 
-  const catalogProducts = draft.products || []
+  const catalogProducts = activeStore.products || []
 
   // Map sale products with their custom salePrice
   const saleItems = activeSale.saleProducts
@@ -48,7 +59,7 @@ export default function SaleSection() {
   return (
     <section
       id="sale"
-      className="py-14 md:py-20 bg-gradient-to-b from-[#faf7f2] via-[#f5ede0] to-[#faf8f5] border-t border-b border-[#ded7cb] relative overflow-hidden"
+      className="scroll-mt-20 py-14 md:py-20 bg-gradient-to-b from-[#faf7f2] via-[#f5ede0] to-[#faf8f5] border-t border-b border-[#ded7cb] relative overflow-hidden"
     >
       {/* Decorative ambient gradient blooms */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#c4855a]/10 rounded-full blur-3xl pointer-events-none" />

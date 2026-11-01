@@ -1,5 +1,5 @@
 'use client'
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Sparkles, X, Search } from 'lucide-react'
 import ProductCard from '@/components/ui/ProductCard'
 import { useStore } from '@/context/StoreContext'
@@ -14,6 +14,44 @@ export default function NewArrivals() {
     setSearchQuery,
   } = useStore()
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Handle URL hash changes (e.g. navigation from product page like #men, #women, #new-arrivals, #sale)
+  useEffect(() => {
+    const handleHash = () => {
+      if (typeof window === 'undefined') return
+      const hash = window.location.hash.toLowerCase()
+      if (!hash) return
+
+      if (hash === '#men') {
+        setCatalogFilter('Men')
+        const el = document.getElementById('new-arrivals')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (hash === '#women') {
+        setCatalogFilter('Women')
+        const el = document.getElementById('new-arrivals')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (hash === '#new-arrivals') {
+        const el = document.getElementById('new-arrivals')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (hash === '#sale') {
+        const saleEl = document.getElementById('sale')
+        if (saleEl) {
+          saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          setCatalogFilter('Sale')
+          const el = document.getElementById('new-arrivals')
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }
+    }
+
+    const timer = setTimeout(handleHash, 120)
+    window.addEventListener('hashchange', handleHash)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('hashchange', handleHash)
+    }
+  }, [setCatalogFilter])
 
   const products: Product[] = activeStore.products || []
 

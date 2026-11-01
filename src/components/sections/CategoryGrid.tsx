@@ -1,4 +1,5 @@
 'use client'
+import { useEffect } from 'react'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import { useStore } from '@/context/StoreContext'
@@ -33,8 +34,19 @@ export default function CategoryGrid() {
     selectCatalogFilter(targetFilter, true)
   }
 
+  // Scroll into view if #collections hash is targeted
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.toLowerCase() === '#collections') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('collections')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 120)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
   return (
-    <section className="bg-[#faf8f4] py-10 md:py-16 px-4">
+    <section id="collections" className="bg-[#faf8f4] py-10 md:py-16 px-4 scroll-mt-20">
       {/* Hidden SVG defs for Authentic Mughal pointed arch clip path */}
       <svg width="0" height="0" className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
         <defs>
