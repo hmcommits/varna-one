@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -39,7 +39,7 @@ interface ProductDetailsViewProps {
 }
 
 export default function ProductDetailsView({ productId }: ProductDetailsViewProps = {}) {
-  const { activeStore, logEnquiry } = useStore()
+  const { activeStore, logEnquiry, setActiveViewingProduct } = useStore()
 
   // Find product by id (or fallback to linen-shirt / first product)
   const product =
@@ -220,6 +220,46 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
       }
     }
   }
+
+  // Synchronize open product state to StoreContext so floating WhatsApp button sends this product's enquiry
+  useEffect(() => {
+    const currentUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/products/${product.id}`
+        : `https://varna.store/products/${product.id}`
+
+    setActiveViewingProduct({
+      productId: product.id,
+      name: product.name,
+      category: product.category,
+      color: selectedColor.name,
+      size: selectedSize,
+      quantity,
+      price: totalPrice,
+      originalPrice: product.originalPrice,
+      url: currentUrl,
+      customOptions: selectedCustomOptions.map((o) => `${o.type} (+₹${o.price})`),
+      customNotes: customNotes.trim() || undefined,
+      isBulkOrder,
+    })
+
+    return () => {
+      setActiveViewingProduct(null)
+    }
+  }, [
+    product.id,
+    product.name,
+    product.category,
+    product.originalPrice,
+    selectedColor.name,
+    selectedSize,
+    quantity,
+    totalPrice,
+    selectedCustomOptions,
+    customNotes,
+    isBulkOrder,
+    setActiveViewingProduct,
+  ])
 
   const safeImageIndex =
     selectedImageIndex < galleryImages.length ? selectedImageIndex : 0

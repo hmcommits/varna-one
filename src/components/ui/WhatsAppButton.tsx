@@ -1,9 +1,11 @@
 'use client'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { useStore } from '@/context/StoreContext'
 
 export default function WhatsAppButton() {
-  const { activeStore, logEnquiry } = useStore()
+  const { activeStore, logEnquiry, activeViewingProduct } = useStore()
+  const pathname = usePathname()
 
   const wa = activeStore.whatsapp || {
     phoneNumber: '916363145972',
@@ -12,6 +14,10 @@ export default function WhatsAppButton() {
     luminousGlow: true,
     templateGeneral:
       "Hi Varna! I'm browsing your storefront and would like to ask a few questions about your collections and custom printing.",
+    templateCard:
+      "Hi Varna! I'd like to enquire about the {product_name} ({price}). Please share availability and delivery timeframe.",
+    templatePdp:
+      "Hi Varna! I'd like to order the *{product_name}*:\n\n• *Color:* {color}\n• *Size:* {size}\n• *Quantity:* {quantity} unit(s)\n• *Total Amount:* {price}\n• *Product Link:* {product_url}{custom_notes}\n\nPlease confirm product availability & dispatch timeline!",
   }
 
   if (wa.floatingButtonVisible === false) {
@@ -19,20 +25,97 @@ export default function WhatsAppButton() {
   }
 
   const phone = wa.phoneNumber || '916363145972'
-  const message =
-    wa.templateGeneral ||
-    "Hi Varna! I'm browsing your storefront and would like to ask a few questions about your collections and custom printing."
-  const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 
-  const handleClick = () => {
-    logEnquiry({
+  // Detect whether a particular product is currently open
+  const isProductRoute = Boolean(pathname?.startsWith('/products/'))
+  const routeProductId = isProductRoute
+    ? pathname?.replace(/^\/products\//, '').split('/')[0]
+    : null
+
+  const routeProduct = routeProductId
+    ? (activeStore.products || []).find(
+        (p) => p.id === routeProductId || (routeProductId === 'linen-shirt' && p.id === '1')
+      )
+    : null
+
+  const isProductOpen = Boolean(activeViewingProduct || routeProduct)
+
+  let whatsappUrl = ''
+  let enquiryLogData: any = {}
+
+  if (isProductOpen) {
+    // When a particular product is open, tailor the enquiry button directly to that product
+    const prodName = activeViewingProduct?.name || routeProduct?.name || 'Varna Collection Item'
+    const colorName =
+      activeViewingProduct?.color || routeProduct?.colors?.[0]?.name || 'Standard'
+    const sizeName = activeViewingProduct?.size || routeProduct?.sizes?.[0] || 'Standard'
+    const qty = activeViewingProduct?.quantity || 1
+    const priceVal = activeViewingProduct?.price ?? routeProduct?.price ?? 0
+    const priceFormatted = `₹${priceVal.toLocaleString('en-IN')}`
+    const prodUrl =
+      activeViewingProduct?.url ||
+      (typeof window !== 'undefined'
+        ? window.location.href
+        : `https://varna.store/products/${activeViewingProduct?.productId || routeProduct?.id}`)
+
+    const customNotesStr =
+      activeViewingProduct?.customOptions && activeViewingProduct.customOptions.length > 0
+        ? `\n• *Customization:* ${activeViewingProduct.customOptions.join(', ')}${
+            activeViewingProduct.customNotes ? ` ("${activeViewingProduct.customNotes}")` : ''
+          }`
+        : activeViewingProduct?.customNotes
+        ? `\n• *Custom Notes:* "${activeViewingProduct.customNotes}"`
+        : ''
+
+    let message = ''
+    if (wa.templatePdp) {
+      message = wa.templatePdp
+        .replace('{product_name}', prodName)
+        .replace('{color}', colorName)
+        .replace('{size}', sizeName)
+        .replace('{quantity}', String(qty))
+        .replace('{price}', priceFormatted)
+        .replace('{product_url}', prodUrl)
+        .replace('{custom_notes}', customNotesStr)
+    } else {
+      message = `Hi Varna! I'd like to enquire about the *${prodName}*:\n\n• *Color:* ${colorName}\n• *Size:* ${sizeName}\n• *Quantity:* ${qty} unit(s)\n• *Price:* ${priceFormatted}\n• *Product Link:* ${prodUrl}${customNotesStr}\n\nPlease confirm product availability & dispatch timeline!`
+    }
+
+    whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+
+    enquiryLogData = {
+      productName: prodName,
+      color: colorName,
+      size: sizeName,
+      quantity: qty,
+      customNotes:
+        activeViewingProduct?.customOptions && activeViewingProduct.customOptions.length > 0
+          ? `${activeViewingProduct.customOptions.join(', ')}${
+              activeViewingProduct.customNotes ? ` — ${activeViewingProduct.customNotes}` : ''
+            }`
+          : activeViewingProduct?.customNotes || undefined,
+      source: 'Product Details Page',
+      completed: false,
+    }
+  } else {
+    // General storefront concierge message
+    const message =
+      wa.templateGeneral ||
+      "Hi Varna! I'm browsing your storefront and would like to ask a few questions about your collections and custom printing."
+    whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+
+    enquiryLogData = {
       productName: 'General Floating Concierge',
       color: 'N/A',
       size: 'N/A',
       quantity: 1,
       source: 'Floating Concierge',
       completed: false,
-    })
+    }
+  }
+
+  const handleClick = () => {
+    logEnquiry(enquiryLogData)
   }
 
   return (

@@ -5,6 +5,21 @@ import { defaultStoreData } from '@/data/defaultStoreData'
 
 const LOCAL_STORAGE_KEY = 'varna_store_data_v1'
 
+export interface ActiveViewingProduct {
+  productId: string
+  name: string
+  category?: string
+  color?: string
+  size?: string
+  quantity?: number
+  price?: number
+  originalPrice?: number
+  url?: string
+  customOptions?: string[]
+  customNotes?: string
+  isBulkOrder?: boolean
+}
+
 interface StoreContextType {
   store: StoreState
   draft: StoreState
@@ -23,6 +38,8 @@ interface StoreContextType {
   searchQuery: string
   setSearchQuery: (query: string) => void
   selectCatalogFilter: (filter: string, scrollToSection?: boolean) => void
+  activeViewingProduct: ActiveViewingProduct | null
+  setActiveViewingProduct: (product: ActiveViewingProduct | null) => void
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -36,6 +53,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [globalPreviewMode, setGlobalPreviewMode] = useState(false)
   const [catalogFilter, setCatalogFilter] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeViewingProduct, setActiveViewingProduct] = useState<ActiveViewingProduct | null>(null)
 
   const selectCatalogFilter = useCallback((filter: string, scrollToSection = true) => {
     setCatalogFilter(filter)
@@ -193,6 +211,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         searchQuery,
         setSearchQuery,
         selectCatalogFilter,
+        activeViewingProduct,
+        setActiveViewingProduct,
       }}
     >
       {children}
