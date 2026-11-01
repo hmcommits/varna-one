@@ -10,7 +10,8 @@ export const defaultStoreData: StoreState = {
     supportPhone: '+91 6363145972',
     studioAddress: 'Indiranagar 100ft Road, Bengaluru, Karnataka 560038',
     copyrightText: '© 2026 Varna. All rights reserved. Crafted for comfort, curated to impress.',
-    logoUrl: '/images/logo/varna-emblem.webp',
+    logoUrl:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
   },
@@ -32,31 +33,34 @@ export const defaultStoreData: StoreState = {
           id: 'terracotta',
           name: 'Desert Terracotta',
           hex: '#c4855a',
-          image: '/images/products/linen-shirt.webp',
+          image:
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
           gallery: [
-            '/images/products/linen-shirt.webp',
-            '/images/categories/shirts.webp',
-            '/images/banners/men-banner.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532656/varna_store/categories/cat-shirts.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532662/varna_store/banners/banner-men.webp',
           ],
         },
         {
           id: 'olive',
           name: 'Deep Forest Olive',
           hex: '#1a2e1a',
-          image: '/images/categories/shirts.webp',
+          image:
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532656/varna_store/categories/cat-shirts.webp',
           gallery: [
-            '/images/categories/shirts.webp',
-            '/images/products/linen-shirt.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532656/varna_store/categories/cat-shirts.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
           ],
         },
         {
           id: 'navy',
           name: 'Royal Navy Indigo',
           hex: '#2c4a6e',
-          image: '/images/banners/men-banner.webp',
+          image:
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532662/varna_store/banners/banner-men.webp',
           gallery: [
-            '/images/banners/men-banner.webp',
-            '/images/products/linen-shirt.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532662/varna_store/banners/banner-men.webp',
+            'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
           ],
         },
       ],
@@ -75,9 +79,12 @@ export const defaultStoreData: StoreState = {
           },
         ],
       },
-      description: 'Tailored from 100% natural European flax fibers. Relaxed regular fit with spread collar and curved hem.',
-      fabricCare: '100% natural European flax fibers (160 GSM). Enzyme softened to eliminate stiffness. Gentle cold machine wash, line dry in shade.',
-      shippingPolicy: 'Dispatched within 24-48 hours. Express delivery within 2-4 business days across India via Delhivery/Bluedart.',
+      description:
+        'Tailored from 100% natural European flax fibers. Relaxed regular fit with spread collar and curved hem.',
+      fabricCare:
+        '100% natural European flax fibers (160 GSM). Enzyme softened to eliminate stiffness. Gentle cold machine wash, line dry in shade.',
+      shippingPolicy:
+        'Dispatched within 24-48 hours. Express delivery within 2-4 business days across India via Delhivery/Bluedart.',
       sizeChart: [
         { size: 'S', chestIn: '38', chestCm: '96.5', shoulderIn: '17.5', lengthIn: '28.5' },
         { size: 'M', chestIn: '40', chestCm: '101.5', shoulderIn: '18.0', lengthIn: '29.0' },
@@ -92,7 +99,8 @@ export const defaultStoreData: StoreState = {
       id: 'cat-1',
       title: 'Linen & Casual Shirts',
       subtitle: 'Starting at ₹999',
-      image: '/images/categories/shirts.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532656/varna_store/categories/cat-shirts.webp',
       link: '#new-arrivals',
       visible: true,
     },
@@ -100,7 +108,8 @@ export const defaultStoreData: StoreState = {
       id: 'cat-2',
       title: 'T-Shirts & Custom Jerseys',
       subtitle: '240 GSM Heavyweight',
-      image: '/images/categories/tshirts-jerseys.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532658/varna_store/categories/cat-tshirts-jerseys.webp',
       link: '#new-arrivals',
       visible: true,
     },
@@ -108,7 +117,8 @@ export const defaultStoreData: StoreState = {
       id: 'cat-3',
       title: 'Dresses & One-Pieces',
       subtitle: 'Effortless Drapes',
-      image: '/images/categories/dresses.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532659/varna_store/categories/cat-dresses.webp',
       link: '#new-arrivals',
       visible: true,
     },
@@ -116,7 +126,8 @@ export const defaultStoreData: StoreState = {
       id: 'cat-4',
       title: 'Jeans & Trousers',
       subtitle: 'Relaxed Daily Fits',
-      image: '/images/categories/jeans-trousers.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532660/varna_store/categories/cat-jeans-trousers.webp',
       link: '#new-arrivals',
       visible: true,
     },
@@ -124,7 +135,8 @@ export const defaultStoreData: StoreState = {
       id: 'cat-5',
       title: 'Tops & Blouses',
       subtitle: 'Chic Everyday Staple',
-      image: '/images/categories/tops-blouses.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532657/varna_store/categories/cat-tops-blouses.webp',
       link: '#new-arrivals',
       visible: true,
     },
@@ -132,7 +144,8 @@ export const defaultStoreData: StoreState = {
       id: 'cat-6',
       title: 'Printed Co-ord Sets',
       subtitle: 'Complete Statements',
-      image: '/images/categories/coord-sets.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532661/varna_store/categories/cat-coord-sets.webp',
       link: '#new-arrivals',
       visible: true,
     },
@@ -162,27 +175,6 @@ export const defaultStoreData: StoreState = {
       source: 'Product Details Page',
       completed: false,
     },
-    {
-      id: 'enq-2',
-      timestamp: 'Today, 1:12 PM',
-      productName: 'Striped Jersey Tee',
-      color: 'Navy Stripe',
-      size: 'L (42")',
-      quantity: 2,
-      customNotes: 'Team print on back for 5 friends',
-      source: 'Product Card',
-      completed: true,
-    },
-    {
-      id: 'enq-3',
-      timestamp: 'Yesterday, 6:30 PM',
-      productName: 'Relaxed Fit Jeans',
-      color: 'Washed Indigo',
-      size: '32',
-      quantity: 1,
-      source: 'Product Card',
-      completed: true,
-    },
   ],
   homepage: {
     topBarVisible: true,
@@ -204,7 +196,8 @@ export const defaultStoreData: StoreState = {
         id: 'banner-men',
         title: 'Men’s Custom Streetwear',
         subtitle: '240 GSM Terry Tees & Oversized Hoodies',
-        image: '/images/banners/men-banner.webp',
+        image:
+          'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532662/varna_store/banners/banner-men.webp',
         link: '#new-arrivals',
         ctaText: 'Explore Men →',
       },
@@ -212,7 +205,8 @@ export const defaultStoreData: StoreState = {
         id: 'banner-women',
         title: 'Women’s Curated Drapes',
         subtitle: 'Bespoke Co-ords, Pure Linen & Dresses',
-        image: '/images/banners/women-banner.webp',
+        image:
+          'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532663/varna_store/banners/banner-women.webp',
         link: '#new-arrivals',
         ctaText: 'Explore Women →',
       },

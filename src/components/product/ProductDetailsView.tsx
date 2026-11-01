@@ -78,7 +78,9 @@ export default function ProductDetailsView() {
 
   // Build gallery dynamically from product colors
   const galleryImages = colors.map((c, i) => ({
-    src: c.image || '/images/products/linen-shirt.webp',
+    src:
+      c.image ||
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
     alt: `${product.name} - ${c.name}`,
     label: c.name,
     badge: i === 0 ? 'Front Look' : i === 1 ? 'Fabric & Collar' : 'Editorial Drape',
@@ -606,7 +608,7 @@ export default function ProductDetailsView() {
               >
                 <div className="relative w-5 h-5 flex-shrink-0">
                   <Image
-                    src="/images/icons/whatsapp.webp"
+                    src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
                     alt="WhatsApp"
                     fill
                     className="object-contain"
@@ -855,7 +857,10 @@ export default function ProductDetailsView() {
                   >
                     <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0">
                       <Image
-                        src={p.colors?.[0]?.image || '/images/products/linen-shirt.webp'}
+                        src={
+                          p.colors?.[0]?.image ||
+                          'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
+                        }
                         alt={p.name}
                         fill
                         sizes="64px"

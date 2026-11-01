@@ -57,7 +57,7 @@ export default function WhatsAppButton() {
           {/* WhatsApp Logo Icon */}
           <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">
             <Image
-              src="/images/icons/whatsapp.webp"
+              src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
               alt="WhatsApp"
               fill
               sizes="32px"

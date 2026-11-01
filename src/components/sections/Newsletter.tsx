@@ -106,7 +106,9 @@ export default function Newsletter() {
             className="w-full sm:w-auto sm:self-center inline-flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm px-7 py-3 rounded-full shadow-[0_4px_20px_rgba(37,211,102,0.45)] hover:shadow-[0_6px_25px_rgba(37,211,102,0.65)] hover:scale-102 active:scale-95 transition-all duration-200 cursor-pointer"
           >
             <div className="relative w-4 h-4 flex-shrink-0">
-              <Image src="/images/icons/whatsapp.webp" alt="WhatsApp" fill className="object-contain" />
+              <Image
+                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
+                alt="WhatsApp" fill className="object-contain" />
             </div>
             <span>Send on WhatsApp</span>
             <ArrowRight size={14} />

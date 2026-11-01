@@ -24,11 +24,36 @@ function InstagramIcon({ size = 20, className = '' }: { size?: number; className
 }
 
 const posts = [
-  { id: 1, image: '/images/instagram/post-1.webp', alt: 'Varna community style 1 - Minimal Black Tee' },
-  { id: 2, image: '/images/instagram/post-2.webp', alt: 'Varna community style 2 - Sage Streetwear Tee' },
-  { id: 3, image: '/images/instagram/post-3.webp', alt: 'Varna community style 3 - Aesthetic Cafe Streetwear' },
-  { id: 4, image: '/images/instagram/post-4.webp', alt: 'Varna community style 4 - 1% Better Everyday Tee' },
-  { id: 5, image: '/images/instagram/post-5.webp', alt: 'Varna community style 5 - F1 Graphic Backprint' },
+  {
+    id: 1,
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532667/varna_store/instagram/insta-post-1.webp',
+    alt: 'Varna community style 1 - Minimal Black Tee',
+  },
+  {
+    id: 2,
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532668/varna_store/instagram/insta-post-2.webp',
+    alt: 'Varna community style 2 - Sage Streetwear Tee',
+  },
+  {
+    id: 3,
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532669/varna_store/instagram/insta-post-3.webp',
+    alt: 'Varna community style 3 - Aesthetic Cafe Streetwear',
+  },
+  {
+    id: 4,
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532669/varna_store/instagram/insta-post-4.webp',
+    alt: 'Varna community style 4 - 1% Better Everyday Tee',
+  },
+  {
+    id: 5,
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532672/varna_store/instagram/insta-post-5.webp',
+    alt: 'Varna community style 5 - F1 Graphic Backprint',
+  },
 ]
 
 export default function InstagramFeed() {

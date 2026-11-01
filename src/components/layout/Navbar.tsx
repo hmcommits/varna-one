@@ -48,7 +48,9 @@ export default function Navbar() {
     }, 2500)
   }
 
-  const logoSrc = activeStore.settings?.logoUrl || '/images/logo/varna-emblem.webp'
+  const logoSrc =
+    activeStore.settings?.logoUrl ||
+    'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
   const storeName = activeStore.settings?.storeName || 'Varna'
   const subtitle = activeStore.settings?.subtitle || 'Custom Wear & Prints'
 

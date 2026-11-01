@@ -39,7 +39,9 @@ export default function AdminLoginPage() {
     setError(false)
   }
 
-  const logoSrc = store.settings?.logoUrl || '/images/logo/varna-emblem.webp'
+  const logoSrc =
+    store.settings?.logoUrl ||
+    'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
 
   return (
     <div className="min-h-screen bg-[#0b120c] text-[#f4efe6] flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden selection:bg-[#c4a675] selection:text-black">

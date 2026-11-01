@@ -6,7 +6,8 @@ import Image from 'next/image'
 const slides = [
   {
     id: 1,
-    image: '/images/hero/hero-1.webp',
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532664/varna_store/hero/hero-slide-1.webp',
     badge: 'NEW SEASON',
     title: 'Everyday Style,\nElevated',
     subtitle: 'Modern fits for every mood. From workdays to weekends.',
@@ -17,7 +18,8 @@ const slides = [
   },
   {
     id: 2,
-    image: '/images/hero/hero-2.webp',
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532665/varna_store/hero/hero-slide-2.webp',
     badge: 'NEW COLLECTION',
     title: 'Festive Looks,\nRedefined',
     subtitle: 'Celebrate every occasion with style and grace.',
@@ -28,7 +30,8 @@ const slides = [
   },
   {
     id: 3,
-    image: '/images/hero/hero-3.webp',
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532666/varna_store/hero/hero-slide-3.webp',
     badge: 'LINEN EDIT',
     title: 'Breathe Easy,\nLook Effortless',
     subtitle: 'Premium linen collection for every season.',

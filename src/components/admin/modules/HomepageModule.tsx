@@ -76,7 +76,8 @@ export default function HomepageModule() {
       id: `banner-${Date.now()}`,
       title: 'New Collection Promo',
       subtitle: 'Limited Edition Drop',
-      image: '/images/banners/men-banner.webp',
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532662/varna_store/banners/banner-men.webp',
       link: '#new-arrivals',
       ctaText: 'Explore Collection →',
     }

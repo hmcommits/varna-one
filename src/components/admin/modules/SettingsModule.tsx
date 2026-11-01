@@ -18,7 +18,8 @@ export default function SettingsModule() {
     supportPhone: '+91 6363145972',
     studioAddress: 'Indiranagar 100ft Road, Bengaluru, Karnataka 560038',
     copyrightText: '© 2026 Varna. All rights reserved.',
-    logoUrl: '/images/logo/varna-emblem.webp',
+    logoUrl:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
   }
@@ -97,7 +98,10 @@ export default function SettingsModule() {
           <div className="flex items-center gap-4 bg-[#0b120c] p-4 rounded-2xl border border-white/10">
             <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-2 bg-[#1a2e1a] border border-[#c4a675]/40 flex-shrink-0">
               <Image
-                src={settings.logoUrl || '/images/logo/varna-emblem.webp'}
+                src={
+                  settings.logoUrl ||
+                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
+                }
                 alt={settings.storeName}
                 fill
                 className="object-contain p-2"
@@ -256,7 +260,10 @@ export default function SettingsModule() {
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-[#faf8f4] border border-[#e8d5b7]">
             <div className="relative w-12 h-12">
               <Image
-                src={settings.logoUrl || '/images/logo/varna-emblem.webp'}
+                src={
+                  settings.logoUrl ||
+                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
+                }
                 alt={settings.storeName}
                 fill
                 className="object-contain"

@@ -56,7 +56,10 @@ export default function ProductCard({
 
   // Current active image: based on selected color or fallback image
   const currentColor = normalizedColors[selectedColorIdx]
-  const displayImage = currentColor?.image || image || '/images/products/linen-shirt.webp'
+  const displayImage =
+    currentColor?.image ||
+    image ||
+    'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
   const discount =
     originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
@@ -174,7 +177,7 @@ export default function ProductCard({
         >
           <div className="relative w-3.5 h-3.5 flex-shrink-0">
             <Image
-              src="/images/icons/whatsapp.webp"
+              src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
               alt="WhatsApp"
               fill
               className="object-contain"
@@ -274,7 +277,7 @@ export default function ProductCard({
               >
                 <div className="relative w-3.5 h-3.5">
                   <Image
-                    src="/images/icons/whatsapp.webp"
+                    src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
                     alt="WhatsApp"
                     fill
                     className="object-contain"
@@ -292,7 +295,7 @@ export default function ProductCard({
             >
               <div className="relative w-3.5 h-3.5 flex-shrink-0">
                 <Image
-                  src="/images/icons/whatsapp.webp"
+                  src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
                   alt="WhatsApp"
                   fill
                   className="object-contain"

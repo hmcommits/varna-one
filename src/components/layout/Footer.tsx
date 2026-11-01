@@ -28,7 +28,7 @@ export default function Footer() {
           >
             <div className="relative w-12 h-12 flex-shrink-0">
               <Image
-                src="/images/logo/varna-emblem.webp"
+                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp"
                 alt="Varna Custom Wear & Prints"
                 fill
                 sizes="48px"

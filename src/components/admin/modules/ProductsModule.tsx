@@ -162,7 +162,7 @@ export default function ProductsModule({
         if (result && result.sRGBHex) {
           setNewColorHex(result.sRGBHex)
         }
-      } catch (_e) {
+      } catch {
         // user canceled or not supported
       }
     } else {
@@ -328,7 +328,9 @@ export default function ProductsModule({
               <tbody className="divide-y divide-white/5 text-[#f4efe6]">
                 {filteredProducts.map((p) => {
                   const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
-                  const primaryImage = p.colors[0]?.image || '/images/products/linen-shirt.webp'
+                  const primaryImage =
+                    p.colors[0]?.image ||
+                    'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
                   return (
                     <tr key={p.id} className="hover:bg-white/5 transition-colors">
@@ -1016,7 +1018,10 @@ export default function ProductsModule({
                   <ProductCard
                     id={p.id}
                     name={p.name}
-                    image={p.colors[0]?.image || '/images/products/linen-shirt.webp'}
+                    image={
+                      p.colors[0]?.image ||
+                      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
+                    }
                     price={p.price}
                     originalPrice={p.originalPrice}
                     rating={p.rating}
