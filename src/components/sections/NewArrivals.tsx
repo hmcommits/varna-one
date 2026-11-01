@@ -56,6 +56,7 @@ export default function NewArrivals() {
     if (catalogFilter === 'All') return true
     if (catalogFilter === 'Men') return p.gender === 'Men' || p.gender === 'Unisex'
     if (catalogFilter === 'Women') return p.gender === 'Women' || p.gender === 'Unisex'
+    if (catalogFilter === 'Sale') return p.originalPrice > p.price || p.badge === 'Flash Sale'
 
     // Match category
     return (

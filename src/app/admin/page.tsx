@@ -21,7 +21,6 @@ import {
   X,
   Check,
   Search,
-  Bell,
   ChevronDown,
   LucideIcon,
 } from 'lucide-react'
@@ -442,13 +441,18 @@ export default function AdminDashboardPage() {
             {/* Global Store Preview Toggle */}
             <button
               type="button"
-              onClick={() => setGlobalPreviewMode(!globalPreviewMode)}
+              onClick={() => {
+                setGlobalPreviewMode(!globalPreviewMode)
+                if (typeof window !== 'undefined') {
+                  window.open('/', '_blank')
+                }
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                 globalPreviewMode
                   ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-300/40 shadow-xs'
                   : 'bg-[#faf6f0] hover:bg-[#f0eae0] text-[#1c3624] border-[#ded7cb]'
               }`}
-              title="Preview changes across storefront"
+              title="Open storefront preview in new tab"
             >
               <Eye size={14} className={globalPreviewMode ? 'text-amber-800' : 'text-[#845d1d]'} />
               <span className="hidden sm:inline">
@@ -474,14 +478,6 @@ export default function AdminDashboardPage() {
               )}
               <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
             </button>
-
-            {/* Notification Bell with red dot */}
-            <div className="relative p-2 rounded-xl text-[#3d4941] hover:bg-[#f2eee7] cursor-pointer">
-              <Bell size={18} />
-              {pendingEnquiriesCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#e34b46] ring-2 ring-white" />
-              )}
-            </div>
 
             {/* User Profile Avatar matching screenshot */}
             <div className="flex items-center gap-2.5 pl-2 border-l border-[#e8e4dc]">

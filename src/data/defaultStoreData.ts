@@ -198,7 +198,7 @@ export const defaultStoreData: StoreState = {
         subtitle: '240 GSM Terry Tees & Oversized Hoodies',
         image:
           'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532662/varna_store/banners/banner-men.webp',
-        link: '#new-arrivals',
+        link: '#men',
         ctaText: 'Explore Men →',
       },
       {
@@ -207,7 +207,7 @@ export const defaultStoreData: StoreState = {
         subtitle: 'Bespoke Co-ords, Pure Linen & Dresses',
         image:
           'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532663/varna_store/banners/banner-women.webp',
-        link: '#new-arrivals',
+        link: '#women',
         ctaText: 'Explore Women →',
       },
     ],

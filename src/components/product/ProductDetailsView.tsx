@@ -52,6 +52,11 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const colors: ProductColor[] =
     product.colors?.length > 0 ? product.colors : defaultStoreData.products[0].colors
 
+  // Deduplicate colors by hex to avoid multiple buttons for the same shade
+  const uniqueColors: ProductColor[] = Array.from(
+    new Map(colors.map((c) => [(c.hex || '').toLowerCase().trim(), c])).values()
+  )
+
   const availableSizes =
     product.sizes && product.sizes.length > 0
       ? product.sizes
@@ -61,15 +66,25 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [selectedSize, setSelectedSize] = useState(availableSizes[0] || 'M')
   const [quantity, setQuantity] = useState(1)
+  const [isBulkOrder, setIsBulkOrder] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
   const [showSizeModal, setShowSizeModal] = useState(false)
 
-  // Customization state
+  // Customization state - Multi-select supported
   const hasCustomization = product.customization?.enabled ?? false
   const customOptions = product.customization?.options || []
-  const [customEmbroidery, setCustomEmbroidery] = useState(false)
-  const [selectedCustomOptionIdx, setSelectedCustomOptionIdx] = useState(0)
+  const [selectedCustomOptionIds, setSelectedCustomOptionIds] = useState<string[]>([])
   const [customNotes, setCustomNotes] = useState('')
+
+  const price = product.price || 999
+  const originalPrice = product.originalPrice || 1499
+  const discount = Math.round(((originalPrice - price) / originalPrice) * 100)
+
+  const selectedCustomOptions = customOptions.filter((opt) =>
+    selectedCustomOptionIds.includes(opt.id)
+  )
+  const customCost = selectedCustomOptions.reduce((sum, opt) => sum + opt.price, 0)
+  const totalPrice = (price + customCost) * quantity
 
   const [activeTab, setActiveTab] = useState<'details' | 'fabric' | 'shipping' | 'custom'>('details')
   const [copiedLink, setCopiedLink] = useState(false)
@@ -90,7 +105,9 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   // Sync color selection -> auto-switch main image
   const handleColorSelect = (c: ProductColor) => {
     setSelectedColor(c)
-    const idx = galleryImages.findIndex((g) => g.colorId === c.id)
+    const idx = galleryImages.findIndex(
+      (g) => g.colorId === c.id || g.label.toLowerCase() === c.name.toLowerCase()
+    )
     if (idx !== -1) {
       setSelectedImageIndex(idx)
     }
@@ -127,14 +144,6 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     }
   }
 
-  const price = product.price || 999
-  const originalPrice = product.originalPrice || 1499
-  const discount = Math.round(((originalPrice - price) / originalPrice) * 100)
-
-  const activeCustomOption = customOptions[selectedCustomOptionIdx] || customOptions[0]
-  const customCost = customEmbroidery ? activeCustomOption?.price || 150 : 0
-  const totalPrice = (price + customCost) * quantity
-
   const whatsappPhone = activeStore.whatsapp?.phoneNumber || '916363145972'
 
   // Dynamic WhatsApp Concierge Order Link
@@ -147,19 +156,25 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     let msg = `Hi Varna! I'd like to order the *${product.name}*:\n\n`
     msg += `• *Color:* ${selectedColor.name}\n`
     msg += `• *Size:* ${selectedSize}\n`
-    msg += `• *Quantity:* ${quantity}\n`
+    msg += `• *Quantity:* ${quantity} ${isBulkOrder ? '(Bulk Order Request)' : 'unit(s)'}\n`
     msg += `• *Total Amount:* ₹${totalPrice.toLocaleString('en-IN')}\n`
     msg += `• *Product Link:* ${currentUrl}\n`
 
-    if (customEmbroidery) {
-      msg += `• *Custom Request:* ${activeCustomOption?.type || 'Custom Print'} (+₹${activeCustomOption?.price || 150})`
+    if (selectedCustomOptions.length > 0) {
+      msg += `• *Custom Options Selected:*\n`
+      selectedCustomOptions.forEach((opt) => {
+        msg += `   - ${opt.type} (+₹${opt.price})\n`
+      })
       if (customNotes.trim()) {
-        msg += ` — "${customNotes.trim()}"`
+        msg += `• *Custom Notes:* "${customNotes.trim()}"\n`
       }
-      msg += `\n`
     }
 
-    msg += `\nPlease confirm product availability & dispatch timeline!`
+    if (isBulkOrder) {
+      msg += `\n*Note:* This is a bulk enquiry. Please share wholesale tier pricing and dispatch schedule.`
+    } else {
+      msg += `\nPlease confirm product availability & dispatch timeline!`
+    }
     return msg
   }
 
@@ -169,9 +184,14 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
       color: selectedColor.name,
       size: selectedSize,
       quantity,
-      customNotes: customEmbroidery
-        ? `${activeCustomOption?.type}: ${customNotes || 'Requested'}`
-        : undefined,
+      customNotes:
+        selectedCustomOptions.length > 0
+          ? `${selectedCustomOptions.map((o) => o.type).join(', ')}${
+              customNotes ? ` — ${customNotes}` : ''
+            }`
+          : isBulkOrder
+          ? `Bulk Order: ${quantity} units`
+          : undefined,
       source: 'Product Details Page',
       completed: false,
     })
@@ -435,11 +455,11 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                   <span className="text-[#1a2e1a] font-bold">{selectedColor.name}</span>
                 </label>
                 <span className="text-[11px] text-[#7d7062]">
-                  {colors.length} shades available
+                  {uniqueColors.length} {uniqueColors.length === 1 ? 'shade' : 'shades'} available
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                {colors.map((c) => (
+                {uniqueColors.map((c) => (
                   <button
                     key={c.id || c.name}
                     type="button"
@@ -509,89 +529,154 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               </div>
             </div>
 
-            {/* QUANTITY & CUSTOMIZATION OPTION */}
-            <div className="space-y-4 mb-6">
+            {/* QUANTITY & BULK ORDER SELECTOR */}
+            <div className="space-y-3 mb-6">
               {/* Quantity row */}
-              <div className="flex items-center justify-between bg-white rounded-xl p-3 border border-[#e8d5b7]/60">
-                <span className="text-xs sm:text-sm font-semibold text-[#1a1a1a]">
-                  Quantity
-                </span>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    className="w-8 h-8 rounded-lg bg-[#faf8f4] hover:bg-[#e8d5b7]/40 text-[#1a1a1a] flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="font-display font-bold text-base text-[#1a1a1a] min-w-[20px] text-center">
-                    {quantity}
+              <div className="flex items-center justify-between bg-white rounded-xl p-3 border border-[#e8d5b7]/60 shadow-2xs">
+                <div>
+                  <span className="text-xs sm:text-sm font-semibold text-[#1a1a1a] block">
+                    Quantity
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(Math.min(10, quantity + 1))}
-                    disabled={quantity >= 10}
-                    className="w-8 h-8 rounded-lg bg-[#faf8f4] hover:bg-[#e8d5b7]/40 text-[#1a1a1a] flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
-                    aria-label="Increase quantity"
-                  >
-                    <Plus size={14} />
-                  </button>
+                  {isBulkOrder && (
+                    <span className="text-[10px] text-[#246b38] font-bold block">
+                      Bulk Order Mode
+                    </span>
+                  )}
                 </div>
+
+                {!isBulkOrder ? (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      className="w-8 h-8 rounded-lg bg-[#faf8f4] hover:bg-[#e8d5b7]/40 text-[#1a1a1a] flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="font-display font-bold text-base text-[#1a1a1a] min-w-[20px] text-center">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                      disabled={quantity >= 10}
+                      className="w-8 h-8 rounded-lg bg-[#faf8f4] hover:bg-[#e8d5b7]/40 text-[#1a1a1a] flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={5000}
+                      value={quantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10)
+                        setQuantity(isNaN(val) || val < 1 ? 1 : val)
+                      }}
+                      className="w-24 bg-[#faf8f4] border border-[#e8d5b7] focus:border-[#1a2e1a] rounded-lg px-2.5 py-1 text-sm font-bold text-center text-[#1a1a1a] outline-hidden"
+                    />
+                    <span className="text-xs text-[#7d7062] font-medium">units</span>
+                  </div>
+                )}
               </div>
 
-              {/* Varna Custom Print / Embroidery Add-On */}
-              {hasCustomization && (
-                <div className="bg-[#faf8f4] border border-[#e8d5b7] rounded-xl p-3.5 space-y-2.5">
-                  <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={customEmbroidery}
-                      onChange={(e) => setCustomEmbroidery(e.target.checked)}
-                      className="mt-0.5 rounded text-[#1a2e1a] focus:ring-[#1a2e1a] w-4 h-4 cursor-pointer accent-[#1a2e1a]"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs sm:text-sm font-semibold text-[#1a1a1a]">
-                          {activeCustomOption?.type || 'Add Custom Print / Embroidery'}
-                        </span>
-                        <span className="text-[10px] bg-[#1a2e1a] text-white px-2 py-0.5 rounded-full font-bold">
-                          +₹{activeCustomOption?.price || 150}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-[#7d7062] mt-0.5">
-                        Get custom initials on cuff, pocket emblem, or DTF high-density graphic.
-                      </p>
-                    </div>
-                  </label>
+              {/* Bulk Order Toggle Link */}
+              <div className="flex items-center justify-between text-[11px] px-1">
+                <span className="text-[#7d7062]">
+                  {isBulkOrder
+                    ? 'Special wholesale pricing applies on orders above 10 units.'
+                    : 'Ordering for a team, event, or brand drop?'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isBulkOrder) {
+                      setIsBulkOrder(true)
+                      if (quantity < 10) setQuantity(25)
+                    } else {
+                      setIsBulkOrder(false)
+                      if (quantity > 10) setQuantity(1)
+                    }
+                  }}
+                  className="font-bold text-[#1a2e1a] hover:underline cursor-pointer"
+                >
+                  {isBulkOrder ? 'Standard (1-10)' : 'Bulk Order (10+)'}
+                </button>
+              </div>
 
-                  {customEmbroidery && (
-                    <div className="pt-2 border-t border-[#e8d5b7]/60 space-y-2">
-                      {customOptions.length > 1 && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {customOptions.map((opt, idx) => (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => setSelectedCustomOptionIdx(idx)}
-                              className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                                selectedCustomOptionIdx === idx
-                                  ? 'bg-[#1a2e1a] text-white border-[#1a2e1a]'
-                                  : 'bg-white text-[#63574a] border-[#e8d5b7]'
-                              }`}
-                            >
-                              <span>{opt.type}</span>
-                              <span className="ml-1 opacity-80">(+₹{opt.price})</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
+              {/* Multi-Option Customization Add-On */}
+              {hasCustomization && customOptions.length > 0 && (
+                <div className="bg-[#faf8f4] border border-[#e8d5b7] rounded-xl p-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Scissors size={14} className="text-[#1a2e1a]" />
+                      <span className="text-xs sm:text-sm font-semibold text-[#1a1a1a]">
+                        Customization Add-Ons (Select any)
+                      </span>
+                    </div>
+                    {selectedCustomOptions.length > 0 && (
+                      <span className="text-[10px] bg-[#1a2e1a] text-white px-2 py-0.5 rounded-full font-bold">
+                        +₹{customCost} total
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#7d7062]">
+                    Select multiple options for personalized embroidery, prints or badges:
+                  </p>
+
+                  <div className="space-y-2">
+                    {customOptions.map((opt) => {
+                      const isSelected = selectedCustomOptionIds.includes(opt.id)
+                      return (
+                        <label
+                          key={opt.id}
+                          className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
+                            isSelected
+                              ? 'bg-white border-[#1a2e1a] shadow-2xs ring-1 ring-[#1a2e1a]'
+                              : 'bg-white/60 border-[#e8d5b7] hover:border-[#1a2e1a]/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {
+                                if (isSelected) {
+                                  setSelectedCustomOptionIds((prev) =>
+                                    prev.filter((id) => id !== opt.id)
+                                  )
+                                } else {
+                                  setSelectedCustomOptionIds((prev) => [...prev, opt.id])
+                                }
+                              }}
+                              className="rounded text-[#1a2e1a] focus:ring-[#1a2e1a] w-4 h-4 cursor-pointer accent-[#1a2e1a]"
+                            />
+                            <span className="text-xs font-semibold text-[#1a1a1a]">
+                              {opt.type}
+                            </span>
+                          </div>
+                          <span className="text-xs font-bold text-[#1a2e1a]">+₹{opt.price}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+
+                  {selectedCustomOptions.length > 0 && (
+                    <div className="pt-2 border-t border-[#e8d5b7]/60 space-y-1.5">
+                      <label className="block text-[11px] font-semibold text-[#1a1a1a]">
+                        Customization Instructions &amp; Notes
+                      </label>
                       <input
                         type="text"
                         value={customNotes}
                         onChange={(e) => setCustomNotes(e.target.value)}
-                        placeholder="e.g., Initials 'HB' on left cuff (Thread: Champagne Gold)"
+                        placeholder="e.g. Initials 'HB' on left cuff (Thread: Champagne Gold)"
                         className="w-full bg-white border border-[#e8d5b7] rounded-lg px-3 py-2 text-xs text-[#1a1a1a] placeholder-[#9e9080] focus:outline-hidden focus:border-[#1a2e1a]"
                       />
                     </div>
@@ -635,33 +720,64 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               </a>
             </div>
 
-            {/* Trust Badges 4-Grid */}
-            <div className="grid grid-cols-2 gap-3 py-4 border-t border-b border-[#e8d5b7]/50 mb-6 bg-white/60 rounded-xl p-3">
-              <div className="flex items-center gap-2.5">
-                <Truck size={17} className="text-[#1a2e1a] flex-shrink-0" />
-                <span className="text-[11px] text-[#63574a] leading-tight">
-                  <strong className="text-[#1a1a1a] block">Free Express Delivery</strong> Across India
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <RotateCcw size={17} className="text-[#1a2e1a] flex-shrink-0" />
-                <span className="text-[11px] text-[#63574a] leading-tight">
-                  <strong className="text-[#1a1a1a] block">7-Day Easy Exchange</strong> Size swaps at your door
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Scissors size={17} className="text-[#1a2e1a] flex-shrink-0" />
-                <span className="text-[11px] text-[#63574a] leading-tight">
-                  <strong className="text-[#1a1a1a] block">Custom Tailoring</strong> Prints &amp; monograms
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck size={17} className="text-[#1a2e1a] flex-shrink-0" />
-                <span className="text-[11px] text-[#63574a] leading-tight">
-                  <strong className="text-[#1a1a1a] block">100% Pure Flax Linen</strong> Pre-washed &amp; softened
-                </span>
-              </div>
-            </div>
+            {/* DYNAMIC TRUST BADGES (Configured by Admin) */}
+            {(() => {
+              const features = product.features || {
+                freeDelivery: true,
+                customizationAvailable: Boolean(product.customization?.enabled),
+                returnable: true,
+                qualityAssured: true,
+              }
+
+              const activeBadges = [
+                features.freeDelivery && {
+                  icon: Truck,
+                  title: 'Free Express Delivery',
+                  desc: 'Across India',
+                },
+                features.returnable && {
+                  icon: RotateCcw,
+                  title: '7-Day Easy Exchange',
+                  desc: 'Doorstep size swap',
+                },
+                features.customizationAvailable && {
+                  icon: Scissors,
+                  title: 'Customization Available',
+                  desc: 'Prints & monograms',
+                },
+                features.qualityAssured && {
+                  icon: ShieldCheck,
+                  title: '100% Quality Assured',
+                  desc: 'Verified premium fabric',
+                },
+              ].filter(Boolean) as Array<{ icon: any; title: string; desc: string }>
+
+              if (activeBadges.length === 0) return null
+
+              return (
+                <div
+                  className={`grid ${
+                    activeBadges.length === 1
+                      ? 'grid-cols-1'
+                      : activeBadges.length === 3
+                      ? 'grid-cols-1 sm:grid-cols-3'
+                      : 'grid-cols-2'
+                  } gap-3 py-4 border-t border-b border-[#e8d5b7]/50 mb-6 bg-white/60 rounded-xl p-3`}
+                >
+                  {activeBadges.map((b) => {
+                    const Icon = b.icon
+                    return (
+                      <div key={b.title} className="flex items-center gap-2.5">
+                        <Icon size={17} className="text-[#1a2e1a] flex-shrink-0" />
+                        <span className="text-[11px] text-[#63574a] leading-tight">
+                          <strong className="text-[#1a1a1a] block">{b.title}</strong> {b.desc}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
 
             {/* DETAILED TABS SECTION */}
             <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8d5b7]/60 shadow-xs">
@@ -691,9 +807,13 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               <div className="text-xs sm:text-sm text-[#63574a] space-y-2.5 leading-relaxed">
                 {activeTab === 'details' && (
                   <div className="space-y-3">
-                    {product.description && (
+                    {product.description ? (
                       <p className="text-xs sm:text-sm text-[#1a1a1a] leading-relaxed bg-[#faf8f4] p-3 rounded-xl border border-[#e8d5b7]/60">
                         {product.description}
+                      </p>
+                    ) : (
+                      <p className="text-xs sm:text-sm text-[#1a1a1a] leading-relaxed bg-[#faf8f4] p-3 rounded-xl border border-[#e8d5b7]/60">
+                        Crafted with premium materials. Relaxed modern fit tailored for all-day comfort.
                       </p>
                     )}
                     <ul className="space-y-1.5 list-disc list-inside">
@@ -711,20 +831,25 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 )}
 
                 {activeTab === 'fabric' && (
-                  <ul className="space-y-1.5 list-disc list-inside">
-                    <li>
-                      <strong className="text-[#1a1a1a]">Composition:</strong> 100% natural European flax linen fibers.
-                    </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Weight:</strong> 160 GSM lightweight summer weave for maximum breathability.
-                    </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Finish:</strong> Pre-washed and enzyme softened to prevent shrinking and itchiness.
-                    </li>
-                    <li>
-                      <strong className="text-[#1a1a1a]">Care:</strong> Gentle cold machine wash or hand wash with mild detergent. Line dry in shade. Warm iron while slightly damp.
-                    </li>
-                  </ul>
+                  <div className="space-y-3">
+                    {product.fabricCare ? (
+                      <p className="text-xs sm:text-sm text-[#1a1a1a] leading-relaxed bg-[#faf8f4] p-3.5 rounded-xl border border-[#e8d5b7]/60 whitespace-pre-line">
+                        {product.fabricCare}
+                      </p>
+                    ) : (
+                      <ul className="space-y-1.5 list-disc list-inside">
+                        <li>
+                          <strong className="text-[#1a1a1a]">Composition:</strong> Premium weave with breathable natural fibers.
+                        </li>
+                        <li>
+                          <strong className="text-[#1a1a1a]">Finish:</strong> Pre-washed and enzyme softened to prevent shrinking and itchiness.
+                        </li>
+                        <li>
+                          <strong className="text-[#1a1a1a]">Care:</strong> Gentle cold machine wash or hand wash with mild detergent. Line dry in shade. Warm iron while slightly damp.
+                        </li>
+                      </ul>
+                    )}
+                  </div>
                 )}
 
                 {activeTab === 'custom' && (

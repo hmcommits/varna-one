@@ -56,16 +56,18 @@ export default function ProductsModule({
   const [sellingPriceInput, setSellingPriceInput] = useState<string>('999')
   const [originalPriceInput, setOriginalPriceInput] = useState<string>('1499')
 
-  // Sizes management
+  // Sizes management - supports adding at start or end
   const [allSizes, setAllSizes] = useState<string[]>([
     'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '28', '30', '32', '34', '36', '38'
   ])
-  const [newCustomSize, setNewCustomSize] = useState('')
+  const [newSizeStart, setNewSizeStart] = useState('')
+  const [newSizeEnd, setNewSizeEnd] = useState('')
 
   // Urgency custom input
   const [customUrgencyText, setCustomUrgencyText] = useState('')
 
   // Image Upload First & Color Pairing State
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null)
   const [editingColorId, setEditingColorId] = useState<string | null>(null)
   const [newColorName, setNewColorName] = useState('')
@@ -88,6 +90,12 @@ export default function ProductsModule({
       customization: {
         enabled: false,
         options: [],
+      },
+      features: {
+        freeDelivery: true,
+        customizationAvailable: false,
+        returnable: true,
+        qualityAssured: true,
       },
       description: '',
       fabricCare: '',
@@ -258,9 +266,25 @@ export default function ProductsModule({
     setNewColorName('')
   }
 
-  // Add custom size
-  const handleAddCustomSize = () => {
-    const trimmed = newCustomSize.trim().toUpperCase()
+  // Add custom size at start (smaller sizes)
+  const handleAddSizeAtStart = () => {
+    const trimmed = newSizeStart.trim().toUpperCase()
+    if (!trimmed) return
+    if (!allSizes.includes(trimmed)) {
+      setAllSizes([trimmed, ...allSizes])
+    }
+    if (editingProduct && !editingProduct.sizes.includes(trimmed)) {
+      setEditingProduct({
+        ...editingProduct,
+        sizes: [trimmed, ...editingProduct.sizes],
+      })
+    }
+    setNewSizeStart('')
+  }
+
+  // Add custom size at end (larger sizes)
+  const handleAddSizeAtEnd = () => {
+    const trimmed = newSizeEnd.trim().toUpperCase()
     if (!trimmed) return
     if (!allSizes.includes(trimmed)) {
       setAllSizes([...allSizes, trimmed])
@@ -271,7 +295,7 @@ export default function ProductsModule({
         sizes: [...editingProduct.sizes, trimmed],
       })
     }
-    setNewCustomSize('')
+    setNewSizeEnd('')
   }
 
   // Save Product (in draft state)
@@ -437,8 +461,21 @@ export default function ProductsModule({
                     p.colors[0]?.image ||
                     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
+                  // Deduplicate colors by hex to avoid duplicate swatch dots
+                  const uniqueColors = Array.from(
+                    new Map(p.colors.map((c) => [(c.hex || '').toLowerCase().trim(), c])).values()
+                  )
+
                   return (
-                    <tr key={p.id} className="hover:bg-[#faf8f4] transition-colors">
+                    <tr
+                      key={p.id}
+                      onClick={() => {
+                        setEditingProduct(p)
+                        setIsCreating(false)
+                      }}
+                      className="hover:bg-[#faf6f0] transition-colors cursor-pointer group"
+                      title="Click anywhere on product to edit"
+                    >
                       {/* Product Name & Category */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
@@ -451,7 +488,7 @@ export default function ProductsModule({
                             />
                           </div>
                           <div>
-                            <span className="font-semibold text-[#142319] block text-sm">
+                            <span className="font-semibold text-[#142319] block text-sm group-hover:text-[#1c3624] transition-colors">
                               {p.name}
                             </span>
                             <span className="text-[10px] text-[#6b7770]">
@@ -495,19 +532,22 @@ export default function ProductsModule({
                         )}
                       </td>
 
-                      {/* Color Swatches */}
+                      {/* Color Swatches (Accurately Deduplicated) */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          {p.colors.map((c) => (
+                          {uniqueColors.map((c) => (
                             <span
-                              key={c.id}
+                              key={c.id || c.name}
                               className="w-4 h-4 rounded-full border border-black/10 shadow-xs"
                               style={{ backgroundColor: c.hex }}
                               title={`${c.name} (${c.hex})`}
                             />
                           ))}
                           <span className="text-[10px] text-[#6b7770] ml-1">
-                            ({p.colors.length} color{p.colors.length === 1 ? '' : 's'})
+                            ({uniqueColors.length} color{uniqueColors.length === 1 ? '' : 's'}
+                            {p.colors.length > uniqueColors.length
+                              ? ` • ${p.colors.length} photos`
+                              : ''})
                           </span>
                         </div>
                       </td>
@@ -529,20 +569,23 @@ export default function ProductsModule({
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation()
                               setEditingProduct(p)
                               setIsCreating(false)
                             }}
-                            className="p-1.5 rounded-lg bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#142319] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[#556358] hover:text-[#1c3624] hover:bg-[#faf6f0] transition-colors cursor-pointer"
                             title="Edit Product"
                           >
                             <Edit2 size={14} />
                           </button>
-
                           <button
                             type="button"
-                            onClick={() => handleDeleteProduct(p.id, p.name)}
-                            className="p-1.5 rounded-lg bg-[#fdf0ef] hover:bg-[#fadcd9] text-[#b84840] border border-[#fcd8d5] transition-colors cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteProduct(p.id, p.name)
+                            }}
+                            className="p-1.5 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] transition-colors cursor-pointer"
                             title="Delete Product"
                           >
                             <Trash2 size={14} />
@@ -690,6 +733,30 @@ export default function ProductsModule({
                   className="w-full bg-white border border-[#c85a44] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-sm text-[#55231c] outline-hidden"
                 />
               </div>
+
+              {/* Live Discount Percentage & Savings Indicator */}
+              {(() => {
+                const sPrice = parseInt(sellingPriceInput, 10) || 0
+                const oPrice = parseInt(originalPriceInput, 10) || 0
+                if (oPrice > sPrice && oPrice > 0) {
+                  const pct = Math.round(((oPrice - sPrice) / oPrice) * 100)
+                  const diff = oPrice - sPrice
+                  return (
+                    <div className="col-span-1 sm:col-span-2 flex items-center justify-between bg-[#fdf0ef] border border-[#fcd8d5] text-[#b84840] px-3.5 py-2 rounded-xl text-xs font-bold animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-[#b84840] text-white px-2 py-0.5 rounded-full text-[10px]">
+                          {pct}% OFF
+                        </span>
+                        <span>Customer Saves: ₹{diff.toLocaleString('en-IN')}</span>
+                      </div>
+                      <span className="text-[10px] text-[#8c978f] font-normal hidden sm:inline">
+                        Selling price ₹{sPrice} is charged, Original MRP ₹{oPrice} shows crossed out
+                      </span>
+                    </div>
+                  )
+                }
+                return null
+              })()}
             </div>
 
             {/* Product Description Field */}
@@ -786,12 +853,45 @@ export default function ProductsModule({
               </div>
             </div>
 
-            {/* Available Sizes with Custom Add Size Button on both sides */}
-            <div className="pt-2 border-t border-[#ebe5da] space-y-2">
-              <label className="block text-xs font-semibold text-[#142319]">
-                Available Sizes
-              </label>
+            {/* Available Sizes with Custom Add Size Button on BOTH Sides */}
+            <div className="pt-2 border-t border-[#ebe5da] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-[#142319]">
+                  Available Sizes
+                </label>
+                <span className="text-[10px] text-[#6b7770]">
+                  Add smaller sizes on left or larger sizes on right
+                </span>
+              </div>
+
               <div className="flex flex-wrap items-center gap-2">
+                {/* 1. Add Smaller Size at START */}
+                <div className="flex items-center gap-1 bg-[#faf8f5] p-1 rounded-xl border border-dashed border-[#ded7cb]">
+                  <input
+                    type="text"
+                    value={newSizeStart}
+                    onChange={(e) => setNewSizeStart(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddSizeAtStart()
+                      }
+                    }}
+                    placeholder="+ Smaller (e.g. XXS)"
+                    className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSizeAtStart}
+                    className="px-2 py-1 rounded-lg bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-0.5"
+                    title="Add size to start of list"
+                  >
+                    <Plus size={12} />
+                    <span>Add</span>
+                  </button>
+                </div>
+
+                {/* 2. Existing Size Pills */}
                 {allSizes.map((size) => {
                   const hasSize = editingProduct.sizes.includes(size)
                   return (
@@ -814,31 +914,32 @@ export default function ProductsModule({
                     </button>
                   )
                 })}
-              </div>
 
-              {/* Add Custom Size Inline Input */}
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="text"
-                  value={newCustomSize}
-                  onChange={(e) => setNewCustomSize(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      handleAddCustomSize()
-                    }
-                  }}
-                  placeholder="+ Custom size (e.g. 3XL, 28, Free)"
-                  className="w-48 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-1.5 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCustomSize}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#faf6f0] hover:bg-[#1c3624] text-[#142319] hover:text-white border border-[#ded7cb] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
-                >
-                  <Plus size={13} />
-                  <span>Add Size</span>
-                </button>
+                {/* 3. Add Larger Size at END */}
+                <div className="flex items-center gap-1 bg-[#faf8f5] p-1 rounded-xl border border-dashed border-[#ded7cb]">
+                  <input
+                    type="text"
+                    value={newSizeEnd}
+                    onChange={(e) => setNewSizeEnd(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddSizeAtEnd()
+                      }
+                    }}
+                    placeholder="+ Larger (e.g. 4XL)"
+                    className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSizeAtEnd}
+                    className="px-2 py-1 rounded-lg bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-0.5"
+                    title="Add size to end of list"
+                  >
+                    <Plus size={12} />
+                    <span>Add</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -944,36 +1045,36 @@ export default function ProductsModule({
                   )}
                 </div>
 
-                {/* Upload Button */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <label className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
-                    <Upload size={14} />
-                    <span>
-                      {uploading
-                        ? 'Uploading & Optimizing to Cloudinary WebP...'
-                        : editingColorId
-                        ? 'Replace Photo File'
-                        : 'Upload Photo (PNG, JPG, HEIC, WEBP)'}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
+                {/* Upload Button & Preview */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  {/* Hidden File Input for triggering */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+
+                  {!pendingImageUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
                       disabled={uploading}
-                      className="hidden"
-                    />
-                  </label>
-
-                  {uploading && (
-                    <div className="flex items-center gap-2 text-xs text-[#845d1d] font-medium">
-                      <div className="w-3.5 h-3.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
-                      <span>Converting to WebP &amp; syncing to Cloudinary CDN...</span>
-                    </div>
-                  )}
-
-                  {!uploading && pendingImageUrl && (
-                    <div className="flex items-center gap-2">
-                      <div className="relative w-10 h-12 rounded-lg overflow-hidden border border-[#ded7cb] bg-white">
+                      className="inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+                    >
+                      <Upload size={15} />
+                      <span>
+                        {uploading
+                          ? 'Uploading & Optimizing to Cloudinary WebP...'
+                          : 'Upload Photo (PNG, JPG, HEIC, WEBP)'}
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-4 flex-wrap">
+                      {/* Big, High-Definition Preview Thumbnail */}
+                      <div className="relative w-24 h-28 sm:w-28 sm:h-32 rounded-xl overflow-hidden border-2 border-[#1c3624] bg-white shadow-md flex-shrink-0">
                         <Image
                           src={pendingImageUrl}
                           alt="Uploaded Preview"
@@ -982,10 +1083,30 @@ export default function ProductsModule({
                           unoptimized
                         />
                       </div>
-                      <span className="text-xs font-medium text-[#206035] flex items-center gap-1">
-                        <Check size={14} />
-                        <span>Ready for color assignment</span>
-                      </span>
+
+                      <div className="space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                          className="inline-flex items-center gap-2 py-2 px-3.5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+                        >
+                          <Upload size={14} />
+                          <span>{uploading ? 'Replacing...' : 'Change Photo'}</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#206035] bg-[#eef7f0] px-2.5 py-1 rounded-lg border border-[#d6ecda]">
+                          <Check size={14} />
+                          <span>Ready for color pairing below</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {uploading && (
+                    <div className="flex items-center gap-2 text-xs text-[#845d1d] font-medium">
+                      <div className="w-3.5 h-3.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
+                      <span>Converting to WebP &amp; syncing to Cloudinary CDN...</span>
                     </div>
                   )}
                 </div>
@@ -1130,6 +1251,32 @@ export default function ProductsModule({
                   </div>
                 )}
               </div>
+
+              {/* Upload Another Photo Button (Under Card & Above Customization) */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  disabled={Boolean(pendingImageUrl)}
+                  onClick={() => {
+                    setEditingColorId(null)
+                    setPendingImageUrl(null)
+                    fileInputRef.current?.click()
+                  }}
+                  className={`w-full py-3 px-4 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs ${
+                    pendingImageUrl
+                      ? 'bg-[#f4efe8] border-[#ded7cb] text-[#8c978f] cursor-not-allowed opacity-60'
+                      : 'bg-[#faf6f0] hover:bg-[#1c3624] hover:text-white border-[#1c3624] text-[#1c3624]'
+                  }`}
+                >
+                  <Plus size={16} />
+                  <span>+ Upload Another Photo</span>
+                </button>
+                {pendingImageUrl && (
+                  <p className="text-[11px] text-[#b84840] font-semibold mt-1 text-center">
+                    ⚠️ Pair a color with the current photo above before uploading another photo.
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* MULTI-OPTION CUSTOMIZATION ADD-ON */}
@@ -1145,29 +1292,38 @@ export default function ProductsModule({
                   </p>
                 </div>
 
-                {/* Elegant Toggle Switch (Replaces Checkbox) */}
+                {/* Sleek iOS-Style Tactile Toggle Switch */}
                 <div className="flex items-center gap-2.5">
                   <span className="text-xs font-semibold text-[#142319]">
                     {editingProduct.customization?.enabled ? 'Enabled' : 'Disabled'}
                   </span>
                   <button
                     type="button"
-                    onClick={() =>
+                    role="switch"
+                    aria-checked={editingProduct.customization?.enabled}
+                    onClick={() => {
+                      const nextEnabled = !editingProduct.customization?.enabled
                       setEditingProduct({
                         ...editingProduct,
                         customization: {
                           ...editingProduct.customization,
-                          enabled: !editingProduct.customization?.enabled,
+                          enabled: nextEnabled,
+                        },
+                        features: {
+                          freeDelivery: editingProduct.features?.freeDelivery ?? true,
+                          customizationAvailable: nextEnabled,
+                          returnable: editingProduct.features?.returnable ?? true,
+                          qualityAssured: editingProduct.features?.qualityAssured ?? true,
                         },
                       })
-                    }
-                    className={`w-12 h-6.5 rounded-full p-1 transition-colors cursor-pointer flex items-center ${
+                    }}
+                    className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
                       editingProduct.customization?.enabled ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
                     }`}
                   >
-                    <div
-                      className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
-                        editingProduct.customization?.enabled ? 'translate-x-5.5' : 'translate-x-0'
+                    <span
+                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                        editingProduct.customization?.enabled ? 'translate-x-7' : 'translate-x-0'
                       }`}
                     />
                   </button>
@@ -1268,6 +1424,85 @@ export default function ProductsModule({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* PRODUCT GUARANTEES & TRUST BADGES (Admin Configurable) */}
+            <div className="pt-4 border-t border-[#ebe5da] space-y-3">
+              <div>
+                <h4 className="text-sm font-bold text-[#142319]">
+                  Storefront Badges &amp; Guarantees
+                </h4>
+                <p className="text-xs text-[#6b7770]">
+                  Select which assurance cards are displayed on this product&apos;s details page
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {[
+                  {
+                    key: 'freeDelivery',
+                    label: 'Free Express Delivery',
+                    sub: 'Displays "Free Express Delivery Across India"',
+                  },
+                  {
+                    key: 'customizationAvailable',
+                    label: 'Customization Available',
+                    sub: 'Auto-toggled with Customization switch above, or toggle manually',
+                  },
+                  {
+                    key: 'returnable',
+                    label: '7-Day Easy Return & Exchange',
+                    sub: 'Displays "7-Day Easy Exchange • Doorstep swap"',
+                  },
+                  {
+                    key: 'qualityAssured',
+                    label: '100% Quality Assured',
+                    sub: 'Displays "100% Pure & Quality Assured Guarantee"',
+                  },
+                ].map((feat) => {
+                  const isChecked =
+                    editingProduct.features?.[feat.key as keyof typeof editingProduct.features] ??
+                    (feat.key === 'customizationAvailable'
+                      ? Boolean(editingProduct.customization?.enabled)
+                      : true)
+
+                  return (
+                    <label
+                      key={feat.key}
+                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                        isChecked
+                          ? 'bg-[#f4f9f5] border-[#1c3624] text-[#142319]'
+                          : 'bg-white border-[#ded7cb] text-[#6b7770]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const nextVal = e.target.checked
+                          setEditingProduct({
+                            ...editingProduct,
+                            features: {
+                              freeDelivery: editingProduct.features?.freeDelivery ?? true,
+                              customizationAvailable:
+                                editingProduct.features?.customizationAvailable ??
+                                Boolean(editingProduct.customization?.enabled),
+                              returnable: editingProduct.features?.returnable ?? true,
+                              qualityAssured: editingProduct.features?.qualityAssured ?? true,
+                              [feat.key]: nextVal,
+                            },
+                          })
+                        }}
+                        className="mt-0.5 rounded text-[#1c3624] focus:ring-[#1c3624] w-4 h-4 cursor-pointer accent-[#1c3624]"
+                      />
+                      <div>
+                        <span className="text-xs font-bold block">{feat.label}</span>
+                        <span className="text-[10px] text-[#6b7770]">{feat.sub}</span>
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Modal Bottom Actions */}

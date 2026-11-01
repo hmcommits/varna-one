@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
-const shopLinks = ['New Arrivals', 'Men', 'Women', 'Collections', 'Accessories', 'Sale']
+const shopLinks = ['New Arrivals', 'Men', 'Women', 'Collections', 'Sale']
 const helpLinks = ['Custom Orders', 'Bulk Enquiries', 'Size Guide', 'FAQs', 'Contact Us']
 
 const WHATSAPP_ENQUIRY_URL =

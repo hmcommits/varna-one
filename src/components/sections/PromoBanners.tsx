@@ -24,10 +24,35 @@ const DEFAULT_BANNERS: PromoBanner[] = [
 ]
 
 export default function PromoBanners() {
-  const { activeStore } = useStore()
+  const { activeStore, selectCatalogFilter } = useStore()
   const banners = activeStore.homepage?.promoBanners?.length
     ? activeStore.homepage.promoBanners
     : DEFAULT_BANNERS
+
+  const handleBannerClick = (e: React.MouseEvent, b: PromoBanner) => {
+    e.preventDefault()
+    const lowerTitle = b.title.toLowerCase()
+    const lowerCta = (b.ctaText || '').toLowerCase()
+    const lowerLink = (b.link || '').toLowerCase()
+
+    if (
+      b.id === 'banner-women' ||
+      lowerTitle.includes('women') ||
+      lowerCta.includes('women') ||
+      lowerLink.includes('women')
+    ) {
+      selectCatalogFilter('Women', true)
+    } else if (
+      b.id === 'banner-men' ||
+      lowerTitle.includes('men') ||
+      lowerCta.includes('men') ||
+      lowerLink.includes('men')
+    ) {
+      selectCatalogFilter('Men', true)
+    } else {
+      selectCatalogFilter('All', true)
+    }
+  }
 
   if (banners.length === 0) return null
 
@@ -62,6 +87,7 @@ export default function PromoBanners() {
               </p>
               <a
                 href={b.link || '#'}
+                onClick={(e) => handleBannerClick(e, b)}
                 className="inline-flex items-center gap-2 bg-white text-[#1a2e1a] px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold hover:bg-[#faf8f4] active:scale-95 transition-all shadow-md cursor-pointer"
               >
                 <span>{b.ctaText || 'Explore'}</span>

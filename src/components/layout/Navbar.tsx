@@ -11,7 +11,6 @@ const navLinks = [
   { label: 'Men', href: '/#men' },
   { label: 'Women', href: '/#women' },
   { label: 'Collections', href: '/#collections' },
-  { label: 'Accessories', href: '/#accessories' },
   { label: 'Sale', href: '/#sale', isRed: true },
 ]
 
@@ -81,6 +80,10 @@ export default function Navbar() {
     } else if (label === 'New Arrivals' || label === 'Collections') {
       e.preventDefault()
       selectCatalogFilter('All', true)
+      setMobileOpen(false)
+    } else if (label === 'Sale') {
+      e.preventDefault()
+      selectCatalogFilter('Sale', true)
       setMobileOpen(false)
     }
   }
@@ -209,6 +212,17 @@ export default function Navbar() {
                 placeholder="Search t-shirts, jerseys, hoodies..."
                 className="bg-transparent text-xs outline-none w-48 lg:w-64 text-[#1a1a1a] placeholder-[#8a7d6e]"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="text-[#8a7d6e] hover:text-[#1a1a1a] transition-colors p-0.5 cursor-pointer"
+                  title="Clear search"
+                  aria-label="Clear search"
+                >
+                  <X size={13} />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -227,6 +241,17 @@ export default function Navbar() {
                 placeholder="Search designs..."
                 className="bg-transparent text-xs outline-none w-full text-[#1a1a1a] placeholder-[#8a7d6e]"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="text-[#8a7d6e] hover:text-[#1a1a1a] transition-colors p-0.5 cursor-pointer"
+                  title="Clear search"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
 
             {/* Links */}

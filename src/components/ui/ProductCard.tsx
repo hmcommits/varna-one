@@ -44,13 +44,17 @@ export default function ProductCard({
   const { activeStore, logEnquiry } = useStore()
   const [wishlisted, setWishlisted] = useState(false)
 
-  // Normalize colors to object format { hex, image, name }
-  const normalizedColors: { hex: string; image?: string; name?: string }[] = colors.map((c) => {
-    if (typeof c === 'string') {
-      return { hex: c, image: undefined, name: c }
-    }
-    return { hex: c.hex, image: c.image, name: c.name }
-  })
+  // Normalize and deduplicate colors to object format { hex, image, name }
+  const normalizedColors: { hex: string; image?: string; name?: string }[] = Array.from(
+    new Map(
+      colors.map((c) => {
+        const hex = typeof c === 'string' ? c : c.hex
+        const image = typeof c === 'string' ? undefined : c.image
+        const name = typeof c === 'string' ? c : c.name
+        return [(hex || '').toLowerCase().trim(), { hex, image, name }]
+      })
+    ).values()
+  )
 
   const [selectedColorIdx, setSelectedColorIdx] = useState(0)
 

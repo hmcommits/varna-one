@@ -34,6 +34,12 @@ export interface Product {
   description?: string
   fabricCare?: string
   shippingPolicy?: string
+  features?: {
+    freeDelivery: boolean
+    customizationAvailable: boolean
+    returnable: boolean
+    qualityAssured: boolean
+  }
   sizeChart?: Array<{
     size: string
     chestIn: string
