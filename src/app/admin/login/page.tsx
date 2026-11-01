@@ -13,6 +13,11 @@ export default function AdminLoginPage() {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  // Prefetch admin dashboard immediately so entry is instantaneous
+  React.useEffect(() => {
+    router.prefetch('/admin')
+  }, [router])
+
   const masterPasscode = store.settings?.passcode || 'varna2026'
 
   const handleLogin = (e: React.FormEvent) => {
@@ -20,18 +25,16 @@ export default function AdminLoginPage() {
     setLoading(true)
     setError(false)
 
-    setTimeout(() => {
-      if (passcode.trim() === masterPasscode) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('varna_admin_session', 'true')
-          localStorage.setItem('varna_admin_authenticated', 'true')
-        }
-        router.push('/admin')
-      } else {
-        setError(true)
-        setLoading(false)
+    if (passcode.trim() === masterPasscode) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('varna_admin_session', 'true')
+        localStorage.setItem('varna_admin_authenticated', 'true')
       }
-    }, 400)
+      router.push('/admin')
+    } else {
+      setError(true)
+      setLoading(false)
+    }
   }
 
   const handleQuickDemoFill = () => {

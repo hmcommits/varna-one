@@ -42,7 +42,9 @@ export async function GET() {
       if (config) {
         // remove mongo internal _id
         const { _id: _, ...storeData } = config
-        return NextResponse.json(storeData)
+        return NextResponse.json(storeData, {
+          headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
+        })
       } else {
         // Seed MongoDB Atlas on first connect
         const initialData = readLocalStore() || defaultStoreData
@@ -51,7 +53,9 @@ export async function GET() {
           { $set: { ...initialData, _id: 'store_config' } },
           { upsert: true }
         )
-        return NextResponse.json(initialData)
+        return NextResponse.json(initialData, {
+          headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
+        })
       }
     }
 
