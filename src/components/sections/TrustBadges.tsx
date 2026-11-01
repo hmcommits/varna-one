@@ -19,7 +19,7 @@ const DEFAULT_BADGES: TrustBadgeItem[] = [
   },
   {
     id: 'b2',
-    title: '7-Day Effortless Exchange',
+    title: 'Effortless Return & Exchange',
     desc: 'Doorstep size swaps with zero questions asked',
     iconKey: 'rotate',
   },

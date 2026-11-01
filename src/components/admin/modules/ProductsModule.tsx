@@ -1451,8 +1451,8 @@ export default function ProductsModule({
                   },
                   {
                     key: 'returnable',
-                    label: '7-Day Easy Return & Exchange',
-                    sub: 'Displays "7-Day Easy Exchange • Doorstep swap"',
+                    label: 'Easy Return & Exchange',
+                    sub: 'Displays "Easy Return & Exchange • Doorstep swap"',
                   },
                   {
                     key: 'qualityAssured',

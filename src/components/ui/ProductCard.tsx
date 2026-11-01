@@ -44,26 +44,32 @@ export default function ProductCard({
   const { activeStore, logEnquiry } = useStore()
   const [wishlisted, setWishlisted] = useState(false)
 
-  // Normalize and deduplicate colors to object format { hex, image, name }
-  const normalizedColors: { hex: string; image?: string; name?: string }[] = Array.from(
-    new Map(
-      colors.map((c) => {
-        const hex = typeof c === 'string' ? c : c.hex
-        const image = typeof c === 'string' ? undefined : c.image
-        const name = typeof c === 'string' ? c : c.name
-        return [(hex || '').toLowerCase().trim(), { hex, image, name }]
-      })
-    ).values()
-  )
-
-  const [selectedColorIdx, setSelectedColorIdx] = useState(0)
-
-  // Current active image: based on selected color or fallback image
-  const currentColor = normalizedColors[selectedColorIdx]
-  const displayImage =
-    currentColor?.image ||
+  // Determine the primary first uploaded image for default card thumbnail
+  const firstUploadedImage =
+    (typeof colors[0] === 'object' && colors[0]?.image) ||
     image ||
     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
+
+  // Normalize and deduplicate colors, preserving the first uploaded image for each color
+  const normalizedColorsMap = new Map<string, { hex: string; image?: string; name?: string }>()
+  for (const c of colors) {
+    const hex = (typeof c === 'string' ? c : c.hex) || ''
+    const key = hex.toLowerCase().trim()
+    if (!normalizedColorsMap.has(key)) {
+      normalizedColorsMap.set(key, {
+        hex,
+        image: typeof c === 'string' ? undefined : c.image,
+        name: typeof c === 'string' ? c : c.name,
+      })
+    }
+  }
+  const normalizedColors = Array.from(normalizedColorsMap.values())
+
+  const [selectedColorIdx, setSelectedColorIdx] = useState<number | null>(null)
+
+  // Current active image: user-selected color image if clicked, otherwise strictly the first uploaded image
+  const currentColor = selectedColorIdx !== null ? normalizedColors[selectedColorIdx] : null
+  const displayImage = currentColor?.image || firstUploadedImage
 
   const discount =
     originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
@@ -222,20 +228,23 @@ export default function ProductCard({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center gap-1.5">
-            {normalizedColors.map((c, idx) => (
-              <button
-                key={c.hex + idx}
-                type="button"
-                onClick={() => setSelectedColorIdx(idx)}
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all cursor-pointer ${
-                  selectedColorIdx === idx
-                    ? 'ring-2 ring-[#1a2e1a] ring-offset-1 scale-110'
-                    : 'hover:scale-105'
-                }`}
-                style={{ backgroundColor: c.hex }}
-                title={c.name || c.hex}
-              />
-            ))}
+            {normalizedColors.map((c, idx) => {
+              const isSelected = selectedColorIdx === null ? idx === 0 : selectedColorIdx === idx
+              return (
+                <button
+                  key={c.hex + idx}
+                  type="button"
+                  onClick={() => setSelectedColorIdx(idx)}
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all cursor-pointer ${
+                    isSelected
+                      ? 'ring-2 ring-[#1a2e1a] ring-offset-1 scale-110'
+                      : 'hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: c.hex }}
+                  title={c.name || c.hex}
+                />
+              )
+            })}
           </div>
 
           <span className="text-[10px] text-[#8a7d6e] font-medium">

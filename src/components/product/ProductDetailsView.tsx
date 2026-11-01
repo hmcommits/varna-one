@@ -737,7 +737,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 },
                 features.returnable && {
                   icon: RotateCcw,
-                  title: '7-Day Easy Exchange',
+                  title: 'Easy Return & Exchange',
                   desc: 'Doorstep size swap',
                 },
                 features.customizationAvailable && {
@@ -884,7 +884,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                       <strong className="text-[#1a1a1a]">Delivery:</strong> 2–4 business days for metro cities; 3–6 days rest of India via Delhivery / Bluedart.
                     </li>
                     <li>
-                      <strong className="text-[#1a1a1a]">Exchanges:</strong> Easy 7-day doorstep size swap if the fit isn&apos;t 100% perfect.
+                      <strong className="text-[#1a1a1a]">Exchanges:</strong> Easy doorstep size swap if the fit isn&apos;t 100% perfect.
                     </li>
                     <li>
                       <strong className="text-[#1a1a1a]">Payment:</strong> UPI, Credit/Debit cards, Net Banking, or Cash on Delivery (COD) supported upon WhatsApp order confirmation.

@@ -134,7 +134,7 @@ If the admin has unsaved edits in a module and tries to switch to another module
    - Admin can **Add New Banners** or **Delete Existing Banners**.
    - **Adaptive UI Grid:** Live storefront automatically adapts (1 banner = full-width hero, 2 = 2-column split, 3 = 3-column, 4 = 2x2 grid) with zero visual disruption.
 4. **Trust Badges ("Why Varna"):**
-   - 4 value propositions (Free Express Delivery, 7-Day Easy Exchange, Custom Tailoring Guarantee, Pre-Washed Fabric Guarantee).
+   - 4 value propositions (Free Express Delivery, Easy Return & Exchange, Custom Tailoring Guarantee, Pre-Washed Fabric Guarantee).
 - **Actions:** `[Preview Homepage]` and `[Save Changes]`.
 
 ---

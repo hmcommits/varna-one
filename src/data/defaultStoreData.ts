@@ -220,7 +220,7 @@ export const defaultStoreData: StoreState = {
       },
       {
         id: 'badge-2',
-        title: '7-Day Easy Exchange',
+        title: 'Easy Return & Exchange',
         desc: 'Hassle-free doorstep size swap if fit is not 100%',
         iconKey: 'rotate',
       },
