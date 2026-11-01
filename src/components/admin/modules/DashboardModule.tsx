@@ -43,20 +43,9 @@ export default function DashboardModule({
   const enquiries = draft.enquiries || []
   const pendingEnquiriesCount = enquiries.filter((e) => !e.completed).length
 
-  const storeStatus = draft.settings?.storeStatus || 'Online'
   const waPhone = draft.whatsapp?.phoneNumber || '916363145972'
   const reviewsRating = draft.reviews?.averageRating || 4.6
   const reviewsCount = draft.reviews?.totalReviewsCount || 120
-
-  const handleStatusChange = (status: 'Online' | 'Flash Sale' | 'Maintenance') => {
-    updateDraft((prev) => ({
-      ...prev,
-      settings: {
-        ...prev.settings,
-        storeStatus: status,
-      },
-    }))
-  }
 
   // Toggle enquiry completion directly from dashboard
   const handleToggleEnquiry = (id: string) => {
@@ -70,9 +59,9 @@ export default function DashboardModule({
 
   return (
     <div className="space-y-6">
-      {/* 1. WELCOME HERO BANNER (Full-Res Cloudinary Editorial Models Photo) */}
+      {/* 1. WELCOME HERO BANNER (Cloudinary Editorial Models Photo) */}
       <div className="bg-gradient-to-r from-[#fbf8f3] via-[#f7f0e6] to-[#efe5d5] border border-[#e8ded2] rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
-        {/* Left: Text, Badges & Storefront Status */}
+        {/* Left: Text & Badges */}
         <div className="relative z-10 max-w-xl">
           <div className="inline-flex items-center gap-2 mb-2.5">
             <span className="text-[10px] font-bold tracking-widest uppercase text-[#845d1d] font-mono bg-white/80 px-2.5 py-0.5 rounded-full border border-[#e2d8cb]">
@@ -92,35 +81,9 @@ export default function DashboardModule({
           <p className="text-xs sm:text-sm text-[#5a665d] mt-2 leading-relaxed font-normal">
             Manage your store, products, content and customer enquiries — all in one place.
           </p>
-
-          {/* Store Status Toggle */}
-          <div className="flex items-center gap-2.5 mt-4 pt-3.5 border-t border-[#e2d8cb]/80 flex-wrap">
-            <span className="text-[11px] font-semibold text-[#5a665d]">Storefront Status:</span>
-            <div className="inline-flex items-center gap-1 bg-white/90 p-1 rounded-xl border border-[#ded4c6] shadow-2xs">
-              {(['Online', 'Flash Sale', 'Maintenance'] as const).map((status) => (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => handleStatusChange(status)}
-                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    storeStatus === status
-                      ? status === 'Online'
-                        ? 'bg-[#1c3624] text-white shadow-2xs'
-                        : status === 'Flash Sale'
-                        ? 'bg-[#c85a44] text-white shadow-2xs'
-                        : 'bg-amber-600 text-white shadow-2xs'
-                      : 'text-[#6c776e] hover:text-[#142319]'
-                  }`}
-                >
-                  {status === 'Online' && '● '}
-                  {status}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Right: Dedicated High-Res Cloudinary Editorial Campaign Frame */}
+        {/* Right: High-Res Editorial Campaign Frame */}
         <div className="relative shrink-0 w-full md:w-80 lg:w-96 h-48 sm:h-56 rounded-2xl overflow-hidden border border-[#ded4c6] shadow-md bg-[#faf5ee]">
           <Image
             src={ADMIN_HERO_BANNER_URL}
@@ -138,9 +101,9 @@ export default function DashboardModule({
         </div>
       </div>
 
-      {/* 2. REAL METRIC CARDS (Pastel Tones From Reference Design) */}
+      {/* 2. REAL METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Total Products (Soft Mint Pastel) */}
+        {/* Card 1: Total Products */}
         <div
           onClick={() => onNavigateTab('products')}
           className="bg-[#eef7f0] border border-[#d6ecda] rounded-3xl p-5 sm:p-6 transition-all hover:shadow-xs hover:border-[#b8e0bf] cursor-pointer group flex flex-col justify-between"
@@ -165,7 +128,7 @@ export default function DashboardModule({
           </div>
         </div>
 
-        {/* Card 2: Categories (Soft Warm Gold Pastel) */}
+        {/* Card 2: Categories */}
         <div
           onClick={() => onNavigateTab('categories')}
           className="bg-[#fcf5e9] border border-[#f4e4cb] rounded-3xl p-5 sm:p-6 transition-all hover:shadow-xs hover:border-[#ebd5b2] cursor-pointer group flex flex-col justify-between"
@@ -190,7 +153,7 @@ export default function DashboardModule({
           </div>
         </div>
 
-        {/* Card 3: New Enquiries (Soft Blush Pastel) */}
+        {/* Card 3: New Enquiries */}
         <div
           onClick={() => onNavigateTab('enquiries')}
           className="bg-[#fdf0ef] border border-[#fcd8d5] rounded-3xl p-5 sm:p-6 transition-all hover:shadow-xs hover:border-[#f9beba] cursor-pointer group flex flex-col justify-between"
@@ -215,7 +178,7 @@ export default function DashboardModule({
           </div>
         </div>
 
-        {/* Card 4: Active Offers (Soft Lavender Pastel) */}
+        {/* Card 4: Active Offers */}
         <div
           onClick={() => onNavigateTab('promotions')}
           className="bg-[#f3f0fc] border border-[#e4dcf8] rounded-3xl p-5 sm:p-6 transition-all hover:shadow-xs hover:border-[#d2c2f3] cursor-pointer group flex flex-col justify-between"
@@ -241,32 +204,31 @@ export default function DashboardModule({
         </div>
       </div>
 
-      {/* 3. PRODUCTION OPERATIONS: QUICK ACTIONS & SYSTEM INFRASTRUCTURE (REPLACING FAKE GRAPH) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* 3. PRODUCTION OPERATIONS: QUICK ACTIONS & SYSTEM INFRASTRUCTURE */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Quick Actions (7 Cols) */}
-        <div className="lg:col-span-7 bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-7 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="font-display text-lg sm:text-xl font-bold text-[#142319]">
-                Quick Store Actions
-              </h2>
-              <p className="text-xs text-[#6b7770]">
-                Frequent administrative actions and storefront management tools
-              </p>
-            </div>
+        <div className="lg:col-span-7 bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-7 shadow-2xs flex flex-col">
+          <div className="mb-5">
+            <h2 className="font-display text-lg sm:text-xl font-bold text-[#142319]">
+              Quick Store Actions
+            </h2>
+            <p className="text-xs text-[#6b7770]">
+              Frequent administrative actions and storefront management tools
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
             {/* Button 1: Add Product (Dark Forest Green Primary) */}
             <button
               type="button"
               onClick={() => {
-                onNavigateTab('products')
                 if (onQuickAddProduct) onQuickAddProduct()
               }}
-              className="p-4 rounded-2xl bg-[#1c3624] hover:bg-[#14281a] text-white flex flex-col items-center justify-center gap-2 shadow-xs transition-all active:scale-97 cursor-pointer group"
+              className="py-4 px-3 rounded-2xl bg-[#1c3624] hover:bg-[#14281a] text-white flex flex-col items-center justify-center gap-2 shadow-xs transition-all active:scale-97 cursor-pointer group"
             >
-              <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+              </div>
               <span className="text-xs font-bold text-center">Add Product</span>
             </button>
 
@@ -274,9 +236,11 @@ export default function DashboardModule({
             <button
               type="button"
               onClick={() => onNavigateTab('homepage')}
-              className="p-4 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
+              className="py-4 px-3 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
             >
-              <ImageIcon size={19} className="text-[#3d4941]" />
+              <div className="w-9 h-9 rounded-xl bg-white border border-[#ded7cb] flex items-center justify-center">
+                <ImageIcon size={18} className="text-[#3d4941]" />
+              </div>
               <span className="text-xs font-semibold text-center">Update Banner</span>
             </button>
 
@@ -284,9 +248,11 @@ export default function DashboardModule({
             <button
               type="button"
               onClick={() => onNavigateTab('promotions')}
-              className="p-4 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
+              className="py-4 px-3 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
             >
-              <Percent size={19} className="text-[#3d4941]" />
+              <div className="w-9 h-9 rounded-xl bg-white border border-[#ded7cb] flex items-center justify-center">
+                <Percent size={18} className="text-[#3d4941]" />
+              </div>
               <span className="text-xs font-semibold text-center">Create Offer</span>
             </button>
 
@@ -294,9 +260,11 @@ export default function DashboardModule({
             <button
               type="button"
               onClick={() => onNavigateTab('categories')}
-              className="p-4 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
+              className="py-4 px-3 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
             >
-              <Layers size={19} className="text-[#3d4941]" />
+              <div className="w-9 h-9 rounded-xl bg-white border border-[#ded7cb] flex items-center justify-center">
+                <Layers size={18} className="text-[#3d4941]" />
+              </div>
               <span className="text-xs font-semibold text-center">Categories</span>
             </button>
 
@@ -304,9 +272,11 @@ export default function DashboardModule({
             <button
               type="button"
               onClick={() => onNavigateTab('homepage')}
-              className="p-4 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
+              className="py-4 px-3 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
             >
-              <Edit3 size={19} className="text-[#3d4941]" />
+              <div className="w-9 h-9 rounded-xl bg-white border border-[#ded7cb] flex items-center justify-center">
+                <Edit3 size={18} className="text-[#3d4941]" />
+              </div>
               <span className="text-xs font-semibold text-center">Edit Homepage</span>
             </button>
 
@@ -314,15 +284,17 @@ export default function DashboardModule({
             <button
               type="button"
               onClick={() => onNavigateTab('settings')}
-              className="p-4 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
+              className="py-4 px-3 rounded-2xl bg-[#faf5ee] hover:bg-[#f2ece2] border border-[#e8ded3] text-[#142319] flex flex-col items-center justify-center gap-2 transition-all active:scale-97 cursor-pointer"
             >
-              <Settings size={19} className="text-[#3d4941]" />
+              <div className="w-9 h-9 rounded-xl bg-white border border-[#ded7cb] flex items-center justify-center">
+                <Settings size={18} className="text-[#3d4941]" />
+              </div>
               <span className="text-xs font-semibold text-center">Store Settings</span>
             </button>
           </div>
         </div>
 
-        {/* Live System & Channel Pipeline Status (5 Cols - 100% Real Production Data) */}
+        {/* Live System & Channel Pipeline Status (5 Cols) */}
         <div className="lg:col-span-5 bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-7 shadow-2xs flex flex-col justify-between">
           <div className="mb-4">
             <h2 className="font-display text-lg sm:text-xl font-bold text-[#142319]">
@@ -350,7 +322,7 @@ export default function DashboardModule({
               </span>
             </div>
 
-            {/* Pipeline Item 2: Cloudinary Image Engine */}
+            {/* Pipeline Item 2: Cloudinary WebP Engine */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#3d4941]/10 text-[#142319] flex items-center justify-center">
@@ -404,7 +376,7 @@ export default function DashboardModule({
       </div>
 
       {/* 4. RECENT ACTIVITY: RECENT ENQUIRIES & CATALOG PRODUCTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Recent Enquiries Card */}
         <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-7 shadow-2xs flex flex-col justify-between">
           <div>
@@ -482,7 +454,7 @@ export default function DashboardModule({
           </div>
         </div>
 
-        {/* Recently Added Products Card */}
+        {/* Catalog Products Card (With Clean Product Thumbnails & Direct Navigation) */}
         <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-7 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -509,8 +481,8 @@ export default function DashboardModule({
                 No products in catalog. Click &ldquo;Add Product&rdquo; above.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {products.map((p) => {
+              <div className="space-y-3">
+                {products.slice(0, 4).map((p) => {
                   const primaryImage =
                     p.colors?.[0]?.image ||
                     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
@@ -519,32 +491,48 @@ export default function DashboardModule({
                     <div
                       key={p.id}
                       onClick={() => onNavigateTab('products')}
-                      className="group cursor-pointer flex flex-col bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-2.5 hover:border-[#1c3624] hover:shadow-xs transition-all"
+                      className="group cursor-pointer flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ded7cb] hover:border-[#1c3624] hover:bg-[#f6f2ec] transition-all"
                     >
-                      <div className="relative w-full aspect-3/4 rounded-xl overflow-hidden bg-white mb-2">
-                        <Image
-                          src={primaryImage}
-                          alt={p.name}
-                          fill
-                          className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                          unoptimized
-                        />
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Prominent Product Thumbnail */}
+                        <div className="relative w-12 h-14 rounded-xl overflow-hidden bg-white border border-[#ded7cb] shrink-0">
+                          <Image
+                            src={primaryImage}
+                            alt={p.name}
+                            fill
+                            className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-xs font-bold text-[#142319] leading-tight truncate">
+                            {p.name}
+                          </h3>
+                          <p className="text-[11px] text-[#556358] mt-0.5 leading-tight">
+                            {p.category} • {p.gender || 'Unisex'} • {p.colors.length} color{p.colors.length === 1 ? '' : 's'}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs font-bold text-[#142319]">
+                              ₹{p.price.toLocaleString('en-IN')}
+                            </span>
+                            {p.originalPrice > p.price && (
+                              <span className="text-[10px] text-[#8c978f] line-through">
+                                ₹{p.originalPrice.toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
+                        <span className="text-[9px] font-bold text-[#246b38] bg-[#eaf6ec] border border-[#cbe8d1] px-2 py-0.5 rounded-full">
+                          Published
+                        </span>
                         {p.badge && p.badge !== 'None' && (
-                          <span className="absolute top-1.5 left-1.5 bg-[#1c3624] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                          <span className="text-[9px] font-bold text-[#845d1d] bg-[#fcf5e9] border border-[#f4e4cb] px-2 py-0.5 rounded-full">
                             {p.badge}
                           </span>
                         )}
-                      </div>
-                      <span className="text-[11px] font-bold text-[#142319] truncate block">
-                        {p.name}
-                      </span>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs font-bold text-[#142319]">
-                          ₹{p.price.toLocaleString('en-IN')}
-                        </span>
-                        <span className="text-[9px] font-bold text-[#246b38] bg-[#eaf6ec] border border-[#cbe8d1] px-1.5 py-0.2 rounded-full">
-                          Published
-                        </span>
                       </div>
                     </div>
                   )

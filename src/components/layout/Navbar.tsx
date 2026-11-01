@@ -83,7 +83,20 @@ export default function Navbar() {
       setMobileOpen(false)
     } else if (label === 'Sale') {
       e.preventDefault()
-      selectCatalogFilter('Sale', true)
+      const hasActiveSale = (activeStore.promotions || []).some(
+        (p) => p.active && p.saleProducts && p.saleProducts.length > 0
+      )
+      if (hasActiveSale) {
+        const saleEl = document.getElementById('sale')
+        if (saleEl) {
+          saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          selectCatalogFilter('Sale', true)
+        }
+      } else {
+        // When no active sale exists, redirect directly to product list
+        selectCatalogFilter('All', true)
+      }
       setMobileOpen(false)
     }
   }

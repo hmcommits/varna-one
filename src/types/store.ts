@@ -58,16 +58,23 @@ export interface CategoryItem {
   visible: boolean
 }
 
+export interface SaleProductItem {
+  productId: string
+  salePrice: number
+}
+
 export interface Promotion {
   id: string
   title: string
   discountText: string
-  displayOptions: {
-    topBar: boolean
-    floatingToast: boolean
-    productBadge: boolean
-  }
+  code?: string
   active: boolean
+  saleProducts?: SaleProductItem[]
+  displayOptions?: {
+    topBar?: boolean
+    floatingToast?: boolean
+    productBadge?: boolean
+  }
 }
 
 export interface EnquiryItem {

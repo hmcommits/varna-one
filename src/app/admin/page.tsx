@@ -1,7 +1,8 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
 import {
   LayoutDashboard,
@@ -86,10 +87,69 @@ export default function AdminDashboardPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [saveSuccessToast, setSaveSuccessToast] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+  const searchContainerRef = useRef<HTMLDivElement | null>(null)
 
   // Sub-navigation bridge states
   const [categoryFilterForProducts, setCategoryFilterForProducts] = useState<string | null>(null)
   const [openCreateProductOnMount, setOpenCreateProductOnMount] = useState(false)
+
+  // Keyboard shortcut Ctrl + K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+        setSearchFocused(true)
+      } else if (e.key === 'Escape') {
+        setSearchFocused(false)
+        searchInputRef.current?.blur()
+      }
+    }
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchFocused(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // Live search filtering across products, categories, enquiries
+  const searchNormalized = searchQuery.trim().toLowerCase()
+  const searchProducts = searchNormalized
+    ? (draft.products || []).filter(
+        (p) =>
+          p.name.toLowerCase().includes(searchNormalized) ||
+          p.category.toLowerCase().includes(searchNormalized) ||
+          p.badge?.toLowerCase().includes(searchNormalized)
+      )
+    : []
+
+  const searchCategories = searchNormalized
+    ? (draft.categories || []).filter(
+        (c) =>
+          c.title.toLowerCase().includes(searchNormalized) ||
+          c.subtitle?.toLowerCase().includes(searchNormalized)
+      )
+    : []
+
+  const searchEnquiries = searchNormalized
+    ? (draft.enquiries || []).filter(
+        (e) =>
+          e.productName.toLowerCase().includes(searchNormalized) ||
+          e.color.toLowerCase().includes(searchNormalized) ||
+          e.customNotes?.toLowerCase().includes(searchNormalized)
+      )
+    : []
+
+  const totalSearchResults =
+    searchProducts.length + searchCategories.length + searchEnquiries.length
 
   // Auth gate check
   useEffect(() => {
@@ -118,6 +178,8 @@ export default function AdminDashboardPage() {
   // Tab switching with unsaved changes interception
   const handleTabClick = (targetTab: TabId) => {
     if (targetTab === activeTab) return
+    setOpenCreateProductOnMount(false)
+    setCategoryFilterForProducts(null)
 
     if (isDirty) {
       setPendingTab(targetTab)
@@ -404,22 +466,191 @@ export default function AdminDashboardPage() {
               <Menu size={20} />
             </button>
 
-            {/* Clean Pill Search Bar matching screenshot */}
-            <div className="relative w-full hidden sm:block">
+            {/* Interactive Admin Search Bar with Results Dropdown */}
+            <div ref={searchContainerRef} className="relative w-full hidden sm:block">
               <Search
                 size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8b948d]"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8b948d] pointer-events-none"
               />
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setSearchFocused(true)
+                }}
                 placeholder="Search products, categories, enquiries..."
-                className="w-full bg-white border border-[#e4ded3] rounded-xl pl-9 pr-18 py-1.5 text-xs text-[#142319] placeholder-[#8b948d] focus:outline-hidden focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624]"
+                className="w-full bg-white border border-[#e4ded3] rounded-xl pl-9 pr-20 py-1.5 text-xs text-[#142319] placeholder-[#8b948d] focus:outline-hidden focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624]"
               />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[#8b948d] bg-[#f2eee7] border border-[#e4ded3] px-1.5 py-0.5 rounded-md">
-                Ctrl + K
-              </span>
+
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('')
+                      searchInputRef.current?.focus()
+                    }}
+                    className="p-1 rounded-md text-[#8b948d] hover:text-[#142319] hover:bg-[#ece6dc] cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+                <span className="text-[10px] font-mono text-[#8b948d] bg-[#f2eee7] border border-[#e4ded3] px-1.5 py-0.5 rounded-md pointer-events-none">
+                  Ctrl + K
+                </span>
+              </div>
+
+              {/* Search Results Dropdown Overlay */}
+              {searchFocused && searchQuery.trim() && (
+                <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-[#ded7cb] rounded-2xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="p-3 bg-[#faf7f2] border-b border-[#ded7cb] flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-[#142319] uppercase tracking-wider font-mono">
+                      Search Results ({totalSearchResults})
+                    </span>
+                    <span className="text-[10px] text-[#6b7770]">ESC to close</span>
+                  </div>
+
+                  {totalSearchResults === 0 ? (
+                    <div className="p-6 text-center text-xs text-[#6b7770]">
+                      No products, categories, or customer leads match &ldquo;{searchQuery}&rdquo;
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-[#f0ece4]">
+                      {/* Matching Products */}
+                      {searchProducts.length > 0 && (
+                        <div className="p-2">
+                          <span className="text-[10px] font-bold uppercase text-[#845d1d] px-2 py-1 block">
+                            Products ({searchProducts.length})
+                          </span>
+                          <div className="space-y-1">
+                            {searchProducts.slice(0, 4).map((p) => {
+                              const thumb = p.colors?.[0]?.image || '/placeholder.png'
+                              return (
+                                <div
+                                  key={p.id}
+                                  onClick={() => {
+                                    setCategoryFilterForProducts(p.category)
+                                    setSearchFocused(false)
+                                    setSearchQuery('')
+                                    handleTabClick('products')
+                                  }}
+                                  className="flex items-center justify-between p-2 rounded-xl hover:bg-[#faf6f0] cursor-pointer transition-colors"
+                                >
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="relative w-8 h-10 rounded-lg overflow-hidden bg-[#faf5ee] border border-[#ded7cb] shrink-0">
+                                      <Image
+                                        src={thumb}
+                                        alt={p.name}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                      />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-[#142319] leading-tight">
+                                        {p.name}
+                                      </p>
+                                      <p className="text-[10px] text-[#6b7770]">
+                                        {p.category} • ₹{p.price}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <span className="text-[10px] text-[#1c3624] font-semibold bg-[#eaf6ec] px-2 py-0.5 rounded-full">
+                                    View
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Matching Categories */}
+                      {searchCategories.length > 0 && (
+                        <div className="p-2">
+                          <span className="text-[10px] font-bold uppercase text-[#845d1d] px-2 py-1 block">
+                            Categories ({searchCategories.length})
+                          </span>
+                          <div className="space-y-1">
+                            {searchCategories.map((c) => (
+                              <div
+                                key={c.id}
+                                onClick={() => {
+                                  setSearchFocused(false)
+                                  setSearchQuery('')
+                                  handleTabClick('categories')
+                                }}
+                                className="flex items-center justify-between p-2 rounded-xl hover:bg-[#faf6f0] cursor-pointer transition-colors"
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-[#faf5ee] border border-[#ded7cb] shrink-0">
+                                    <Image
+                                      src={c.image}
+                                      alt={c.title}
+                                      fill
+                                      className="object-cover"
+                                      unoptimized
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-[#142319] leading-tight">
+                                      {c.title}
+                                    </p>
+                                    <p className="text-[10px] text-[#6b7770]">
+                                      {c.subtitle || c.link}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] text-[#845d1d] font-semibold bg-[#fcf5e9] px-2 py-0.5 rounded-full">
+                                  Category
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Matching Enquiries */}
+                      {searchEnquiries.length > 0 && (
+                        <div className="p-2">
+                          <span className="text-[10px] font-bold uppercase text-[#845d1d] px-2 py-1 block">
+                            Enquiries &amp; Leads ({searchEnquiries.length})
+                          </span>
+                          <div className="space-y-1">
+                            {searchEnquiries.slice(0, 4).map((e) => (
+                              <div
+                                key={e.id}
+                                onClick={() => {
+                                  setSearchFocused(false)
+                                  setSearchQuery('')
+                                  handleTabClick('enquiries')
+                                }}
+                                className="flex items-center justify-between p-2 rounded-xl hover:bg-[#faf6f0] cursor-pointer transition-colors"
+                              >
+                                <div>
+                                  <p className="text-xs font-bold text-[#142319] leading-tight">
+                                    {e.productName}
+                                  </p>
+                                  <p className="text-[10px] text-[#6b7770]">
+                                    {e.color} • {e.size} • {e.timestamp}
+                                  </p>
+                                </div>
+                                <span className="text-[10px] text-[#b84840] font-semibold bg-[#fdf0ef] px-2 py-0.5 rounded-full">
+                                  Lead
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

@@ -16,7 +16,6 @@ import {
 } from 'lucide-react'
 import ModulePreviewDrawer from '../ModulePreviewDrawer'
 import ProductCard from '@/components/ui/ProductCard'
-import ProductDetailsView from '@/components/product/ProductDetailsView'
 
 interface ProductsModuleProps {
   initialCategoryFilter?: string | null
@@ -49,12 +48,14 @@ export default function ProductsModule({
     initialCategoryFilter || 'All'
   )
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewTab, setPreviewTab] = useState<'pdp' | 'cards'>('pdp')
+  const [previewProductId, setPreviewProductId] = useState<string>('')
   const [uploading, setUploading] = useState(false)
   const [uploadSuccessTick, setUploadSuccessTick] = useState(false)
 
   // Price input states to eliminate the "0299" leading zero bug
-  const [sellingPriceInput, setSellingPriceInput] = useState<string>('999')
-  const [originalPriceInput, setOriginalPriceInput] = useState<string>('1499')
+  const [sellingPriceInput, setSellingPriceInput] = useState<string>('')
+  const [originalPriceInput, setOriginalPriceInput] = useState<string>('')
 
   // Sizes management - supports adding at start or end
   const [allSizes, setAllSizes] = useState<string[]>([
@@ -79,8 +80,8 @@ export default function ProductsModule({
       name: '',
       category,
       gender: 'Men',
-      price: 999,
-      originalPrice: 1499,
+      price: 0,
+      originalPrice: 0,
       rating: 4.5,
       reviewCount: 10,
       stockUrgency: 'In Stock',
@@ -507,7 +508,7 @@ export default function ProductsModule({
                           <span className="text-[11px] text-[#8c978f] line-through">
                             ₹{p.originalPrice.toLocaleString('en-IN')}
                           </span>
-                          <span className="text-[10px] font-bold text-[#c85a44]">
+                          <span className="text-[10px] font-bold text-[#845d1d]">
                             {discount}% OFF
                           </span>
                         </div>
@@ -742,14 +743,14 @@ export default function ProductsModule({
                   const pct = Math.round(((oPrice - sPrice) / oPrice) * 100)
                   const diff = oPrice - sPrice
                   return (
-                    <div className="col-span-1 sm:col-span-2 flex items-center justify-between bg-[#fdf0ef] border border-[#fcd8d5] text-[#b84840] px-3.5 py-2 rounded-xl text-xs font-bold animate-in fade-in">
+                    <div className="col-span-1 sm:col-span-2 flex items-center justify-between bg-[#fcf5e9] border border-[#f4e4cb] text-[#845d1d] px-3.5 py-2 rounded-xl text-xs font-bold animate-in fade-in">
                       <div className="flex items-center gap-2">
-                        <span className="bg-[#b84840] text-white px-2 py-0.5 rounded-full text-[10px]">
+                        <span className="bg-[#845d1d] text-white px-2 py-0.5 rounded-full text-[10px]">
                           {pct}% OFF
                         </span>
                         <span>Customer Saves: ₹{diff.toLocaleString('en-IN')}</span>
                       </div>
-                      <span className="text-[10px] text-[#8c978f] font-normal hidden sm:inline">
+                      <span className="text-[10px] text-[#796749] font-normal hidden sm:inline">
                         Selling price ₹{sPrice} is charged, Original MRP ₹{oPrice} shows crossed out
                       </span>
                     </div>
@@ -1527,56 +1528,94 @@ export default function ProductsModule({
         </div>
       )}
 
-      {/* MODULE PREVIEW DRAWER */}
+      {/* MODULE PREVIEW DRAWER WITH REAL RESPONSIVE MOBILE/TABLET VIEWPORT */}
       <ModulePreviewDrawer
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
         title="Products & PDP Color-Sync Preview"
+        iframeSrc={
+          previewTab === 'pdp'
+            ? `/products/${previewProductId || filteredProducts[0]?.id || products[0]?.id || '1'}`
+            : undefined
+        }
       >
-        <div className="p-3 sm:p-6 space-y-6 bg-[#faf8f5]">
-          <div>
-            <h3 className="font-display text-lg sm:text-xl font-bold text-[#142319] mb-1">
-              Catalog Product Cards Preview
-            </h3>
-            <p className="text-xs text-[#6b7770] mb-3">
-              Shows badges, prices, and the &ldquo;Customization Available&rdquo; label
-            </p>
-            <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar">
-              {filteredProducts.slice(0, 4).map((p) => (
-                <div key={p.id} className="w-44 sm:w-48 flex-shrink-0">
-                  <ProductCard
-                    id={p.id}
-                    name={p.name}
-                    image={
-                      p.colors[0]?.image ||
-                      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
-                    }
-                    price={p.price}
-                    originalPrice={p.originalPrice}
-                    rating={p.rating}
-                    reviewCount={p.reviewCount}
-                    colors={p.colors.map((c) => c.hex)}
-                    badge={p.badge === 'None' ? undefined : p.badge}
-                    category={p.category}
-                    gender={p.gender}
-                    customization={p.customization}
-                  />
-                </div>
-              ))}
+        <div className="p-4 sm:p-6 space-y-6 bg-[#faf8f5]">
+          {/* Preview View Mode Switcher */}
+          <div className="flex items-center justify-between pb-3 border-b border-[#ded7cb] flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPreviewTab('pdp')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  previewTab === 'pdp'
+                    ? 'bg-[#1c3624] text-white shadow-xs'
+                    : 'bg-white border border-[#ded7cb] text-[#556358] hover:text-[#142319]'
+                }`}
+              >
+                📱 Full Interactive PDP (Real Phone Layout)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewTab('cards')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  previewTab === 'cards'
+                    ? 'bg-[#1c3624] text-white shadow-xs'
+                    : 'bg-white border border-[#ded7cb] text-[#556358] hover:text-[#142319]'
+                }`}
+              >
+                🛍️ Storefront Grid Cards
+              </button>
             </div>
+
+            {/* Product Selector for PDP Preview */}
+            {products.length > 1 && (
+              <select
+                value={previewProductId || filteredProducts[0]?.id || products[0]?.id}
+                onChange={(e) => setPreviewProductId(e.target.value)}
+                className="bg-white border border-[#ded7cb] rounded-xl px-2.5 py-1 text-xs text-[#142319] outline-hidden font-medium"
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    Preview: {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          <div className="pt-4 border-t border-[#ded7cb]">
-            <h3 className="font-display text-lg sm:text-xl font-bold text-[#142319] mb-1">
-              Product Details Page (PDP) Live Preview
-            </h3>
-            <p className="text-xs text-[#6b7770] mb-3">
-              Test clicking color swatches below to verify live image switching &amp; customization add-on
-            </p>
-            <div className="rounded-2xl overflow-hidden border border-[#ded7cb] bg-white">
-              <ProductDetailsView productId={filteredProducts[0]?.id || '1'} />
+          {previewTab === 'cards' && (
+            <div>
+              <h3 className="font-display text-lg font-bold text-[#142319] mb-1">
+                Catalog Product Cards Preview
+              </h3>
+              <p className="text-xs text-[#6b7770] mb-3">
+                Shows badges, prices, and the &ldquo;Customization Available&rdquo; label
+              </p>
+              <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar">
+                {filteredProducts.slice(0, 4).map((p) => (
+                  <div key={p.id} className="w-44 sm:w-48 shrink-0">
+                    <ProductCard
+                      id={p.id}
+                      name={p.name}
+                      image={
+                        p.colors[0]?.image ||
+                        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
+                      }
+                      price={p.price}
+                      originalPrice={p.originalPrice}
+                      rating={p.rating}
+                      reviewCount={p.reviewCount}
+                      colors={p.colors.map((c) => c.hex)}
+                      badge={p.badge === 'None' ? undefined : p.badge}
+                      category={p.category}
+                      gender={p.gender}
+                      customization={p.customization}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </ModulePreviewDrawer>
     </div>

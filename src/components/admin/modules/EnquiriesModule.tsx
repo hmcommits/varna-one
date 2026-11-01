@@ -6,7 +6,6 @@ import {
   Trash2,
   CheckCircle2,
   Clock,
-  Sparkles,
   Check,
 } from 'lucide-react'
 
@@ -64,34 +63,6 @@ export default function EnquiriesModule() {
     document.body.removeChild(link)
   }
 
-  // Simulate test lead
-  const handleSimulateLead = () => {
-    const testItems = [
-      'Premium Pure Linen Casual Shirt',
-      'Floral Maxi Dress',
-      'Striped Jersey Tee',
-      'Printed Co-ord Set',
-    ]
-    const randomItem = testItems[Math.floor(Math.random() * testItems.length)]
-
-    const newEnq = {
-      id: `enq-${Date.now()}`,
-      timestamp: 'Just now',
-      productName: randomItem,
-      color: 'Sample Shade',
-      size: 'L (42")',
-      quantity: 1,
-      customNotes: 'Interested in bespoke monogram initials',
-      source: 'Product Details Page' as const,
-      completed: false,
-    }
-
-    updateDraft((prev) => ({
-      ...prev,
-      enquiries: [newEnq, ...(prev.enquiries || [])],
-    }))
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -109,16 +80,6 @@ export default function EnquiriesModule() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={handleSimulateLead}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer"
-            title="Create a sample enquiry for testing"
-          >
-            <Sparkles size={13} className="text-[#845d1d]" />
-            <span>Simulate Lead</span>
-          </button>
-
           <button
             type="button"
             onClick={handleExportCSV}

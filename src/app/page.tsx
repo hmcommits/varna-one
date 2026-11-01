@@ -3,6 +3,7 @@ import TrustBadges from '@/components/sections/TrustBadges'
 import TrendingTicker from '@/components/sections/TrendingTicker'
 import CategoryGrid from '@/components/sections/CategoryGrid'
 import NewArrivals from '@/components/sections/NewArrivals'
+import SaleSection from '@/components/sections/SaleSection'
 import PromoBanners from '@/components/sections/PromoBanners'
 import WhyVarna from '@/components/sections/WhyVarna'
 import CustomerReviews from '@/components/sections/CustomerReviews'
@@ -16,6 +17,7 @@ export default function HomePage() {
       <TrendingTicker />
       <CategoryGrid />
       <NewArrivals />
+      <SaleSection />
       <PromoBanners />
       <WhyVarna />
       <CustomerReviews />

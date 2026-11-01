@@ -155,12 +155,19 @@ export const defaultStoreData: StoreState = {
       id: 'promo-1',
       title: 'Festive Summer Drop',
       discountText: 'FLAT 30% OFF ON CUSTOM WEAR',
+      code: 'FESTIVE30',
+      active: true,
+      saleProducts: [
+        {
+          productId: 'prod-1793532655',
+          salePrice: 699,
+        },
+      ],
       displayOptions: {
         topBar: true,
         floatingToast: true,
         productBadge: true,
       },
-      active: true,
     },
   ],
   enquiries: [
