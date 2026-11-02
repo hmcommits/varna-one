@@ -3,11 +3,12 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
 import { PromoBanner, WhyVarnaItem } from '@/types/store'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Upload, ImageIcon, Check } from 'lucide-react'
 
 export default function HomepageModule() {
   const { draft, updateDraft } = useStore()
   const [newChipText, setNewChipText] = useState('')
+  const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null)
 
   const homepage = draft.homepage || {
     topBarVisible: true,
@@ -92,6 +93,38 @@ export default function HomepageModule() {
       ...prev,
       homepage: { ...prev.homepage, promoBanners: updated },
     }))
+  }
+
+  const handleUploadBannerImage = async (bannerId: string, file: File) => {
+    if (!file) return
+    setUploadingBannerId(bannerId)
+    try {
+      const adminToken =
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('varna_admin_token')
+          : null) ||
+        draft.settings?.passcode ||
+        'varna2026'
+
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-token': adminToken },
+        body: formData,
+      })
+      const data = await res.json()
+      if (data.url) {
+        handleUpdateBanner(bannerId, 'image', data.url)
+      } else {
+        alert(data.error || 'Failed to upload banner image.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error uploading banner image. Please try again.')
+    } finally {
+      setUploadingBannerId(null)
+    }
   }
 
   const handleDeleteBanner = (id: string) => {
@@ -323,20 +356,83 @@ export default function HomepageModule() {
                 </button>
               </div>
 
-              {/* Banner Preview Thumbnail */}
-              <div className="relative aspect-16/9 rounded-xl overflow-hidden bg-white border border-[#ded7cb]">
-                <Image
-                  src={banner.image}
-                  alt={banner.title}
-                  fill
-                  className="object-cover object-top"
-                />
+              {/* Visual Banner Preview Image & Direct Upload */}
+              <div className="space-y-2">
+                <div className="relative w-full h-44 rounded-xl overflow-hidden bg-[#ebe5da] border border-[#ded7cb] shadow-inner group/img">
+                  {banner.image ? (
+                    <Image
+                      src={banner.image}
+                      alt={banner.title || 'Promo Banner'}
+                      fill
+                      className="object-cover object-top"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-[#8c978f] gap-1">
+                      <ImageIcon size={28} />
+                      <span className="text-xs">No image selected</span>
+                    </div>
+                  )}
+
+                  {/* Hover upload overlay */}
+                  <label className="absolute inset-0 bg-black/45 opacity-0 group-hover/img:opacity-100 flex flex-col items-center justify-center text-white font-bold text-xs cursor-pointer transition-opacity backdrop-blur-xs gap-1.5 p-3 text-center">
+                    <Upload size={20} />
+                    <span>
+                      {uploadingBannerId === banner.id
+                        ? 'Uploading to CDN...'
+                        : 'Click to Change Banner Photo'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingBannerId === banner.id}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handleUploadBannerImage(banner.id, file)
+                        e.target.value = ''
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Upload Action Button for easy access on mobile/desktop */}
+                <div className="flex items-center justify-between gap-2">
+                  <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-[#1c3624] hover:text-white border border-[#ded7cb] hover:border-[#1c3624] text-[#1c3624] font-bold text-xs rounded-xl shadow-2xs transition-all cursor-pointer">
+                    <Upload size={13} />
+                    <span>
+                      {uploadingBannerId === banner.id
+                        ? 'Uploading...'
+                        : 'Upload / Change Photo'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingBannerId === banner.id}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handleUploadBannerImage(banner.id, file)
+                        e.target.value = ''
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {banner.image && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#206035] bg-[#eef7f0] px-2 py-1 rounded-lg border border-[#d6ecda]">
+                      <Check size={11} />
+                      <span>Ready</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Fields */}
-              <div className="space-y-2">
+              <div className="space-y-2 pt-1">
                 <div>
-                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Headline</label>
+                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                    Headline
+                  </label>
                   <input
                     type="text"
                     value={banner.title}
@@ -346,7 +442,9 @@ export default function HomepageModule() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Subtitle / Tag</label>
+                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                    Subtitle / Tag
+                  </label>
                   <input
                     type="text"
                     value={banner.subtitle}
@@ -355,26 +453,16 @@ export default function HomepageModule() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Button CTA</label>
-                    <input
-                      type="text"
-                      value={banner.ctaText}
-                      onChange={(e) => handleUpdateBanner(banner.id, 'ctaText', e.target.value)}
-                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">Image Path / URL</label>
-                    <input
-                      type="text"
-                      value={banner.image}
-                      onChange={(e) => handleUpdateBanner(banner.id, 'image', e.target.value)}
-                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-mono text-[10px]"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                    Button CTA
+                  </label>
+                  <input
+                    type="text"
+                    value={banner.ctaText}
+                    onChange={(e) => handleUpdateBanner(banner.id, 'ctaText', e.target.value)}
+                    className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
+                  />
                 </div>
               </div>
             </div>
