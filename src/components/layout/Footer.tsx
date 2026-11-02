@@ -140,6 +140,29 @@ export default function Footer() {
                 +91 6363145972
               </a>
             </div>
+
+            {/* Email Contact Pill */}
+            <a
+              href="mailto:varnaprints2026@gmail.com"
+              className="inline-flex items-center gap-2 self-start py-1 px-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 text-[#e8d5b7] hover:text-white transition-all group"
+              title="Email Varna: varnaprints2026@gmail.com"
+            >
+              <div className="relative w-4 h-4 flex-shrink-0">
+                <Image
+                  src="/images/gmail-logo.webp"
+                  alt="Email"
+                  fill
+                  sizes="16px"
+                  className="object-contain group-hover:scale-105 transition-transform"
+                  unoptimized
+                />
+              </div>
+              <span className="text-xs font-semibold tracking-wide">
+                varnaprints2026@gmail.com
+              </span>
+            </a>
+
+            {/* Instagram Pill */}
             <a
               href="https://www.instagram.com/varna_prints_/"
               target="_blank"
@@ -189,8 +212,8 @@ export default function Footer() {
             {helpLinks.map((link) => (
               <li key={link}>
                 <a
-                  href={WHATSAPP_ENQUIRY_URL}
-                  target="_blank"
+                  href={link === 'Contact Us' ? 'mailto:varnaprints2026@gmail.com' : WHATSAPP_ENQUIRY_URL}
+                  target={link === 'Contact Us' ? undefined : '_blank'}
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
@@ -209,6 +232,22 @@ export default function Footer() {
           </p>
           <div className="pt-2 border-t border-white/10 flex flex-col gap-2 text-[11px] text-[#7d7062]">
             <span>⚡ Ultra-fast WhatsApp Checkout</span>
+            <a
+              href="mailto:varnaprints2026@gmail.com"
+              className="flex items-center gap-1.5 text-[#a89d8f] hover:text-white transition-colors"
+            >
+              <div className="relative w-3.5 h-3.5 flex-shrink-0">
+                <Image
+                  src="/images/gmail-logo.webp"
+                  alt="Email"
+                  fill
+                  sizes="14px"
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+              <span>varnaprints2026@gmail.com</span>
+            </a>
             <a
               href="https://www.instagram.com/varna_prints_/"
               target="_blank"

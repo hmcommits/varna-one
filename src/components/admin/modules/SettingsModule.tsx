@@ -416,6 +416,21 @@ export default function SettingsModule() {
             <p className="text-[10px] text-[#8c978f] mt-1">Auto-syncs storefront Instagram links</p>
           </div>
 
+          {/* Support Email */}
+          <div>
+            <label className="block text-xs font-semibold text-[#142319] mb-1">
+              Official Email Desk
+            </label>
+            <input
+              type="email"
+              value={settings.supportEmail || 'varnaprints2026@gmail.com'}
+              onChange={(e) => handleUpdate('supportEmail', e.target.value.trim())}
+              placeholder="varnaprints2026@gmail.com"
+              className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden font-mono"
+            />
+            <p className="text-[10px] text-[#8c978f] mt-1">Auto-syncs storefront email &amp; mailto links</p>
+          </div>
+
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[#142319] mb-1">
               Studio Address

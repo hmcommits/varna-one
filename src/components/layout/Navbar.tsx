@@ -272,8 +272,30 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Right Action: Clean Search Bar & Instagram */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Action: Clean Search Bar & Social/Email */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Email Contact Link with Uploaded Gmail Logo */}
+            <a
+              href="mailto:varnaprints2026@gmail.com"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/70 text-[#1a2e1a] transition-all cursor-pointer shadow-2xs group"
+              title="Email: varnaprints2026@gmail.com"
+              aria-label="Email: varnaprints2026@gmail.com"
+            >
+              <div className="relative w-4 h-4 flex-shrink-0">
+                <Image
+                  src="/images/gmail-logo.webp"
+                  alt="Email"
+                  fill
+                  sizes="16px"
+                  className="object-contain group-hover:scale-110 transition-transform"
+                  unoptimized
+                />
+              </div>
+              <span className="hidden xl:inline text-xs font-semibold text-[#1a2e1a]">
+                varnaprints2026@gmail.com
+              </span>
+            </a>
+
             {/* Instagram Link with Uploaded Logo */}
             <a
               href="https://www.instagram.com/varna_prints_/"
@@ -368,6 +390,39 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+            </div>
+
+            {/* Email Mobile Card */}
+            <div className="pt-2">
+              <a
+                href="mailto:varnaprints2026@gmail.com"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-[#faf6f0] border border-[#e8d5b7] hover:bg-[#f4efe6] transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="relative w-6 h-6 flex-shrink-0">
+                    <Image
+                      src="/images/gmail-logo.webp"
+                      alt="Gmail"
+                      fill
+                      sizes="24px"
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#1a2e1a] block leading-tight">
+                      varnaprints2026@gmail.com
+                    </span>
+                    <span className="text-[10px] text-[#7d7062] block leading-tight">
+                      Official email &amp; custom orders
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-[#1a2e1a] bg-white px-2.5 py-1 rounded-full border border-[#ded7cb]">
+                  Email
+                </span>
+              </a>
             </div>
 
             {/* Instagram Mobile Card */}

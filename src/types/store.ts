@@ -142,6 +142,7 @@ export interface StoreSettings {
   subtitle: string
   slogan: string
   supportPhone: string
+  supportEmail?: string
   studioAddress: string
   copyrightText: string
   logoUrl: string

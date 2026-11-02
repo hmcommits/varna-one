@@ -8,6 +8,7 @@ export const defaultStoreData: StoreState = {
     subtitle: 'Custom Wear & Prints',
     slogan: 'Wear Your Colors',
     supportPhone: '+91 6363145972',
+    supportEmail: 'varnaprints2026@gmail.com',
     studioAddress: 'Indiranagar 100ft Road, Bengaluru, Karnataka 560038',
     copyrightText: '© 2026 Varna. All rights reserved. Crafted for comfort, curated to impress.',
     logoUrl:
