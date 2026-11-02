@@ -33,25 +33,30 @@ export async function POST(req: Request) {
       req.headers.get('x-admin-token') ||
       req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
 
-    const db = await getMongoDb()
-    let expectedPasscode: string =
-      process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
+    const token = (providedToken || '').trim()
+    const masterSecret = (process.env.ADMIN_SECRET_KEY || process.env.ADMIN_SECRET || '').trim()
+    const isMaster = Boolean(masterSecret && token === masterSecret)
 
-    if (!expectedPasscode) {
+    const db = await getMongoDb()
+    let storePasscode = process.env.ADMIN_PASSCODE || ''
+
+    if (!storePasscode) {
       if (db) {
         const existing = await db
           .collection('config')
           .findOne({ _id: 'store_config' as any })
-        expectedPasscode =
+        storePasscode =
           existing?.settings?.passcode ||
           defaultStoreData.settings.passcode ||
           'varna2026'
       } else {
-        expectedPasscode = readLocalPasscode()
+        storePasscode = readLocalPasscode()
       }
     }
 
-    if (!providedToken || providedToken.trim() !== expectedPasscode.trim()) {
+    const isAuthorized = isMaster || Boolean(token && token === storePasscode.trim())
+
+    if (!isAuthorized) {
       return NextResponse.json(
         { error: 'Unauthorized: Invalid or missing administrator authorization token' },
         { status: 401 }

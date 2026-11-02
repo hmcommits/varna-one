@@ -58,11 +58,17 @@ function sanitizeForPublic(data: any): any {
 }
 
 /**
- * Checks if the provided token matches the expected admin passcode.
+ * Checks if the provided token matches the master secret or the store passcode.
  */
-function isAuthenticated(providedToken: string | null, expectedPasscode: string): boolean {
-  if (!providedToken || !expectedPasscode) return false
-  return providedToken.trim() === expectedPasscode.trim()
+function isAuthenticated(providedToken: string | null, storePasscode: string): boolean {
+  if (!providedToken) return false
+  const token = providedToken.trim()
+  const masterSecret = (process.env.ADMIN_SECRET_KEY || process.env.ADMIN_SECRET || '').trim()
+  if (masterSecret && token === masterSecret) {
+    return true
+  }
+  if (!storePasscode) return false
+  return token === storePasscode.trim()
 }
 
 export async function GET(req: Request) {
@@ -80,9 +86,6 @@ export async function GET(req: Request) {
     }
 
     const db = await getMongoDb()
-
-    let expectedPasscode: string =
-      process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
 
     let storeData: any = null
 
@@ -105,15 +108,14 @@ export async function GET(req: Request) {
       storeData = readLocalStore() || defaultStoreData
     }
 
-    // Resolve expected passcode if not from env
-    if (!expectedPasscode) {
-      expectedPasscode =
-        storeData?.settings?.passcode ||
-        defaultStoreData.settings.passcode ||
-        'varna2026'
-    }
+    // Resolve store-configured passcode
+    const storePasscode =
+      process.env.ADMIN_PASSCODE ||
+      storeData?.settings?.passcode ||
+      defaultStoreData.settings.passcode ||
+      'varna2026'
 
-    const isAdmin = isAuthenticated(providedToken || null, expectedPasscode)
+    const isAdmin = isAuthenticated(providedToken || null, storePasscode)
 
     // Sanitize: strip passcode from public storefront responses
     const responseData = isAdmin ? storeData : sanitizeForPublic(storeData)
@@ -137,32 +139,37 @@ export async function POST(req: Request) {
       req.headers.get('x-admin-token') ||
       req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
 
+    const token = (providedToken || '').trim()
+    const masterSecret = (process.env.ADMIN_SECRET_KEY || process.env.ADMIN_SECRET || '').trim()
+    const isMaster = Boolean(masterSecret && token === masterSecret)
+
     const db = await getMongoDb()
 
     // Determine expected passcode from env, MongoDB, or local config
-    let expectedPasscode: string =
-      process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
+    let storePasscode = process.env.ADMIN_PASSCODE || ''
 
-    if (!expectedPasscode) {
+    if (!storePasscode) {
       if (db) {
         const existing = await db
           .collection('config')
           .findOne({ _id: 'store_config' as any })
-        expectedPasscode =
+        storePasscode =
           existing?.settings?.passcode ||
           defaultStoreData.settings.passcode ||
           'varna2026'
       } else {
         const local = readLocalStore()
-        expectedPasscode =
+        storePasscode =
           local?.settings?.passcode ||
           defaultStoreData.settings.passcode ||
           'varna2026'
       }
     }
 
+    const isAuthorized = isMaster || Boolean(token && token === storePasscode.trim())
+
     // Security Gate: Reject unauthenticated requests
-    if (!providedToken || providedToken.trim() !== expectedPasscode.trim()) {
+    if (!isAuthorized) {
       return NextResponse.json(
         { error: 'Unauthorized: Invalid or missing administrator authorization token' },
         { status: 401 }

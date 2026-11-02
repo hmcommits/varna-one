@@ -21,26 +21,32 @@ export async function POST(req: Request) {
       )
     }
 
-    // Resolve expected passcode: env > MongoDB > default
-    let expectedPasscode: string =
-      process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
+    const inputPasscode = passcode.trim()
+    const masterSecret = (process.env.ADMIN_SECRET_KEY || process.env.ADMIN_SECRET || '').trim()
 
-    if (!expectedPasscode) {
+    // 1. Master Secret Override: if provided passcode matches master secret, grant immediate access
+    const isMaster = Boolean(masterSecret && inputPasscode === masterSecret)
+
+    // 2. Resolve store-configured passcode from MongoDB or default
+    let storePasscode = process.env.ADMIN_PASSCODE || ''
+    if (!storePasscode) {
       const db = await getMongoDb()
       if (db) {
         const config = await db
           .collection('config')
           .findOne({ _id: 'store_config' as any })
-        expectedPasscode =
+        storePasscode =
           config?.settings?.passcode ||
           defaultStoreData.settings.passcode ||
           'varna2026'
       } else {
-        expectedPasscode = defaultStoreData.settings.passcode || 'varna2026'
+        storePasscode = defaultStoreData.settings.passcode || 'varna2026'
       }
     }
 
-    if (passcode.trim() !== expectedPasscode.trim()) {
+    const isAuthorized = isMaster || Boolean(storePasscode && inputPasscode === storePasscode.trim())
+
+    if (!isAuthorized) {
       return NextResponse.json(
         { error: 'Invalid passcode' },
         { status: 401 }
