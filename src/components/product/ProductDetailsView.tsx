@@ -1219,16 +1219,16 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
           </div>
         </section>
 
-        {/* PAIR IT WITH SECTION */}
+        {/* PEOPLE ALSO BUY SECTION */}
         {activeStore.products?.filter((p) => p.id !== product.id).length > 0 ? (
           <section className="mt-14 sm:mt-20 pt-10 border-t border-[#e8d5b7]/60">
             <div className="flex items-end justify-between mb-6">
               <div>
                 <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
-                  COMPLETE THE LOOK
+                  POPULAR COMBINATIONS
                 </p>
                 <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1a1a1a]">
-                  Pairs Naturally With
+                  People Also Buy
                 </h2>
               </div>
             </div>
@@ -1240,9 +1240,12 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 .map((p) => (
                   <div
                     key={p.id}
-                    className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 flex items-center gap-3 shadow-xs hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 flex items-center gap-3 shadow-xs hover:shadow-md transition-shadow group"
                   >
-                    <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0">
+                    <Link
+                      href={`/products/${p.id}`}
+                      className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0 block"
+                    >
                       <Image
                         src={
                           p.colors?.[0]?.image ||
@@ -1251,16 +1254,19 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                         alt={p.name}
                         fill
                         sizes="64px"
-                        className="object-cover object-top"
+                        className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
                       />
-                    </div>
+                    </Link>
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] text-[#c4a675] font-bold uppercase tracking-wider block truncate">
                         {p.category}
                       </span>
-                      <h4 className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] truncate">
+                      <Link
+                        href={`/products/${p.id}`}
+                        className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] hover:text-[#1a2e1a] transition-colors truncate block"
+                      >
                         {p.name}
-                      </h4>
+                      </Link>
                       <div className="flex items-baseline gap-1.5 mt-0.5">
                         <span className="text-xs font-bold text-[#1a1a1a]">
                           ₹{p.price.toLocaleString('en-IN')}
@@ -1271,16 +1277,25 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                           </span>
                         )}
                       </div>
-                      <a
-                        href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                          `Hi Varna! I'm interested in ordering the ${p.name} alongside the ${product.name}.`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] text-[#1a2e1a] font-bold hover:underline mt-1"
-                      >
-                        Enquire Pair →
-                      </a>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Link
+                          href={`/products/${p.id}`}
+                          className="text-[11px] text-[#1a2e1a] font-bold hover:underline"
+                        >
+                          View Style →
+                        </Link>
+                        <span className="text-[#ded7cb] text-xs">•</span>
+                        <a
+                          href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
+                            `Hi Varna! I'm interested in ordering ${p.name} alongside ${product.name}.`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-[#25D366] font-bold hover:underline"
+                        >
+                          WhatsApp
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))}
