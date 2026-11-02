@@ -1225,7 +1225,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
             <div className="flex items-end justify-between mb-6">
               <div>
                 <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
-                  POPULAR COMBINATIONS
+                  OTHER POPULAR PRODUCTS
                 </p>
                 <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1a1a1a]">
                   People Also Buy

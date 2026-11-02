@@ -123,17 +123,19 @@ export default function NewArrivals() {
         {/* Section Header with Filter Pills */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
-              <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#1a2e1a]">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <p className="text-[11px] sm:text-xs font-extrabold tracking-[0.25em] uppercase text-[#1a2e1a]">
                 CURATED COLLECTION
               </p>
               <Link
-                href={catalogFilter !== 'All' ? `/products?category=${encodeURIComponent(catalogFilter)}` : '/products'}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1a2e1a] hover:bg-[#284628] text-white text-[11px] font-semibold transition-all cursor-pointer shadow-xs group"
-                title="View all products in catalog grid"
+                href="/products"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a2e1a] hover:bg-[#284628] text-white text-xs sm:text-[13px] font-bold transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg hover:scale-105 active:scale-95 group border border-[#1a2e1a]"
+                title="View all products in all products catalog grid"
               >
-                <span>View All</span>
-                <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                <span>View All Products</span>
+                <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white group-hover:text-[#1a2e1a] flex items-center justify-center transition-colors">
+                  <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                </span>
               </Link>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
@@ -281,6 +283,26 @@ export default function NewArrivals() {
                   hasColorPricing={p.hasColorPricing}
                 />
               ))}
+
+              {/* View All Products End Card */}
+              <Link
+                href="/products"
+                className="group relative bg-[#1a2e1a] hover:bg-[#223d22] text-[#faf8f4] rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-shrink-0 w-44 sm:w-48 md:w-52 border border-[#1a2e1a] flex flex-col items-center justify-center p-6 text-center select-none cursor-pointer"
+                title="View full products catalog grid"
+              >
+                <div className="w-12 h-12 rounded-full bg-white/10 group-hover:bg-white text-white group-hover:text-[#1a2e1a] flex items-center justify-center mb-3 transition-colors shadow-xs">
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </div>
+                <h4 className="font-display text-sm sm:text-base font-bold text-white mb-1">
+                  View Full Catalog
+                </h4>
+                <p className="text-[11px] text-[#ded7cb] leading-relaxed">
+                  Browse all {products.length} styles in a full grid
+                </p>
+                <span className="mt-4 px-3.5 py-1.5 rounded-full bg-white/15 group-hover:bg-white group-hover:text-[#1a2e1a] text-xs font-bold transition-all">
+                  Open Grid →
+                </span>
+              </Link>
             </div>
 
             {/* Scroll Right Button */}
