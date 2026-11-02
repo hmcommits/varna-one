@@ -12,6 +12,7 @@ export default function NewArrivals() {
     setCatalogFilter,
     searchQuery,
     setSearchQuery,
+    isLoading,
   } = useStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -171,7 +172,27 @@ export default function NewArrivals() {
         )}
 
         {/* Content Area */}
-        {filteredProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar py-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl overflow-hidden shadow-xs flex-shrink-0 w-44 sm:w-48 md:w-52 border border-[#e8d5b7]/40 animate-pulse flex flex-col"
+              >
+                <div className="aspect-[3/4] bg-[#e8d5b7]/30 w-full" />
+                <div className="p-3 sm:p-3.5 space-y-2">
+                  <div className="h-3.5 bg-[#e8d5b7]/40 rounded w-3/4" />
+                  <div className="h-3 bg-[#e8d5b7]/30 rounded w-1/2" />
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#e8d5b7]/40" />
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#e8d5b7]/40" />
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#e8d5b7]/40" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="bg-white rounded-3xl border border-[#e8d5b7]/70 p-8 sm:p-14 text-center max-w-lg mx-auto shadow-xs animate-in fade-in">
             <div className="w-14 h-14 rounded-full bg-[#1a2e1a]/10 text-[#1a2e1a] flex items-center justify-center mx-auto mb-3.5">
               <Sparkles size={22} className="text-[#c4a675]" />

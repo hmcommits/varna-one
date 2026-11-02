@@ -14,8 +14,6 @@ import {
   Settings,
   ArrowRight,
   Phone,
-  Cloud,
-  Database,
   Star,
   Clock,
 } from 'lucide-react'
@@ -298,16 +296,20 @@ export default function DashboardModule({
         <div className="lg:col-span-5 bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-7 shadow-2xs flex flex-col justify-between">
           <div className="mb-4">
             <h2 className="font-display text-lg sm:text-xl font-bold text-[#142319]">
-              Connected Channels &amp; Pipeline
+              Storefront Channels &amp; Health
             </h2>
             <p className="text-xs text-[#6b7770]">
-              Verified backend integration &amp; cloud services
+              Active customer touchpoints and live storefront status
             </p>
           </div>
 
           <div className="space-y-3">
-            {/* Pipeline Item 1: WhatsApp Concierge */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+            {/* Item 1: WhatsApp Concierge */}
+            <div
+              onClick={() => onNavigateTab('whatsapp')}
+              className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] hover:bg-[#f3ede3] transition-colors border border-[#ded7cb] cursor-pointer"
+              title="Click to manage WhatsApp Concierge"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#25D366]/15 text-[#206035] flex items-center justify-center">
                   <Phone size={17} />
@@ -322,40 +324,64 @@ export default function DashboardModule({
               </span>
             </div>
 
-            {/* Pipeline Item 2: Cloudinary WebP Engine */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+            {/* Item 2: Active Promotions & Offers */}
+            <div
+              onClick={() => onNavigateTab('promotions')}
+              className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] hover:bg-[#f3ede3] transition-colors border border-[#ded7cb] cursor-pointer"
+              title="Click to view promotions"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#3d4941]/10 text-[#142319] flex items-center justify-center">
-                  <Cloud size={17} />
+                <div className="w-9 h-9 rounded-xl bg-[#c85a44]/15 text-[#c85a44] flex items-center justify-center">
+                  <Percent size={17} />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#142319] block">Cloudinary WebP Engine</span>
-                  <span className="text-[10px] text-[#6b7770] font-mono">o6jv6xte • 100% WebP CDN</span>
+                  <span className="text-xs font-bold text-[#142319] block">Active Offers &amp; Sale</span>
+                  <span className="text-[10px] text-[#6b7770]">
+                    {activeOffersCount > 0
+                      ? `${activeOffersCount} campaign${activeOffersCount === 1 ? '' : 's'} live on storefront`
+                      : 'No active sales currently running'}
+                  </span>
                 </div>
               </div>
-              <span className="text-[10px] font-bold text-[#206035] bg-[#eaf6ec] border border-[#cbe8d1] px-2.5 py-0.5 rounded-full">
-                Synced
+              <span
+                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  activeOffersCount > 0
+                    ? 'text-[#206035] bg-[#eaf6ec] border-[#cbe8d1]'
+                    : 'text-[#8c978f] bg-[#f0eae1] border-[#ded7cb]'
+                }`}
+              >
+                {activeOffersCount > 0 ? 'Live' : 'Inactive'}
               </span>
             </div>
 
-            {/* Pipeline Item 3: MongoDB Atlas */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+            {/* Item 3: Live Catalog Status */}
+            <div
+              onClick={() => onNavigateTab('products')}
+              className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] hover:bg-[#f3ede3] transition-colors border border-[#ded7cb] cursor-pointer"
+              title="Click to manage catalog"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#206035]/10 text-[#206035] flex items-center justify-center">
-                  <Database size={17} />
+                <div className="w-9 h-9 rounded-xl bg-[#1c3624]/10 text-[#1c3624] flex items-center justify-center">
+                  <Layers size={17} />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#142319] block">MongoDB Atlas Cloud</span>
-                  <span className="text-[10px] text-[#6b7770] font-mono">varna_store.config</span>
+                  <span className="text-xs font-bold text-[#142319] block">Live Catalog Status</span>
+                  <span className="text-[10px] text-[#6b7770]">
+                    {productsCount} Product{productsCount === 1 ? '' : 's'} • {categoriesCount} Categories
+                  </span>
                 </div>
               </div>
               <span className="text-[10px] font-bold text-[#206035] bg-[#eaf6ec] border border-[#cbe8d1] px-2.5 py-0.5 rounded-full">
-                Connected
+                Published
               </span>
             </div>
 
-            {/* Pipeline Item 4: Customer Sentiment */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+            {/* Item 4: Customer Sentiment / Reviews */}
+            <div
+              onClick={() => onNavigateTab('reviews')}
+              className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] hover:bg-[#f3ede3] transition-colors border border-[#ded7cb] cursor-pointer"
+              title="Click to view testimonials"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
                   <Star size={17} className="fill-amber-500 text-amber-500" />

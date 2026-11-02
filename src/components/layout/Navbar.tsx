@@ -209,7 +209,7 @@ export default function Navbar() {
             title="Varna Custom Wear"
           >
             <div
-              className={`relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 transition-transform duration-300 rounded-full ${
+              className={`relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 transition-transform duration-300 rounded-full ${
                 isUnlocking
                   ? 'ring-4 ring-[#c4a675] shadow-[0_0_20px_#c4a675] animate-pulse'
                   : tapCount > 0
@@ -221,17 +221,17 @@ export default function Navbar() {
                 src={logoSrc}
                 alt={storeName}
                 fill
-                sizes="48px"
+                sizes="56px"
                 priority
                 className="object-contain"
                 unoptimized
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-display italic text-xl sm:text-2xl font-bold text-[#1a2e1a] tracking-tight leading-none">
+              <span className="font-display italic text-2xl sm:text-[1.75rem] font-bold text-[#1a2e1a] tracking-tight leading-none">
                 {storeName}
               </span>
-              <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider text-[#7d7062] uppercase mt-0.5 hidden xs:block">
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#7d7062] uppercase mt-0.5 hidden xs:block">
                 {subtitle}
               </span>
             </div>

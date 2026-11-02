@@ -478,8 +478,8 @@ export default function AdminDashboardPage() {
 
           <div className="flex items-center justify-between pt-1 px-1 text-[11px] text-[#8ea392]">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>Atlas &amp; Cloudinary</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>System Online</span>
             </span>
             <button
               type="button"

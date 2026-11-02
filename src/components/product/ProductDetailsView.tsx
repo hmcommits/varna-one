@@ -22,8 +22,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useStore } from '@/context/StoreContext'
-import { defaultStoreData } from '@/data/defaultStoreData'
-import { ProductColor } from '@/types/store'
+import { ProductColor, Product } from '@/types/store'
 
 
 const topsSizeChart = [
@@ -59,20 +58,41 @@ interface ProductDetailsViewProps {
 }
 
 export default function ProductDetailsView({ productId }: ProductDetailsViewProps = {}) {
-  const { activeStore, logEnquiry, setActiveViewingProduct } = useStore()
+  const { activeStore, logEnquiry, setActiveViewingProduct, isLoading } = useStore()
 
-  // Find product by id (or fallback to linen-shirt / first product)
+  const fallbackProduct: Product = {
+    id: '',
+    name: 'Loading style...',
+    category: 'Style',
+    gender: 'Men',
+    price: 0,
+    originalPrice: 0,
+    rating: 5,
+    reviewCount: 0,
+    stockUrgency: 'In Stock',
+    badge: 'None',
+    sizes: ['S', 'M', 'L', 'XL'],
+    colors: [{ id: 'c1', name: 'Default', hex: '#111', image: '' }],
+    customization: { enabled: false, options: [] },
+    description: '',
+    fabricCare: '',
+    shippingPolicy: '',
+    sizeChart: [],
+  }
+
+  // Find product by id (or fallback to active product)
+  const foundProduct = activeStore.products?.find(
+    (p) => p.id === productId || (productId === 'linen-shirt' && p.id === '1')
+  )
+  const isAvailable = Boolean(foundProduct || (activeStore.products && activeStore.products.length > 0))
   const product =
-    activeStore.products?.find(
-      (p) => p.id === productId || (productId === 'linen-shirt' && p.id === '1')
-    ) ||
-    activeStore.products?.[0] ||
-    defaultStoreData.products[0]
+    foundProduct ||
+    (isLoading ? fallbackProduct : activeStore.products?.[0] || fallbackProduct)
 
   const catLower = (product.category || '').toLowerCase()
 
   const colors: ProductColor[] =
-    product.colors?.length > 0 ? product.colors : defaultStoreData.products[0].colors
+    product.colors?.length > 0 ? product.colors : [{ id: 'c1', name: 'Default', hex: '#111', image: '' }]
 
   // Deduplicate colors by hex to avoid multiple buttons for the same shade
   const uniqueColors: ProductColor[] = Array.from(
@@ -308,6 +328,61 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const safeImageIndex =
     selectedImageIndex < galleryImages.length ? selectedImageIndex : 0
   const currentImage = galleryImages[safeImageIndex] || galleryImages[0]
+
+  // Shimmer skeleton during initial store load
+  if (isLoading) {
+    return (
+      <div className="bg-[#faf8f4] min-h-screen pt-8 pb-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-pulse">
+            <div className="lg:col-span-7 aspect-[4/5] bg-[#e8d5b7]/25 rounded-3xl" />
+            <div className="lg:col-span-5 space-y-4 pt-4">
+              <div className="h-4 bg-[#e8d5b7]/40 rounded w-1/4" />
+              <div className="h-8 bg-[#e8d5b7]/50 rounded w-3/4" />
+              <div className="h-6 bg-[#e8d5b7]/40 rounded w-1/3" />
+              <div className="h-24 bg-[#e8d5b7]/20 rounded-2xl" />
+              <div className="h-12 bg-[#e8d5b7]/40 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Graceful 404 state if product was deleted and not found
+  if (!isAvailable || !product.id) {
+    return (
+      <div className="bg-[#faf8f4] min-h-screen pt-16 pb-24 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-[#1a2e1a]/10 text-[#1a2e1a] flex items-center justify-center mx-auto mb-4">
+            <Sparkles size={28} className="text-[#c4a675]" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-[#1a1a1a] mb-2">
+            Design Currently Unavailable
+          </h2>
+          <p className="text-xs text-[#7d7062] mb-6 leading-relaxed">
+            This style has either been dropped or updated by our studio artisans. Explore our active drops or enquire with our studio via WhatsApp.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link
+              href="/#new-arrivals"
+              className="px-5 py-2.5 bg-[#1a2e1a] hover:bg-[#2d4a2d] text-white rounded-full text-xs font-semibold shadow-sm transition-all"
+            >
+              Explore Collection
+            </Link>
+            <a
+              href={`https://wa.me/${activeStore.whatsapp?.phoneNumber || '916363145972'}?text=Hi%20Varna!%20I'm%20looking%20for%20a%20product%20on%20your%20store.`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-full text-xs font-semibold shadow-sm transition-all"
+            >
+              WhatsApp Concierge
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-[#faf8f4] min-h-screen pt-4 sm:pt-8 pb-32 sm:pb-20">

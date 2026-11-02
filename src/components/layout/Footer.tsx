@@ -106,21 +106,21 @@ export default function Footer() {
             className="flex items-center gap-3 mb-4 group cursor-pointer select-none"
             title="Varna Custom Wear"
           >
-            <div className={`relative w-12 h-12 flex-shrink-0 rounded-full transition-transform ${tapCount > 0 ? 'scale-105 ring-2 ring-[#c4a675]' : ''}`}>
+            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-full transition-transform ${tapCount > 0 ? 'scale-105 ring-2 ring-[#c4a675]' : ''}`}>
               <Image
                 src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp"
                 alt="Varna Custom Wear & Prints"
                 fill
-                sizes="48px"
+                sizes="64px"
                 className="object-contain"
                 unoptimized
               />
             </div>
             <div>
-              <span className="font-display italic text-white text-2xl font-bold tracking-tight block leading-tight">
+              <span className="font-display italic text-white text-2xl sm:text-3xl font-bold tracking-tight block leading-tight">
                 Varna
               </span>
-              <span className="text-[10px] uppercase tracking-wider text-[#e8d5b7] font-medium">
+              <span className="text-[11px] uppercase tracking-wider text-[#e8d5b7] font-medium">
                 Custom Wear &amp; Prints
               </span>
             </div>
