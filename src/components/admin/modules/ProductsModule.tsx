@@ -51,8 +51,8 @@ export default function ProductsModule({
     return {
       id: `prod-${Date.now()}`,
       name: '',
-      category: category || categoriesList[0] || 'Linen & Casual Shirts',
-      gender: 'Men',
+      category: category || '',
+      gender: '',
       price: 0,
       originalPrice: 0,
       hasColorPricing: false,
@@ -80,7 +80,7 @@ export default function ProductsModule({
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(
     openCreateOnMount
-      ? createEmptyProduct(initialCategoryFilter || categoriesList[0])
+      ? createEmptyProduct(initialCategoryFilter || '')
       : null
   )
   const [isCreating, setIsCreating] = useState(Boolean(openCreateOnMount))
@@ -394,6 +394,16 @@ export default function ProductsModule({
       return
     }
 
+    if (!editingProduct.category || !editingProduct.category.trim()) {
+      alert('Please select a category.')
+      return
+    }
+
+    if (!editingProduct.gender || !editingProduct.gender.trim()) {
+      alert('Please select a gender target (Men, Women, or Unisex).')
+      return
+    }
+
     if (editingProduct.colors.length === 0) {
       alert('Please upload at least one photo for this product.')
       return
@@ -569,14 +579,21 @@ export default function ProductsModule({
                   Category *
                 </label>
                 <select
-                  value={editingProduct.category}
+                  value={editingProduct.category || ''}
                   onChange={(e) =>
                     setEditingProduct({ ...editingProduct, category: e.target.value })
                   }
-                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                  className={`w-full bg-[#faf8f5] focus:bg-white border rounded-xl px-3 py-2.5 text-xs outline-hidden cursor-pointer transition-all ${
+                    !editingProduct.category
+                      ? 'border-[#ded7cb] text-[#8c978f]'
+                      : 'border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] text-[#142319]'
+                  }`}
                 >
+                  <option value="" disabled>
+                    -- Select Category --
+                  </option>
                   {categoriesList.map((cat) => (
-                    <option key={cat} value={cat}>
+                    <option key={cat} value={cat} className="text-[#142319]">
                       {cat}
                     </option>
                   ))}
@@ -585,21 +602,34 @@ export default function ProductsModule({
 
               <div>
                 <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Gender Target
+                  Gender Target *
                 </label>
                 <select
-                  value={editingProduct.gender}
+                  value={editingProduct.gender || ''}
                   onChange={(e) =>
                     setEditingProduct({
                       ...editingProduct,
-                      gender: e.target.value as 'Men' | 'Women' | 'Unisex',
+                      gender: e.target.value as 'Men' | 'Women' | 'Unisex' | '',
                     })
                   }
-                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                  className={`w-full bg-[#faf8f5] focus:bg-white border rounded-xl px-3 py-2.5 text-xs outline-hidden cursor-pointer transition-all ${
+                    !editingProduct.gender
+                      ? 'border-[#ded7cb] text-[#8c978f]'
+                      : 'border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] text-[#142319]'
+                  }`}
                 >
-                  <option value="Men">Men</option>
-                  <option value="Women">Women</option>
-                  <option value="Unisex">Unisex</option>
+                  <option value="" disabled>
+                    -- Select Gender Target --
+                  </option>
+                  <option value="Men" className="text-[#142319]">
+                    Men
+                  </option>
+                  <option value="Women" className="text-[#142319]">
+                    Women
+                  </option>
+                  <option value="Unisex" className="text-[#142319]">
+                    Unisex
+                  </option>
                 </select>
               </div>
 
@@ -1511,7 +1541,7 @@ export default function ProductsModule({
           <button
             type="button"
             onClick={() => {
-              setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? categoriesList[0] : activeCategoryFilter))
+              setEditingProduct(createEmptyProduct())
               setIsCreating(true)
             }}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
@@ -1548,7 +1578,7 @@ export default function ProductsModule({
             <button
               type="button"
               onClick={() => {
-                setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? categoriesList[0] : activeCategoryFilter))
+                setEditingProduct(createEmptyProduct())
                 setIsCreating(true)
               }}
               className="mt-3.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"

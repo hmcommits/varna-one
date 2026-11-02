@@ -23,7 +23,7 @@ export interface Product {
   id: string
   name: string
   category: string
-  gender: 'Men' | 'Women' | 'Unisex'
+  gender: 'Men' | 'Women' | 'Unisex' | ''
   price: number
   originalPrice: number
   hasColorPricing?: boolean
