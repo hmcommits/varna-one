@@ -455,7 +455,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
             {/* Main Featured Photo Frame */}
             <div
-              className="order-1 md:order-2 relative flex-1 aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#faf8f5] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y flex items-center justify-center"
+              className="order-1 md:order-2 relative flex-1 aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#faf8f5] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -466,7 +466,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 55vw"
-                className="object-contain object-center transition-transform duration-500 ease-out group-hover:scale-102"
+                className="object-contain object-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
               />
 
               {/* Badges Over Image */}
