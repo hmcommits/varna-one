@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Heart, Star, Scissors } from 'lucide-react'
+import { Star, Scissors, Eye } from 'lucide-react'
 import { ProductColor, CustomizationConfig } from '@/types/store'
 import { useStore } from '@/context/StoreContext'
 
@@ -42,7 +42,6 @@ export default function ProductCard({
 }: ProductCardProps) {
   const router = useRouter()
   const { activeStore, logEnquiry } = useStore()
-  const [wishlisted, setWishlisted] = useState(false)
 
   // Determine the primary first uploaded image for default card thumbnail
   const firstUploadedImage =
@@ -94,12 +93,6 @@ export default function ProductCard({
       source: 'Product Card',
       completed: false,
     })
-  }
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    setWishlisted(!wishlisted)
   }
 
   const productUrl =
@@ -155,44 +148,43 @@ export default function ProductCard({
         </div>
 
 
-        {/* Wishlist Heart Button */}
-        <button
-          type="button"
-          onClick={handleWishlist}
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute top-2.5 right-2.5 w-7 sm:w-8 h-7 sm:h-8 bg-white/90 hover:bg-white text-[#7d7062] rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer backdrop-blur-xs z-10"
-        >
-          <Heart
-            size={14}
-            className={
-              wishlisted
-                ? 'fill-[#c85a44] text-[#c85a44] transition-colors'
-                : 'text-[#7d7062] transition-colors'
-            }
-          />
-        </button>
+        {/* Quick Action Hover Bar: Details & WhatsApp Buttons */}
+        <div className="hidden sm:flex absolute inset-x-2 bottom-2.5 items-center gap-1.5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleCardClick()
+            }}
+            className="flex-1 py-1.5 px-2 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-lg text-[11px] font-bold shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer border border-[#ded7cb]"
+            title="View Details"
+          >
+            <Eye size={12} className="text-[#1a2e1a]" />
+            <span>Details</span>
+          </button>
 
-        {/* Desktop Quick Enquiry Hover Button */}
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => {
-            e.stopPropagation()
-            handleEnquiryClick()
-          }}
-          className="hidden sm:flex absolute inset-x-3 bottom-3 items-center justify-center gap-1.5 py-2 px-3 bg-[#1a2e1a]/95 hover:bg-[#25D366] text-white rounded-xl text-xs font-semibold backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer z-10"
-        >
-          <div className="relative w-3.5 h-3.5 flex-shrink-0">
-            <Image
-              src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
-              alt="WhatsApp"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <span>Enquire on WhatsApp</span>
-        </a>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEnquiryClick()
+            }}
+            className="flex-1 py-1.5 px-2 bg-[#1a2e1a]/95 hover:bg-[#25D366] text-white rounded-lg text-[11px] font-bold shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer"
+            title="Enquire on WhatsApp"
+          >
+            <div className="relative w-3 h-3 flex-shrink-0">
+              <Image
+                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
+                alt="WhatsApp"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span>WhatsApp</span>
+          </a>
+        </div>
       </div>
 
       {/* Product Info */}

@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Heart,
   Star,
   Truck,
   RotateCcw,
@@ -104,13 +103,23 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
       ? product.sizes
       : ['S', 'M', 'L', 'XL', 'XXL']
 
-  const [selectedColor, setSelectedColor] = useState<ProductColor>(colors[0] || { id: 'c1', name: 'Default', hex: '#111', image: '' })
+  const [selectedColor, setSelectedColor] = useState<ProductColor>(
+    uniqueColors[0] || colors[0] || { id: 'c1', name: 'Standard', hex: '#1c3624', image: '' }
+  )
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [selectedSize, setSelectedSize] = useState(availableSizes[0] || 'M')
   const [quantity, setQuantity] = useState(1)
   const [isBulkOrder, setIsBulkOrder] = useState(false)
-  const [wishlisted, setWishlisted] = useState(false)
   const [showSizeModal, setShowSizeModal] = useState(false)
+
+  // Re-synchronize selectedColor when product is fetched / changed
+  useEffect(() => {
+    if (uniqueColors.length > 0) {
+      setSelectedColor(uniqueColors[0])
+      setSelectedImageIndex(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id])
 
   // Customization state - Multi-select supported
   const hasCustomization = product.customization?.enabled ?? false
@@ -130,10 +139,14 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
   const [activeTab, setActiveTab] = useState<'details' | 'fabric' | 'shipping' | 'custom'>('details')
   const [copiedLink, setCopiedLink] = useState(false)
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
-  // Build gallery dynamically from product colors
+  // Touch gesture tracking for mobile swipe
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchStartY, setTouchStartY] = useState<number | null>(null)
+  const [touchEndX, setTouchEndX] = useState<number | null>(null)
+  const [touchEndY, setTouchEndY] = useState<number | null>(null)
+
+  // Build gallery dynamically from product colors with color hex and name
   const galleryImages = colors.map((c, i) => ({
     src:
       c.image ||
@@ -142,13 +155,36 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     label: c.name,
     badge: i === 0 ? 'Front Look' : i === 1 ? 'Fabric & Collar' : 'Editorial Drape',
     colorId: c.id,
+    colorHex: c.hex,
   }))
+
+  // Auto-switch selectedColor when switching or swiping images
+  const handleSelectImageIndex = (idx: number) => {
+    if (!galleryImages.length) return
+    const targetIdx = (idx + galleryImages.length) % galleryImages.length
+    setSelectedImageIndex(targetIdx)
+    const targetImg = galleryImages[targetIdx]
+    if (targetImg) {
+      const matchedColor = uniqueColors.find(
+        (c) =>
+          c.id === targetImg.colorId ||
+          c.name.toLowerCase() === targetImg.label.toLowerCase() ||
+          (targetImg.colorHex && c.hex.toLowerCase() === targetImg.colorHex.toLowerCase())
+      )
+      if (matchedColor) {
+        setSelectedColor(matchedColor)
+      }
+    }
+  }
 
   // Sync color selection -> auto-switch main image
   const handleColorSelect = (c: ProductColor) => {
     setSelectedColor(c)
     const idx = galleryImages.findIndex(
-      (g) => g.colorId === c.id || g.label.toLowerCase() === c.name.toLowerCase()
+      (g) =>
+        g.colorId === c.id ||
+        g.label.toLowerCase() === c.name.toLowerCase() ||
+        (g.colorHex && g.colorHex.toLowerCase() === c.hex.toLowerCase())
     )
     if (idx !== -1) {
       setSelectedImageIndex(idx)
@@ -157,32 +193,36 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
   // Sync thumbnail click -> auto-select color
   const handleThumbnailClick = (idx: number) => {
-    setSelectedImageIndex(idx)
-    const matchedColor = colors.find((c) => c.id === galleryImages[idx]?.colorId)
-    if (matchedColor) {
-      setSelectedColor(matchedColor)
-    }
+    handleSelectImageIndex(idx)
   }
 
-  // Mobile Touch Gestures
+  // Mobile Touch Gestures with horizontal & vertical direction detection
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
+    setTouchEndX(null)
+    setTouchEndY(null)
+    setTouchStartX(e.targetTouches[0].clientX)
+    setTouchStartY(e.targetTouches[0].clientY)
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
+    setTouchEndX(e.targetTouches[0].clientX)
+    setTouchEndY(e.targetTouches[0].clientY)
   }
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    const distance = touchStart - touchEnd
-    if (distance > 45) {
-      const nextIdx = (selectedImageIndex + 1) % galleryImages.length
-      handleThumbnailClick(nextIdx)
-    } else if (distance < -45) {
-      const prevIdx = (selectedImageIndex - 1 + galleryImages.length) % galleryImages.length
-      handleThumbnailClick(prevIdx)
+    if (touchStartX === null || touchEndX === null) return
+    const diffX = touchStartX - touchEndX
+    const diffY = (touchStartY ?? 0) - (touchEndY ?? 0)
+
+    // Only swipe if movement is predominantly horizontal
+    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        // Swiped Left -> Next Image
+        handleSelectImageIndex(selectedImageIndex + 1)
+      } else {
+        // Swiped Right -> Previous Image
+        handleSelectImageIndex(selectedImageIndex - 1)
+      }
     }
   }
 
@@ -302,7 +342,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
       productId: product.id,
       name: product.name,
       category: product.category,
-      color: selectedColor.name,
+      color: selectedColor?.name || 'Standard',
       size: selectedSize,
       quantity,
       price: totalPrice,
@@ -321,7 +361,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     product.name,
     product.category,
     product.originalPrice,
-    selectedColor.name,
+    selectedColor?.name,
     selectedSize,
     quantity,
     totalPrice,
@@ -333,7 +373,15 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
   const safeImageIndex =
     selectedImageIndex < galleryImages.length ? selectedImageIndex : 0
-  const currentImage = galleryImages[safeImageIndex] || galleryImages[0]
+  const fallbackImg = {
+    src: 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
+    alt: product.name || 'Product Image',
+    label: selectedColor?.name || 'Standard',
+    badge: 'Front Look',
+    colorId: selectedColor?.id || 'c1',
+    colorHex: selectedColor?.hex || '#1c3624',
+  }
+  const currentImage = galleryImages[safeImageIndex] || galleryImages[0] || fallbackImg
 
   // Shimmer skeleton during initial store load
   if (isLoading) {
@@ -471,51 +519,38 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 unoptimized
               />
 
-              {/* Badges Over Image */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                <span className="bg-[#1a2e1a] text-[#faf8f4] text-xs font-bold px-3 py-1 rounded-full shadow-md tracking-wide">
-                  {product.badge || 'New Arrival'}
-                </span>
+              {/* Badges Over Image - Compact wrap that never covers model face on mobile */}
+              <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 flex flex-wrap items-center gap-1.5 z-10 max-w-[72%] sm:max-w-none">
+                {product.badge && product.badge !== 'None' && (
+                  <span className="bg-[#1a2e1a] text-[#faf8f4] text-[9.5px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-sm tracking-wide">
+                    {product.badge}
+                  </span>
+                )}
                 {discount > 0 && (
-                  <span className="bg-[#c85a44] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-md">
+                  <span className="bg-[#c85a44] text-white text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-0.5 rounded-full shadow-sm">
                     {discount}% OFF
                   </span>
                 )}
                 {hasCustomization && (
-                  <span className="bg-white/90 backdrop-blur-md text-[#1a2e1a] text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm border border-[#e8d5b7] flex items-center gap-1">
-                    <Scissors size={11} className="text-[#c4a675]" />
-                    <span>Customization Available</span>
+                  <span className="bg-white/95 backdrop-blur-md text-[#1a2e1a] text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-2xs border border-[#e8d5b7] flex items-center gap-1">
+                    <Scissors size={10} className="text-[#c4a675]" />
+                    <span>Customizable</span>
                   </span>
                 )}
               </div>
 
-              {/* Wishlist & Share Floating Buttons */}
-              <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-                <button
-                  type="button"
-                  onClick={() => setWishlisted(!wishlisted)}
-                  aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                  className="w-10 h-10 bg-white/90 hover:bg-white text-[#7d7062] rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer backdrop-blur-md"
-                >
-                  <Heart
-                    size={18}
-                    className={
-                      wishlisted
-                        ? 'fill-[#c85a44] text-[#c85a44] transition-colors'
-                        : 'text-[#7d7062] transition-colors'
-                    }
-                  />
-                </button>
+              {/* Floating Share Button (Clean & unobtrusive, wishlist removed) */}
+              <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-10">
                 <button
                   type="button"
                   onClick={handleShare}
                   aria-label="Share product"
-                  className="w-10 h-10 bg-white/90 hover:bg-white text-[#7d7062] rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer backdrop-blur-md relative"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/90 hover:bg-white text-[#7d7062] rounded-full flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer backdrop-blur-md relative"
                 >
                   {copiedLink ? (
-                    <Check size={18} className="text-[#1a2e1a]" />
+                    <Check size={16} className="text-[#1a2e1a]" />
                   ) : (
-                    <Share2 size={18} />
+                    <Share2 size={16} />
                   )}
                   {copiedLink && (
                     <span className="absolute -bottom-8 right-0 bg-[#1a2e1a] text-white text-[10px] px-2 py-0.5 rounded whitespace-nowrap shadow-lg">
@@ -526,7 +561,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               </div>
 
               {/* Subtle visual caption footer */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent p-4 sm:p-6 text-white flex items-end justify-between pointer-events-none">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent p-3.5 sm:p-6 text-white flex items-end justify-between pointer-events-none">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-[#e8d5b7] font-semibold">
                     {currentImage.label}
@@ -535,14 +570,20 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                     Natural Breathable Weave • Enzyme Softened
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex sm:hidden items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full">
+                <div className="flex items-center gap-2 pointer-events-auto">
+                  <div className="flex sm:hidden items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full">
                     {galleryImages.map((_, dotIdx) => (
-                      <span
+                      <button
                         key={dotIdx}
-                        className={`h-1.5 rounded-full transition-all ${
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSelectImageIndex(dotIdx)
+                        }}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
                           safeImageIndex === dotIdx ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
                         }`}
+                        aria-label={`Slide ${dotIdx + 1}`}
                       />
                     ))}
                   </div>

@@ -73,9 +73,6 @@ export default function ProductsModule({
   const [newSizeStart, setNewSizeStart] = useState('')
   const [newSizeEnd, setNewSizeEnd] = useState('')
 
-  // Urgency custom input
-  const [customUrgencyText, setCustomUrgencyText] = useState('')
-
   // Image Upload First & Color Pairing State
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null)
@@ -127,13 +124,6 @@ export default function ProductsModule({
       setEditingColorId(null)
       setNewColorName('')
       setNewColorHex('')
-      if (
-        editingProduct.stockUrgency !== 'In Stock' &&
-        editingProduct.stockUrgency !== 'Few Pieces Left' &&
-        editingProduct.stockUrgency !== 'Out of Stock'
-      ) {
-        setCustomUrgencyText(editingProduct.stockUrgency || '')
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingProduct?.id])
@@ -852,52 +842,19 @@ export default function ProductsModule({
                   Stock Urgency Status
                 </label>
                 <select
-                  value={
-                    editingProduct.stockUrgency === 'In Stock' ||
-                    editingProduct.stockUrgency === 'Few Pieces Left' ||
-                    editingProduct.stockUrgency === 'Out of Stock'
-                      ? editingProduct.stockUrgency
-                      : 'Custom'
-                  }
+                  value={editingProduct.stockUrgency || 'In Stock'}
                   onChange={(e) => {
-                    const val = e.target.value
-                    if (val === 'Custom') {
-                      setEditingProduct({
-                        ...editingProduct,
-                        stockUrgency: customUrgencyText || 'Few Pieces Left',
-                      })
-                    } else {
-                      setEditingProduct({
-                        ...editingProduct,
-                        stockUrgency: val as any,
-                      })
-                    }
+                    setEditingProduct({
+                      ...editingProduct,
+                      stockUrgency: e.target.value as any,
+                    })
                   }}
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden"
+                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
                 >
-                  <option value="In Stock">In Stock (Normal)</option>
-                  <option value="Few Pieces Left">Few Pieces Left (Urgency without hardcoded number)</option>
-                  <option value="Custom">Custom Urgency Text...</option>
+                  <option value="In Stock">In Stock</option>
+                  <option value="Few Pieces Left">Few Pieces Left</option>
                   <option value="Out of Stock">Out of Stock</option>
                 </select>
-
-                {editingProduct.stockUrgency !== 'In Stock' &&
-                  editingProduct.stockUrgency !== 'Few Pieces Left' &&
-                  editingProduct.stockUrgency !== 'Out of Stock' && (
-                    <input
-                      type="text"
-                      value={customUrgencyText}
-                      onChange={(e) => {
-                        setCustomUrgencyText(e.target.value)
-                        setEditingProduct({
-                          ...editingProduct,
-                          stockUrgency: e.target.value || 'Few Pieces Left',
-                        })
-                      }}
-                      placeholder="e.g., Only 5 Pieces Left or Limited Drop"
-                      className="mt-2 w-full bg-white border border-[#ded7cb] rounded-xl px-3 py-1.5 text-xs text-[#142319] outline-hidden"
-                    />
-                  )}
               </div>
 
               <div>
@@ -1460,10 +1417,10 @@ export default function ProductsModule({
                       {editingProduct.customization.options.map((opt, idx) => (
                         <div
                           key={opt.id}
-                          className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#ebe5da]"
+                          className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-2 bg-white p-3 sm:p-3.5 rounded-xl border border-[#ebe5da]"
                         >
-                          <div className="flex-1">
-                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                          <div className="flex-1 w-full">
+                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
                               Customization Type (e.g. Pocket Monogram, Back DTF Print)
                             </label>
                             <input
@@ -1481,40 +1438,42 @@ export default function ProductsModule({
                                 })
                               }}
                               placeholder="e.g. Pocket Monogram Embroidery, HD DTF Back Print"
-                              className="w-full bg-white border border-[#ded7cb] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
+                              className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-3 py-2 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
                             />
                           </div>
 
-                          <div className="w-28">
-                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
-                              Fee (₹)
-                            </label>
-                            <input
-                              type="number"
-                              value={opt.price}
-                              onChange={(e) => {
-                                const nextOpts = [...editingProduct.customization.options]
-                                nextOpts[idx].price = parseInt(e.target.value) || 0
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  customization: {
-                                    ...editingProduct.customization,
-                                    options: nextOpts,
-                                  },
-                                })
-                              }}
-                              className="w-full bg-white border border-[#ded7cb] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-bold"
-                            />
-                          </div>
+                          <div className="flex items-end gap-2 w-full sm:w-auto">
+                            <div className="flex-1 sm:w-28">
+                              <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
+                                Fee (₹)
+                              </label>
+                              <input
+                                type="number"
+                                value={opt.price}
+                                onChange={(e) => {
+                                  const nextOpts = [...editingProduct.customization.options]
+                                  nextOpts[idx].price = parseInt(e.target.value) || 0
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    customization: {
+                                      ...editingProduct.customization,
+                                      options: nextOpts,
+                                    },
+                                  })
+                                }}
+                                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-3 py-2 text-xs text-[#142319] outline-hidden font-bold"
+                              />
+                            </div>
 
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCustomization(opt.id)}
-                            className="p-2 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] transition-colors mt-3 cursor-pointer"
-                            title="Remove Option"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomization(opt.id)}
+                              className="p-2.5 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] border border-transparent hover:border-[#f3d3cf] transition-colors cursor-pointer flex-shrink-0"
+                              title="Remove Option"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
