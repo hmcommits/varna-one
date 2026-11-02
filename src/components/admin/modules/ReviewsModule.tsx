@@ -7,18 +7,15 @@ import {
   Plus,
   Trash2,
   Edit2,
-  Eye,
   CheckCircle2,
   MapPin,
   Sparkles,
   X,
   Save,
 } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
 
 export default function ReviewsModule() {
   const { draft, updateDraft } = useStore()
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [editingReview, setEditingReview] = useState<ReviewItem | null>(null)
   const [isNew, setIsNew] = useState(false)
 
@@ -109,14 +106,6 @@ export default function ReviewsModule() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setPreviewOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer"
-          >
-            <Eye size={14} className="text-[#845d1d]" />
-            <span>Preview Section</span>
-          </button>
           <button
             type="button"
             onClick={handleOpenNew}
@@ -420,87 +409,6 @@ export default function ReviewsModule() {
           </div>
         </div>
       )}
-
-      {/* Module Preview Drawer */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="Storefront Customer Reviews Strip"
-      >
-        <div className="bg-[#faf8f5] p-6 text-[#142319]">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#845d1d] font-mono">
-              REAL CUSTOMER VOICES
-            </span>
-            <h3 className="font-display text-xl font-bold text-[#142319] mt-1">
-              Loved by 2,000+ Everyday Stylists
-            </h3>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <div className="flex items-center text-amber-500">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    size={14}
-                    className={
-                      s <= Math.round(reviewsData.averageRating)
-                        ? 'fill-amber-500 text-amber-500'
-                        : 'text-gray-300'
-                    }
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-bold text-[#142319]">
-                {reviewsData.averageRating} / 5.0
-              </span>
-              <span className="text-xs text-[#6b7770]">
-                ({reviewsData.totalReviewsCount}+ Verified Reviews)
-              </span>
-            </div>
-          </div>
-
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {reviewsData.items.map((rev) => (
-              <div
-                key={rev.id}
-                className="bg-white rounded-2xl p-4 border border-[#ded7cb] shadow-xs flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center text-amber-500">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          size={12}
-                          className={s <= rev.rating ? 'fill-amber-500 text-amber-500' : 'text-gray-200'}
-                        />
-                      ))}
-                    </div>
-                    {rev.verified && (
-                      <span className="text-[9px] font-bold text-[#246b38] bg-[#eaf6ec] px-2 py-0.5 rounded-full border border-[#cbe8d1]">
-                        Verified
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-xs text-[#142319] mb-1">
-                    &quot;{rev.title}&quot;
-                  </h4>
-                  <p className="text-[11px] text-[#556358] leading-relaxed">
-                    {rev.comment}
-                  </p>
-                </div>
-                <div className="pt-3 mt-3 border-t border-[#ebe5da] text-[10px] text-[#6b7770]">
-                  <p className="font-bold text-[#142319]">{rev.name}</p>
-                  <p>
-                    {rev.city} • {rev.date}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </ModulePreviewDrawer>
     </div>
   )
 }

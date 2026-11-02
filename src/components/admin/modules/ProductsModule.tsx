@@ -10,12 +10,9 @@ import {
   Upload,
   Pipette,
   Check,
-  Eye,
   Scissors,
   X,
 } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
-import ProductCard from '@/components/ui/ProductCard'
 
 interface ProductsModuleProps {
   initialCategoryFilter?: string | null
@@ -56,9 +53,6 @@ export default function ProductsModule({
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>(
     initialCategoryFilter || 'All'
   )
-  const [previewOpen, setPreviewOpen] = useState(false)
-  const [previewTab, setPreviewTab] = useState<'pdp' | 'cards'>('pdp')
-  const [previewProductId, setPreviewProductId] = useState<string>('')
   const [uploading, setUploading] = useState(false)
   const [uploadSuccessTick, setUploadSuccessTick] = useState(false)
 
@@ -447,15 +441,6 @@ export default function ProductsModule({
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setPreviewOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer"
-          >
-            <Eye size={14} className="text-[#845d1d]" />
-            <span>Preview Cards &amp; PDP</span>
-          </button>
-
           <button
             type="button"
             onClick={() => {
@@ -1613,97 +1598,6 @@ export default function ProductsModule({
           </div>
         </div>
       )}
-
-      {/* MODULE PREVIEW DRAWER WITH REAL RESPONSIVE MOBILE/TABLET VIEWPORT */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="Products & PDP Color-Sync Preview"
-        iframeSrc={
-          previewTab === 'pdp'
-            ? `/products/${previewProductId || filteredProducts[0]?.id || products[0]?.id || '1'}`
-            : undefined
-        }
-      >
-        <div className="p-4 sm:p-6 space-y-6 bg-[#faf8f5]">
-          {/* Preview View Mode Switcher */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#ded7cb] flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPreviewTab('pdp')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  previewTab === 'pdp'
-                    ? 'bg-[#1c3624] text-white shadow-xs'
-                    : 'bg-white border border-[#ded7cb] text-[#556358] hover:text-[#142319]'
-                }`}
-              >
-                📱 Full Interactive PDP (Real Phone Layout)
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewTab('cards')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  previewTab === 'cards'
-                    ? 'bg-[#1c3624] text-white shadow-xs'
-                    : 'bg-white border border-[#ded7cb] text-[#556358] hover:text-[#142319]'
-                }`}
-              >
-                🛍️ Storefront Grid Cards
-              </button>
-            </div>
-
-            {/* Product Selector for PDP Preview */}
-            {products.length > 1 && (
-              <select
-                value={previewProductId || filteredProducts[0]?.id || products[0]?.id}
-                onChange={(e) => setPreviewProductId(e.target.value)}
-                className="bg-white border border-[#ded7cb] rounded-xl px-2.5 py-1 text-xs text-[#142319] outline-hidden font-medium"
-              >
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    Preview: {p.name}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          {previewTab === 'cards' && (
-            <div>
-              <h3 className="font-display text-lg font-bold text-[#142319] mb-1">
-                Catalog Product Cards Preview
-              </h3>
-              <p className="text-xs text-[#6b7770] mb-3">
-                Shows badges, prices, and the &ldquo;Customization Available&rdquo; label
-              </p>
-              <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar">
-                {filteredProducts.slice(0, 4).map((p) => (
-                  <div key={p.id} className="w-44 sm:w-48 shrink-0">
-                    <ProductCard
-                      id={p.id}
-                      name={p.name}
-                      image={
-                        p.colors[0]?.image ||
-                        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
-                      }
-                      price={p.price}
-                      originalPrice={p.originalPrice}
-                      rating={p.rating}
-                      reviewCount={p.reviewCount}
-                      colors={p.colors.map((c) => c.hex)}
-                      badge={p.badge === 'None' ? undefined : p.badge}
-                      category={p.category}
-                      gender={p.gender}
-                      customization={p.customization}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </ModulePreviewDrawer>
     </div>
   )
 }

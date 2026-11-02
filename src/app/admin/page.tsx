@@ -16,7 +16,6 @@ import {
   Settings,
   Star,
   Save,
-  Eye,
   LogOut,
   ExternalLink,
   Menu,
@@ -110,8 +109,6 @@ export default function AdminDashboardPage() {
     isLoading,
     saveDraft,
     discardDraft,
-    globalPreviewMode,
-    setGlobalPreviewMode,
   } = useStore()
 
   const [authenticated, setAuthenticated] = useState<boolean | null>(null)
@@ -710,28 +707,6 @@ export default function AdminDashboardPage() {
                 <span>Live Synced</span>
               </span>
             )}
-
-            {/* Global Store Preview Toggle */}
-            <button
-              type="button"
-              onClick={() => {
-                setGlobalPreviewMode(!globalPreviewMode)
-                if (typeof window !== 'undefined') {
-                  window.open('/', '_blank')
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                globalPreviewMode
-                  ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-300/40 shadow-xs'
-                  : 'bg-[#faf6f0] hover:bg-[#f0eae0] text-[#1c3624] border-[#ded7cb]'
-              }`}
-              title="Open storefront preview in new tab"
-            >
-              <Eye size={14} className={globalPreviewMode ? 'text-amber-800' : 'text-[#845d1d]'} />
-              <span className="hidden sm:inline">
-                {globalPreviewMode ? 'Previewing Draft' : 'Global Preview'}
-              </span>
-            </button>
 
             {/* Master Save Changes Button (Dark Forest Green Pill) */}
             <button

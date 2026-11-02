@@ -1,12 +1,10 @@
 'use client'
 import React, { useState } from 'react'
 import { useStore } from '@/context/StoreContext'
-import { Eye, Phone, Sparkles, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
+import { Phone, Sparkles, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react'
 
 export default function WhatsAppModule() {
   const { draft, updateDraft } = useStore()
-  const [previewOpen, setPreviewOpen] = useState(false)
 
   // Phone update form state
   const [newPhoneInput, setNewPhoneInput] = useState('')
@@ -81,22 +79,6 @@ export default function WhatsAppModule() {
   // Extract raw 10 digits for display
   const currentDigits = (wa.phoneNumber || '916363145972').replace(/^91/, '')
 
-  // Simulated live message preview for drawer
-  const simulatedMessage = (
-    wa.templatePdp ||
-    "Hi Varna! I'd like to order the *{product_name}*:\n\n• *Color:* {color}\n• *Size:* {size}\n• *Quantity:* {quantity} unit(s)\n• *Total Amount:* {price}\n• *Product Link:* {product_url}{custom_notes}\n\nPlease confirm product availability & dispatch timeline!"
-  )
-    .replace('{product_name}', 'Premium Pure Linen Casual Shirt')
-    .replace('{color}', 'Desert Terracotta')
-    .replace('{size}', 'M (40")')
-    .replace('{quantity}', '1')
-    .replace('{price}', '₹999')
-    .replace('{product_url}', 'https://varna.store/products/prod-1793532655')
-    .replace(
-      '{custom_notes}',
-      '\n• *Custom Options Selected:*\n   - Pocket Monogram Initials (+₹150)\n• *Custom Notes:* "HB monogram in gold thread"'
-    )
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -112,15 +94,6 @@ export default function WhatsAppModule() {
             Configure target business number, live message templates with auto-fill variables, and floating button glow
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setPreviewOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Eye size={14} className="text-[#845d1d]" />
-          <span>Preview Chat Simulation</span>
-        </button>
       </div>
 
       {/* Main Settings Grid */}
@@ -442,29 +415,6 @@ export default function WhatsAppModule() {
           </div>
         </div>
       </div>
-
-      {/* PREVIEW DRAWER */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="WhatsApp Message Simulation"
-      >
-        <div className="p-6 bg-[#faf8f5] flex items-center justify-center min-h-[350px]">
-          {/* Chat bubble */}
-          <div className="bg-white rounded-2xl p-5 shadow-lg max-w-sm w-full border border-[#ded7cb] relative">
-            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[#ebe5da] text-xs">
-              <span className="font-bold text-[#142319]">Varna Concierge</span>
-              <span className="text-[10px] text-[#6b7770] font-mono">• +91 {currentDigits}</span>
-            </div>
-            <pre className="text-xs text-[#142319] font-sans whitespace-pre-wrap leading-relaxed">
-              {simulatedMessage}
-            </pre>
-            <span className="text-[9px] text-[#8c978f] block text-right mt-2 font-medium">
-              Just now • Pre-filled on customer tap
-            </span>
-          </div>
-        </div>
-      </ModulePreviewDrawer>
     </div>
   )
 }

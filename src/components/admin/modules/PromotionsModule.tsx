@@ -3,14 +3,12 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
 import { Promotion } from '@/types/store'
-import { Plus, Trash2, Edit2, Eye, X } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
+import { Plus, Trash2, Edit2, X } from 'lucide-react'
 
 export default function PromotionsModule() {
   const { draft, updateDraft } = useStore()
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null)
   const [isCreating, setIsCreating] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
 
   const promotions = draft.promotions || []
   const catalogProducts = draft.products || []
@@ -128,15 +126,6 @@ export default function PromotionsModule() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          <button
-            type="button"
-            onClick={() => setPreviewOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer"
-          >
-            <Eye size={14} className="text-[#845d1d]" />
-            <span>Preview Sale Section</span>
-          </button>
-
           <button
             type="button"
             onClick={() => {
@@ -473,14 +462,6 @@ export default function PromotionsModule() {
           </div>
         </div>
       )}
-
-      {/* PREVIEW DRAWER */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="Storefront Sale Section Preview"
-        iframeSrc="/#sale"
-      />
     </div>
   )
 }

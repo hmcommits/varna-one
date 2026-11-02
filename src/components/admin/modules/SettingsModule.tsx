@@ -13,11 +13,9 @@ import {
   AlertCircle,
   Lock,
 } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
 
 export default function SettingsModule() {
   const { draft, updateDraft } = useStore()
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   // Password change form state
@@ -162,15 +160,6 @@ export default function SettingsModule() {
             Manage your brand logo, name, tagline, studio contact, and vault security passcode
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setPreviewOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Eye size={14} className="text-[#845d1d]" />
-          <span>Preview Brand Identity</span>
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -428,38 +417,6 @@ export default function SettingsModule() {
           </div>
         </div>
       </div>
-
-      {/* PREVIEW DRAWER */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="Brand Identity & Navbar Preview"
-      >
-        <div className="p-6 bg-[#faf8f5] flex items-center justify-center">
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-[#ded7cb] shadow-xs">
-            <div className="relative w-12 h-12">
-              <Image
-                src={
-                  settings.logoUrl ||
-                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
-                }
-                alt={settings.storeName}
-                fill
-                className="object-contain"
-                unoptimized
-              />
-            </div>
-            <div>
-              <span className="font-display italic text-2xl font-bold text-[#142319]">
-                {settings.storeName}
-              </span>
-              <span className="block text-[10px] uppercase font-semibold text-[#6b7770] tracking-wider">
-                {settings.subtitle} • {settings.slogan}
-              </span>
-            </div>
-          </div>
-        </div>
-      </ModulePreviewDrawer>
     </div>
   )
 }

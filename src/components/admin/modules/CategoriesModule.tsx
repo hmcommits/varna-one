@@ -15,8 +15,6 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
-import CategoryGrid from '@/components/sections/CategoryGrid'
 
 interface CategoriesModuleProps {
   onAddProductForCategory: (categoryName: string) => void
@@ -28,7 +26,6 @@ export default function CategoriesModule({
   const { draft, updateDraft } = useStore()
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null)
   const [isCreating, setIsCreating] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
@@ -222,15 +219,6 @@ export default function CategoriesModule({
           >
             <Plus size={14} />
             <span>Add Category</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setPreviewOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer"
-          >
-            <Eye size={14} className="text-[#845d1d]" />
-            <span>Preview Category Grid</span>
           </button>
         </div>
       </div>
@@ -495,17 +483,6 @@ export default function CategoriesModule({
           </div>
         </div>
       )}
-
-      {/* PREVIEW DRAWER */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="Category Grid Layout"
-      >
-        <div className="p-6 bg-[#faf8f5]">
-          <CategoryGrid />
-        </div>
-      </ModulePreviewDrawer>
     </div>
   )
 }

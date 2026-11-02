@@ -3,17 +3,10 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
 import { PromoBanner, WhyVarnaItem } from '@/types/store'
-import { Plus, Trash2, Eye } from 'lucide-react'
-import ModulePreviewDrawer from '../ModulePreviewDrawer'
-import TopBar from '@/components/layout/TopBar'
-import TrendingTicker from '@/components/sections/TrendingTicker'
-import PromoBanners from '@/components/sections/PromoBanners'
-import TrustBadges from '@/components/sections/TrustBadges'
-import WhyVarna from '@/components/sections/WhyVarna'
+import { Plus, Trash2 } from 'lucide-react'
 
 export default function HomepageModule() {
   const { draft, updateDraft } = useStore()
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [newChipText, setNewChipText] = useState('')
 
   const homepage = draft.homepage || {
@@ -166,15 +159,6 @@ export default function HomepageModule() {
             Top announcement bar (max 3 texts), ticker marquee, dynamic split promo banners &amp; trust guarantees
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setPreviewOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Eye size={14} className="text-[#845d1d]" />
-          <span>Preview Homepage Sections</span>
-        </button>
       </div>
 
       {/* 1. TOP GREEN ANNOUNCEMENT BAR (MAX 3 FIELDS) */}
@@ -491,27 +475,6 @@ export default function HomepageModule() {
           ))}
         </div>
       </div>
-
-      {/* PREVIEW DRAWER */}
-      <ModulePreviewDrawer
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="Homepage Sections Preview"
-      >
-        <div className="bg-[#faf8f5] space-y-6 pb-6">
-          <TopBar />
-          <TrendingTicker />
-          <div className="px-4">
-            <PromoBanners />
-          </div>
-          <div className="px-4">
-            <TrustBadges />
-          </div>
-          <div className="px-4">
-            <WhyVarna />
-          </div>
-        </div>
-      </ModulePreviewDrawer>
     </div>
   )
 }
