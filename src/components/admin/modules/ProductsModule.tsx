@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
 import { Product, ProductColor, CustomizationOption } from '@/types/store'
@@ -7,12 +7,13 @@ import {
   Plus,
   Trash2,
   Edit2,
-  Upload,
+  UploadCloud,
   Pipette,
   Check,
   Scissors,
-  X,
-  Tag,
+  ArrowLeft,
+  Star,
+  Sparkles,
 } from 'lucide-react'
 
 interface ProductsModuleProps {
@@ -45,53 +46,6 @@ export default function ProductsModule({
     ])
   )
 
-  const [editingProduct, setEditingProduct] = useState<Product | null>(
-    openCreateOnMount
-      ? createEmptyProduct(initialCategoryFilter || categoriesList[0] || 'Shirts')
-      : null
-  )
-  const [isCreating, setIsCreating] = useState(Boolean(openCreateOnMount))
-  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>(
-    initialCategoryFilter || 'All'
-  )
-  const [uploading, setUploading] = useState(false)
-  const [uploadSuccessTick, setUploadSuccessTick] = useState(false)
-
-  // Price input states to eliminate the "0299" leading zero bug
-  const [sellingPriceInput, setSellingPriceInput] = useState<string>('')
-  const [originalPriceInput, setOriginalPriceInput] = useState<string>('')
-
-  // Sizes management - supports adding at start or end
-  const [allSizes, setAllSizes] = useState<string[]>([
-    'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '28', '30', '32', '34', '36', '38'
-  ])
-  const [newSizeStart, setNewSizeStart] = useState('')
-  const [newSizeEnd, setNewSizeEnd] = useState('')
-
-  // Image Upload First & Color Pairing State
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
-  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null)
-  const [uploadedCloudUrl, setUploadedCloudUrl] = useState<string | null>(null)
-  const uploadPromiseRef = React.useRef<Promise<string> | null>(null)
-  const [editingColorId, setEditingColorId] = useState<string | null>(null)
-  const [newColorName, setNewColorName] = useState('')
-  const [newColorHex, setNewColorHex] = useState('')
-  const [newColorPriceInput, setNewColorPriceInput] = useState<string>('')
-  const [newColorOriginalPriceInput, setNewColorOriginalPriceInput] = useState<string>('')
-  const [supportsEyeDropper, setSupportsEyeDropper] = useState(false)
-
-  // Detect Chromium desktop EyeDropper support (hide completely on mobile)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'EyeDropper' in window) {
-      const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      )
-      if (!isMobile) {
-        setSupportsEyeDropper(true)
-      }
-    }
-  }, [])
-
   function createEmptyProduct(category = 'Shirts'): Product {
     return {
       id: `prod-${Date.now()}`,
@@ -123,47 +77,72 @@ export default function ProductsModule({
     }
   }
 
+  const [editingProduct, setEditingProduct] = useState<Product | null>(
+    openCreateOnMount
+      ? createEmptyProduct(initialCategoryFilter || categoriesList[0] || 'Shirts')
+      : null
+  )
+  const [isCreating, setIsCreating] = useState(Boolean(openCreateOnMount))
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>(
+    initialCategoryFilter || 'All'
+  )
+
+  // Uploading state
+  const [uploading, setUploading] = useState(false)
+  const [uploadingCount, setUploadingCount] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Price input states
+  const [sellingPriceInput, setSellingPriceInput] = useState<string>('')
+  const [originalPriceInput, setOriginalPriceInput] = useState<string>('')
+
+  // Sizes management
+  const [allSizes, setAllSizes] = useState<string[]>([
+    'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '28', '30', '32', '34', '36', '38'
+  ])
+  const [newSizeStart, setNewSizeStart] = useState('')
+  const [newSizeEnd, setNewSizeEnd] = useState('')
+
+  // Desktop Chromium EyeDropper API detection
+  const [supportsEyeDropper, setSupportsEyeDropper] = useState(false)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'EyeDropper' in window) {
+      const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      )
+      if (!isMobile) {
+        setSupportsEyeDropper(true)
+      }
+    }
+  }, [])
+
   // Synchronize inputs when opening a product for edit
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingProduct) {
       const fallbackPrice = editingProduct.price || editingProduct.colors[0]?.price || ''
       const fallbackOrigPrice = editingProduct.originalPrice || editingProduct.colors[0]?.originalPrice || ''
       setSellingPriceInput(fallbackPrice ? String(fallbackPrice) : '')
       setOriginalPriceInput(fallbackOrigPrice ? String(fallbackOrigPrice) : '')
-      setPendingImageUrl(null)
-      setUploadedCloudUrl(null)
-      uploadPromiseRef.current = null
-      setUploadSuccessTick(false)
-      setEditingColorId(null)
-      setNewColorName('')
-      setNewColorHex('')
-      setNewColorPriceInput('')
-      setNewColorOriginalPriceInput('')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingProduct?.id])
 
-  // Filter products
+  // Filter products for catalog list
   const products = draft.products || []
   const filteredProducts = products.filter((p) => {
     if (activeCategoryFilter === 'All') return true
     return p.category === activeCategoryFilter
   })
 
-  // Handle Image Upload via API (Upload Photo FIRST with instant local preview)
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !editingProduct) return
+  // ----------------------------------------------------
+  // MULTI-IMAGE UPLOAD ENGINE (Concurrent with 0ms local preview)
+  // ----------------------------------------------------
+  const handleProcessFiles = async (files: File[]) => {
+    if (!files || files.length === 0 || !editingProduct) return
 
-    // 1. Instant local preview (0ms UI feedback)
-    const localPreview = URL.createObjectURL(file)
-    setPendingImageUrl(localPreview)
-    setUploadedCloudUrl(null)
     setUploading(true)
-    setUploadSuccessTick(false)
-    // Clear color selection so nothing is pre-selected for this new photo
-    setNewColorName('')
-    setNewColorHex('')
+    setUploadingCount(files.length)
 
     const adminToken =
       (typeof window !== 'undefined'
@@ -172,206 +151,183 @@ export default function ProductsModule({
       draft.settings?.passcode ||
       'varna2026'
 
-    const formData = new FormData()
-    formData.append('file', file)
-
-    // 2. Start Cloudinary upload in background
-    const uploadPromise = fetch('/api/admin/upload', {
-      method: 'POST',
-      headers: { 'x-admin-token': adminToken },
-      body: formData,
+    // Instant local previews (0ms latency UI feedback)
+    const currentColorsCount = editingProduct.colors.length
+    const tempVariants: Array<{
+      tempId: string
+      file: File
+      variant: ProductColor
+    }> = files.map((file, idx) => {
+      const tempId = `temp-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`
+      const variantName = `Color ${currentColorsCount + idx + 1}`
+      const localUrl = URL.createObjectURL(file)
+      return {
+        tempId,
+        file,
+        variant: {
+          id: tempId,
+          name: variantName,
+          hex: '#1c3624',
+          image: localUrl,
+          price: editingProduct.price || 0,
+          originalPrice: editingProduct.originalPrice || 0,
+        },
+      }
     })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error('Image upload failed')
-        }
+
+    // Immediately show new cards in editingProduct
+    setEditingProduct((prev) => {
+      if (!prev) return null
+      return {
+        ...prev,
+        colors: [...prev.colors, ...tempVariants.map((t) => t.variant)],
+      }
+    })
+
+    // Parallel cloud upload to Cloudinary
+    const uploadTasks = tempVariants.map(async ({ tempId, file }) => {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      try {
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: { 'x-admin-token': adminToken },
+          body: formData,
+        })
+        if (!res.ok) throw new Error('Upload failed')
         const data = await res.json()
-        const uploadedWebpUrl = data.url
-        setUploadedCloudUrl(uploadedWebpUrl)
-        setPendingImageUrl(uploadedWebpUrl)
-        setUploadSuccessTick(true)
-        setUploading(false)
+        const permanentWebpUrl = data.url
 
-        // If replacing image of currently edited color variant:
-        if (editingColorId) {
-          setEditingProduct((prev) => {
-            if (!prev) return null
-            return {
-              ...prev,
-              colors: prev.colors.map((c) =>
-                c.id === editingColorId ? { ...c, image: uploadedWebpUrl } : c
-              ),
-            }
-          })
-        }
-        return uploadedWebpUrl
-      })
-      .catch((err) => {
-        console.error(err)
-        setUploading(false)
-        alert('Failed to upload image. Please try again.')
-        throw err
-      })
+        // Replace temporary object URL with Cloudinary WebP CDN URL
+        setEditingProduct((prev) => {
+          if (!prev) return null
+          return {
+            ...prev,
+            colors: prev.colors.map((c) =>
+              c.id === tempId
+                ? {
+                    ...c,
+                    id: `col-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                    image: permanentWebpUrl,
+                  }
+                : c
+            ),
+          }
+        })
+      } catch (err) {
+        console.error('Failed to upload image:', file.name, err)
+        // Clean up failed card
+        setEditingProduct((prev) => {
+          if (!prev) return null
+          return {
+            ...prev,
+            colors: prev.colors.filter((c) => c.id !== tempId),
+          }
+        })
+        alert(`Failed to upload "${file.name}". Please try again.`)
+      } finally {
+        setUploadingCount((prev) => Math.max(0, prev - 1))
+      }
+    })
 
-    uploadPromiseRef.current = uploadPromise
-    e.target.value = ''
+    await Promise.allSettled(uploadTasks)
+    setUploading(false)
+    setUploadingCount(0)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
-  // Native EyeDropper API (Chromium browsers)
-  const handlePickColorFromImage = async () => {
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleProcessFiles(Array.from(e.target.files))
+    }
+  }
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleProcessFiles(Array.from(e.dataTransfer.files))
+    }
+  }
+
+  // 1-Click Set as Primary Cover Thumbnail
+  const handleSetAsCover = (index: number) => {
+    if (!editingProduct || index === 0) return
+    const updated = [...editingProduct.colors]
+    const [selected] = updated.splice(index, 1)
+    updated.unshift(selected)
+    setEditingProduct({
+      ...editingProduct,
+      colors: updated,
+    })
+  }
+
+  // Remove photo variant
+  const handleRemovePhoto = (colorId: string) => {
+    if (!editingProduct) return
+    setEditingProduct({
+      ...editingProduct,
+      colors: editingProduct.colors.filter((c) => c.id !== colorId),
+    })
+  }
+
+  // Update color variant fields (name, hex, price, originalPrice)
+  const handleUpdateColorField = (
+    colorId: string,
+    field: keyof ProductColor,
+    value: any
+  ) => {
+    if (!editingProduct) return
+    setEditingProduct({
+      ...editingProduct,
+      colors: editingProduct.colors.map((c) =>
+        c.id === colorId ? { ...c, [field]: value } : c
+      ),
+    })
+  }
+
+  // Native desktop EyeDropper
+  const handlePickColorForCard = async (colorId: string) => {
     if (typeof window !== 'undefined' && 'EyeDropper' in window) {
       try {
         const eyeDropper = new (window as any).EyeDropper()
         const result = await eyeDropper.open()
         if (result?.sRGBHex) {
-          setNewColorHex(result.sRGBHex)
-          // If hex matches an already defined color, reuse that color's name!
-          const match = editingProduct?.colors.find(
-            (c) => c.hex.toLowerCase() === result.sRGBHex.toLowerCase()
-          )
-          if (match && !editingColorId) {
-            setNewColorName(match.name)
-          }
+          handleUpdateColorField(colorId, 'hex', result.sRGBHex)
         }
       } catch {
-        // User canceled eyedropper selection
-      }
-    } else {
-      alert('EyeDropper is supported on modern desktop browsers (Chrome, Edge). You can also click the color box to pick manually.')
-    }
-  }
-
-  // Pair Uploaded Image with Color (Prevents duplicate variant naming for same hex)
-  const handleAssignColorToPendingImage = async (name: string, hex: string) => {
-    if (!editingProduct || !pendingImageUrl) return
-
-    if (!hex) {
-      alert('Please choose or enter a color for this photo.')
-      return
-    }
-
-    let finalImageUrl = uploadedCloudUrl
-    if (!finalImageUrl && uploadPromiseRef.current) {
-      try {
-        finalImageUrl = await uploadPromiseRef.current
-      } catch {
-        return
+        // User canceled
       }
     }
-    if (!finalImageUrl) {
-      finalImageUrl = pendingImageUrl
+  }
+
+  // Discard / Return to Catalog
+  const handleCancelOrBack = () => {
+    if (editingProduct) {
+      const hasContent = editingProduct.name.trim() || editingProduct.colors.length > 0
+      if (hasContent) {
+        if (!confirm('Discard unsaved product changes and return to the catalog?')) {
+          return
+        }
+      }
     }
-
-    // If identical hex is already used in this product, reuse that color's name
-    const existingSameHex = editingProduct.colors.find(
-      (c) => c.hex.toLowerCase() === hex.toLowerCase()
-    )
-
-    const finalColorName = existingSameHex
-      ? existingSameHex.name
-      : name.trim() || `Variant ${editingProduct.colors.length + 1}`
-
-    const colorPrice =
-      newColorPriceInput !== ''
-        ? parseInt(newColorPriceInput, 10)
-        : editingProduct.price || 0
-    const colorOrigPrice =
-      newColorOriginalPriceInput !== ''
-        ? parseInt(newColorOriginalPriceInput, 10)
-        : editingProduct.originalPrice || 0
-
-    const newColor: ProductColor = {
-      id: `col-${Date.now()}`,
-      name: finalColorName,
-      hex: hex,
-      image: finalImageUrl,
-      ...(editingProduct.hasColorPricing
-        ? { price: colorPrice, originalPrice: colorOrigPrice }
-        : {}),
-    }
-
-    setEditingProduct({
-      ...editingProduct,
-      colors: [...editingProduct.colors, newColor],
-    })
-
-    // Reset upload staging
-    setPendingImageUrl(null)
-    setUploadedCloudUrl(null)
-    uploadPromiseRef.current = null
-    setUploadSuccessTick(false)
-    setNewColorName('')
-    setNewColorHex('')
-    setNewColorPriceInput('')
-    setNewColorOriginalPriceInput('')
+    setEditingProduct(null)
+    setIsCreating(false)
   }
 
-  // Edit existing uploaded image details
-  const handleSelectColorForEdit = (color: ProductColor) => {
-    setEditingColorId(color.id)
-    setNewColorName(color.name)
-    setNewColorHex(color.hex)
-    setPendingImageUrl(color.image)
-    setNewColorPriceInput(
-      color.price !== undefined ? String(color.price) : editingProduct?.price ? String(editingProduct.price) : ''
-    )
-    setNewColorOriginalPriceInput(
-      color.originalPrice !== undefined
-        ? String(color.originalPrice)
-        : editingProduct?.originalPrice
-        ? String(editingProduct.originalPrice)
-        : ''
-    )
-  }
-
-  const handleUpdateCurrentColor = () => {
-    if (!editingProduct || !editingColorId) return
-    const updated = editingProduct.colors.map((c) =>
-      c.id === editingColorId
-        ? {
-            ...c,
-            name: newColorName.trim() || c.name,
-            hex: newColorHex,
-            image: pendingImageUrl || c.image,
-            ...(editingProduct.hasColorPricing
-              ? {
-                  price:
-                    newColorPriceInput !== ''
-                      ? parseInt(newColorPriceInput, 10)
-                      : c.price ?? editingProduct.price ?? 0,
-                  originalPrice:
-                    newColorOriginalPriceInput !== ''
-                      ? parseInt(newColorOriginalPriceInput, 10)
-                      : c.originalPrice ?? editingProduct.originalPrice ?? 0,
-                }
-              : {}),
-          }
-        : c
-    )
-    setEditingProduct({
-      ...editingProduct,
-      colors: updated,
-    })
-    setEditingColorId(null)
-    setPendingImageUrl(null)
-    setNewColorName('')
-    setNewColorHex('')
-    setNewColorPriceInput('')
-    setNewColorOriginalPriceInput('')
-  }
-
-  const handleCancelColorEdit = () => {
-    setEditingColorId(null)
-    setPendingImageUrl(null)
-    setUploadedCloudUrl(null)
-    uploadPromiseRef.current = null
-    setNewColorName('')
-    setNewColorHex('')
-    setNewColorPriceInput('')
-    setNewColorOriginalPriceInput('')
-  }
-
-  // Add custom size at start (smaller sizes)
+  // Sizes management
   const handleAddSizeAtStart = () => {
     const trimmed = newSizeStart.trim().toUpperCase()
     if (!trimmed) return
@@ -387,7 +343,6 @@ export default function ProductsModule({
     setNewSizeStart('')
   }
 
-  // Add custom size at end (larger sizes)
   const handleAddSizeAtEnd = () => {
     const trimmed = newSizeEnd.trim().toUpperCase()
     if (!trimmed) return
@@ -403,7 +358,35 @@ export default function ProductsModule({
     setNewSizeEnd('')
   }
 
-  // Save Product (and immediately persist to Cloud Database)
+  // Customization management
+  const handleAddCustomization = () => {
+    if (!editingProduct) return
+    const newOption: CustomizationOption = {
+      id: `cust-${Date.now()}`,
+      type: '',
+      price: 150,
+    }
+    setEditingProduct({
+      ...editingProduct,
+      customization: {
+        ...editingProduct.customization,
+        options: [...editingProduct.customization.options, newOption],
+      },
+    })
+  }
+
+  const handleRemoveCustomization = (optionId: string) => {
+    if (!editingProduct) return
+    setEditingProduct({
+      ...editingProduct,
+      customization: {
+        ...editingProduct.customization,
+        options: editingProduct.customization.options.filter((o) => o.id !== optionId),
+      },
+    })
+  }
+
+  // Save product to StoreContext & MongoDB Atlas
   const handleSaveProductForm = async () => {
     if (!editingProduct) return
 
@@ -413,7 +396,7 @@ export default function ProductsModule({
     }
 
     if (editingProduct.colors.length === 0) {
-      alert('Please add at least one color variant with an image.')
+      alert('Please upload at least one photo for this product.')
       return
     }
 
@@ -431,6 +414,18 @@ export default function ProductsModule({
       const validOrig = editingProduct.colors.map((c) => c.originalPrice || 0).filter((p) => p > 0)
       if (validOrig.length > 0 && (!editingProduct.originalPrice || editingProduct.originalPrice === 0)) {
         editingProduct.originalPrice = validOrig[0]
+      }
+    } else {
+      if (!editingProduct.price || editingProduct.price <= 0) {
+        if (editingProduct.colors[0]?.price) {
+          editingProduct.price = editingProduct.colors[0].price
+        } else {
+          alert('Please enter a selling price.')
+          return
+        }
+      }
+      if (!editingProduct.originalPrice || editingProduct.originalPrice <= 0) {
+        editingProduct.originalPrice = editingProduct.price
       }
     }
 
@@ -461,7 +456,7 @@ export default function ProductsModule({
     }
   }
 
-  // Delete product (and immediately persist to Cloud Database)
+  // Delete product
   const handleDeleteProduct = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
       const nextProducts = (draft.products || []).filter((p) => p.id !== id)
@@ -474,35 +469,947 @@ export default function ProductsModule({
     }
   }
 
-  // Add Customization Option
-  const handleAddCustomization = () => {
-    if (!editingProduct) return
-    const newOption: CustomizationOption = {
-      id: `cust-${Date.now()}`,
-      type: '',
-      price: 150,
-    }
-    setEditingProduct({
-      ...editingProduct,
-      customization: {
-        ...editingProduct.customization,
-        options: [...editingProduct.customization.options, newOption],
-      },
-    })
+  // =========================================================================
+  // VIEW 1: DEDICATED FULL-SCREEN PRODUCT STUDIO (Option B Layout)
+  // =========================================================================
+  if (editingProduct) {
+    const sPrice = parseInt(sellingPriceInput, 10) || 0
+    const oPrice = parseInt(originalPriceInput, 10) || 0
+    const savingsAmount = oPrice > sPrice ? oPrice - sPrice : 0
+    const savingsPercent = oPrice > sPrice && oPrice > 0 ? Math.round((savingsAmount / oPrice) * 100) : 0
+
+    return (
+      <div className="space-y-6 pb-28 animate-in fade-in duration-200">
+        {/* Top Studio Action Bar */}
+        <div className="bg-white border border-[#ebe5da] rounded-3xl p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-4 z-20 backdrop-blur-md bg-white/95">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleCancelOrBack}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#faf8f5] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-bold text-[#142319] transition-all cursor-pointer shadow-2xs"
+            >
+              <ArrowLeft size={15} />
+              <span>Catalog</span>
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono">
+                  {isCreating ? 'CREATE PRODUCT DROP' : 'EDIT PRODUCT STUDIO'}
+                </span>
+                {editingProduct.badge && editingProduct.badge !== 'None' && (
+                  <span className="text-[9px] font-bold bg-[#eaf6ec] text-[#246b38] px-2 py-0.5 rounded-full border border-[#cbe8d1]">
+                    {editingProduct.badge}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-base sm:text-xl font-bold text-[#142319] truncate max-w-xs sm:max-w-md">
+                {editingProduct.name.trim() || 'Untitled Product Drop'}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={handleCancelOrBack}
+              className="px-4 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveProductForm}
+              disabled={isSaving || uploading}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer disabled:opacity-50"
+            >
+              <Check size={14} />
+              <span>{isSaving ? 'Saving to Cloud...' : 'Save Product Drop'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Studio Content Container */}
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* SECTION 1: BASIC PRODUCT IDENTITY */}
+          <div className="bg-white border border-[#ebe5da] rounded-3xl p-5 sm:p-7 shadow-2xs space-y-4">
+            <div className="border-b border-[#ebe5da] pb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono block">
+                STEP 1: IDENTITY
+              </span>
+              <h3 className="text-sm sm:text-base font-bold text-[#142319]">
+                Product Title &amp; Category
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[#142319] mb-1">
+                  Product Title *
+                </label>
+                <input
+                  type="text"
+                  value={editingProduct.name}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, name: e.target.value })
+                  }
+                  placeholder="e.g., Premium Pure Linen Casual Shirt"
+                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3.5 py-2.5 text-xs text-[#142319] outline-hidden placeholder-[#8c978f] transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#142319] mb-1">
+                  Category *
+                </label>
+                <select
+                  value={editingProduct.category}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, category: e.target.value })
+                  }
+                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                >
+                  {categoriesList.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#142319] mb-1">
+                  Gender Target
+                </label>
+                <select
+                  value={editingProduct.gender}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      gender: e.target.value as 'Men' | 'Women' | 'Unisex',
+                    })
+                  }
+                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                >
+                  <option value="Men">Men</option>
+                  <option value="Women">Women</option>
+                  <option value="Unisex">Unisex</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[#142319] mb-1">
+                  Product Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={editingProduct.description || ''}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, description: e.target.value })
+                  }
+                  placeholder="Describe the silhouette, fabric weave, styling notes, or embroidery details..."
+                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl p-3 text-xs text-[#142319] outline-hidden placeholder-[#8c978f] leading-relaxed transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: PRICING & COLOR PRICING TOGGLE */}
+          <div className="bg-white border border-[#ebe5da] rounded-3xl p-5 sm:p-7 shadow-2xs space-y-4">
+            <div className="border-b border-[#ebe5da] pb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono block">
+                STEP 2: PRICING
+              </span>
+              <h3 className="text-sm sm:text-base font-bold text-[#142319]">
+                Product Pricing &amp; Color-Wise Rates
+              </h3>
+            </div>
+
+            {/* Toggle: Different price for each color? */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+              <div className="space-y-0.5 pr-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm font-bold text-[#142319]">
+                    Different price for each color?
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      editingProduct.hasColorPricing
+                        ? 'bg-[#eef7f0] text-[#1c3624] border-[#b8e0bf]'
+                        : 'bg-[#faf6f0] text-[#6b7770] border-[#ded7cb]'
+                    }`}
+                  >
+                    {editingProduct.hasColorPricing
+                      ? 'Color-Wise Rates Active'
+                      : 'Off (Same Price for All Colors)'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#6b7770]">
+                  {editingProduct.hasColorPricing
+                    ? 'Individual prices will be specified directly on each photo card in the gallery below.'
+                    : 'All colors share the standard base price entered here.'}
+                </p>
+              </div>
+
+              {/* iOS-Style tactile toggle */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={Boolean(editingProduct.hasColorPricing)}
+                onClick={() => {
+                  const next = !editingProduct.hasColorPricing
+                  setEditingProduct({
+                    ...editingProduct,
+                    hasColorPricing: next,
+                    colors: editingProduct.colors.map((c) => ({
+                      ...c,
+                      price: c.price || editingProduct.price || 0,
+                      originalPrice: c.originalPrice || editingProduct.originalPrice || 0,
+                    })),
+                  })
+                }}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                  editingProduct.hasColorPricing ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    editingProduct.hasColorPricing ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Base Pricing Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Selling Price */}
+              <div className="bg-[#eef7f0] p-4 rounded-2xl border border-[#b8e0bf]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-[#1e4a36]">
+                    {editingProduct.hasColorPricing
+                      ? 'Base / Starting Price (₹) *'
+                      : 'Selling Price (₹) *'}
+                  </label>
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-[#d7eedc] text-[#1e4a36] px-2 py-0.5 rounded-full border border-[#b8e0bf]">
+                    {editingProduct.hasColorPricing ? 'Catalog Fallback' : 'Customer Pays'}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={sellingPriceInput}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '')
+                    setSellingPriceInput(clean)
+                    setEditingProduct({
+                      ...editingProduct,
+                      price: clean === '' ? 0 : parseInt(clean, 10),
+                    })
+                  }}
+                  placeholder="e.g. 1199"
+                  className="w-full bg-white border-2 border-[#206035] focus:border-[#14281a] focus:ring-1 focus:ring-[#14281a] rounded-xl px-3 py-2 text-sm font-bold text-[#142319] outline-hidden"
+                />
+              </div>
+
+              {/* Original MRP */}
+              <div className="bg-[#fdf2f0] p-4 rounded-2xl border border-[#f8cfca]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-[#8b1e1e]">
+                    {editingProduct.hasColorPricing
+                      ? 'Base Original MRP (₹) *'
+                      : 'Original MRP (₹) *'}
+                  </label>
+                  <span className="text-[9px] font-medium uppercase tracking-wider bg-[#fadcd7] text-[#8b1e1e] px-2 py-0.5 rounded-full border border-[#f8cfca]">
+                    Display Strike-through
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={originalPriceInput}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '')
+                    setOriginalPriceInput(clean)
+                    setEditingProduct({
+                      ...editingProduct,
+                      originalPrice: clean === '' ? 0 : parseInt(clean, 10),
+                    })
+                  }}
+                  placeholder="e.g. 2400"
+                  className="w-full bg-white border border-[#c85a44] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-sm text-[#55231c] outline-hidden"
+                />
+              </div>
+            </div>
+
+            {/* Savings Banner */}
+            {savingsAmount > 0 && (
+              <div className="p-3 bg-[#faf6f0] border border-[#f3e5c8] rounded-xl flex items-center justify-between text-xs">
+                <span className="font-bold text-[#845d1d] flex items-center gap-1.5">
+                  <Sparkles size={14} />
+                  <span>Customer Saves: ₹{savingsAmount.toLocaleString('en-IN')} ({savingsPercent}% OFF)</span>
+                </span>
+                <span className="text-[11px] text-[#6b7770]">
+                  ₹{sPrice} charged • ₹{oPrice} shown crossed out
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 3: MEDIA & COLOR GALLERY (MULTI-IMAGE BULK UPLOAD) */}
+          <div className="bg-white border border-[#ebe5da] rounded-3xl p-5 sm:p-7 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[#ebe5da] pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono block">
+                  STEP 3: MEDIA &amp; COLORS
+                </span>
+                <h3 className="text-sm sm:text-base font-bold text-[#142319] flex items-center gap-2">
+                  <span>Product Photos &amp; Color Variants</span>
+                  <span className="text-xs font-normal text-[#6b7770]">
+                    ({editingProduct.colors.length} {editingProduct.colors.length === 1 ? 'photo' : 'photos'})
+                  </span>
+                </h3>
+              </div>
+
+              {uploading && (
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#845d1d] bg-[#fdf8ee] px-3 py-1 rounded-full border border-[#f3e5c8] animate-pulse">
+                  <div className="w-3 h-3 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
+                  <span>Uploading {uploadingCount} photo{uploadingCount === 1 ? '' : 's'} to Cloudinary...</span>
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-[#6b7770]">
+              Select multiple photos at once. The first photo is automatically used as the <strong>Cover Photo / Catalog Thumbnail</strong>.
+            </p>
+
+            {/* Hidden Multi-file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileInputChange}
+              disabled={uploading}
+              className="hidden"
+            />
+
+            {/* Drag & Drop Canvas / Tap to Select */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
+                isDragging
+                  ? 'border-[#1c3624] bg-[#eef7f0] scale-[1.01]'
+                  : 'border-[#ded7cb] bg-[#faf8f5] hover:border-[#1c3624] hover:bg-[#faf6f0]'
+              }`}
+            >
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-[#ded7cb] text-[#1c3624] flex items-center justify-center shadow-xs">
+                  <UploadCloud size={24} />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs sm:text-sm font-bold text-[#142319]">
+                    Click to browse or drop multiple photos here
+                  </p>
+                  <p className="text-[11px] text-[#6b7770]">
+                    Select 1 to 10+ photos at once (JPG, PNG, WEBP, HEIC)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] text-white font-bold text-xs shadow-xs pointer-events-none"
+                >
+                  <Plus size={14} />
+                  <span>Choose Multiple Photos</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Interactive Photo Cards Grid */}
+            {editingProduct.colors.length > 0 && (
+              <div className="pt-2 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#6b7770]">
+                    Configured Photos &amp; Swatches ({editingProduct.colors.length})
+                  </span>
+                  <span className="text-[10px] text-[#246b38] font-semibold bg-[#eaf6ec] px-2 py-0.5 rounded-full border border-[#cbe8d1]">
+                    ★ Card 1 is Cover / Storefront Thumbnail
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                  {editingProduct.colors.map((color, idx) => {
+                    const isCover = idx === 0
+                    return (
+                      <div
+                        key={color.id}
+                        className={`bg-white border rounded-2xl p-3 space-y-3 transition-all relative ${
+                          isCover
+                            ? 'border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
+                            : 'border-[#ded7cb] hover:border-[#1c3624]'
+                        }`}
+                      >
+                        {/* Top Card Bar: Cover Badge & Delete Button */}
+                        <div className="flex items-center justify-between">
+                          {isCover ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#1c3624] text-white px-2 py-0.5 rounded-full shadow-2xs">
+                              <Star size={11} className="fill-white" />
+                              <span>Cover Photo</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetAsCover(idx)}
+                              className="text-[10px] font-bold text-[#556358] hover:text-[#1c3624] bg-[#faf6f0] hover:bg-[#eef7f0] border border-[#ded7cb] px-2 py-0.5 rounded-full transition-all cursor-pointer"
+                              title="Set as Cover Photo / Catalog Thumbnail"
+                            >
+                              ★ Make Cover
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhoto(color.id)}
+                            className="text-[#8c978f] hover:text-[#b84840] p-1 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
+                            title="Remove Photo"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+
+                        {/* Photo Thumbnail */}
+                        <div className="relative w-full h-44 rounded-xl overflow-hidden bg-[#faf8f5] border border-[#ded7cb]">
+                          <Image
+                            src={color.image}
+                            alt={color.name}
+                            fill
+                            className="object-cover object-top"
+                            unoptimized
+                          />
+                        </div>
+
+                        {/* Color Name Input */}
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                            Color Variant Name
+                          </label>
+                          <input
+                            type="text"
+                            value={color.name}
+                            onChange={(e) =>
+                              handleUpdateColorField(color.id, 'name', e.target.value)
+                            }
+                            placeholder="e.g. Sage Green, Navy, Ivory"
+                            className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-medium"
+                          />
+                        </div>
+
+                        {/* Color Swatch & Hex */}
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                            {supportsEyeDropper ? 'Color Hex & Swatch' : 'Color Swatch & Hex'}
+                          </label>
+                          <div className="flex items-center gap-2">
+                            {/* Swatch Square with hidden native color picker inside */}
+                            <div
+                              className="relative w-8 h-8 rounded-lg border border-[#ded7cb] shadow-2xs flex-shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95"
+                              style={{ backgroundColor: color.hex || '#1c3624' }}
+                              title="Choose color swatch"
+                            >
+                              <input
+                                type="color"
+                                value={color.hex || '#1c3624'}
+                                onChange={(e) =>
+                                  handleUpdateColorField(color.id, 'hex', e.target.value)
+                                }
+                                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                              />
+                            </div>
+
+                            {/* Hex Text Box */}
+                            <input
+                              type="text"
+                              value={color.hex}
+                              placeholder="#1C3624"
+                              onChange={(e) =>
+                                handleUpdateColorField(color.id, 'hex', e.target.value)
+                              }
+                              className="flex-1 bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1.5 text-xs text-[#142319] outline-hidden font-mono uppercase"
+                            />
+
+                            {/* Eyedropper on supported desktop browsers */}
+                            {supportsEyeDropper && (
+                              <button
+                                type="button"
+                                onClick={() => handlePickColorForCard(color.id)}
+                                className="p-1.5 rounded-lg bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#845d1d] transition-all cursor-pointer flex-shrink-0"
+                                title="Pick exact color from image"
+                              >
+                                <Pipette size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* DYNAMIC COLOR-WISE PRICING INPUTS (WHEN TOGGLE IS ON) */}
+                        {editingProduct.hasColorPricing && (
+                          <div className="pt-2 border-t border-[#ebe5da] space-y-2 bg-[#f7faf8] -mx-3 -mb-3 p-3 rounded-b-2xl">
+                            <span className="text-[10px] font-bold text-[#1e4a36] uppercase tracking-wider block">
+                              Rate for this Color:
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[9px] font-bold text-[#1e4a36]">
+                                  Price (₹) *
+                                </label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={color.price !== undefined ? String(color.price) : ''}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '')
+                                    handleUpdateColorField(
+                                      color.id,
+                                      'price',
+                                      clean === '' ? 0 : parseInt(clean, 10)
+                                    )
+                                  }}
+                                  placeholder="1199"
+                                  className="w-full bg-white border border-[#b8e0bf] focus:border-[#1c3624] rounded-md px-2 py-1 text-xs font-bold text-[#142319] outline-hidden"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[9px] font-semibold text-[#8b1e1e]">
+                                  MRP (₹)
+                                </label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={
+                                    color.originalPrice !== undefined
+                                      ? String(color.originalPrice)
+                                      : ''
+                                  }
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '')
+                                    handleUpdateColorField(
+                                      color.id,
+                                      'originalPrice',
+                                      clean === '' ? 0 : parseInt(clean, 10)
+                                    )
+                                  }}
+                                  placeholder="2400"
+                                  className="w-full bg-white border border-[#f8cfca] focus:border-[#8b1e1e] rounded-md px-2 py-1 text-xs text-[#55231c] outline-hidden"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 4: INVENTORY URGENCY & MERCHANDISING BADGES */}
+          <div className="bg-white border border-[#ebe5da] rounded-3xl p-5 sm:p-7 shadow-2xs space-y-4">
+            <div className="border-b border-[#ebe5da] pb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono block">
+                STEP 4: MERCHANDISING
+              </span>
+              <h3 className="text-sm sm:text-base font-bold text-[#142319]">
+                Stock Urgency &amp; Storefront Badges
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#142319] mb-1">
+                  Stock Urgency Status
+                </label>
+                <select
+                  value={editingProduct.stockUrgency || 'In Stock'}
+                  onChange={(e) => {
+                    setEditingProduct({
+                      ...editingProduct,
+                      stockUrgency: e.target.value as any,
+                    })
+                  }}
+                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                >
+                  <option value="In Stock">In Stock</option>
+                  <option value="Few Pieces Left">Few Pieces Left</option>
+                  <option value="Out of Stock">Out of Stock</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#142319] mb-1">
+                  Merchandising Badge
+                </label>
+                <select
+                  value={editingProduct.badge || 'None'}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      badge: e.target.value as any,
+                    })
+                  }
+                  className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                >
+                  {BADGES.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 5: SIZES */}
+          <div className="bg-white border border-[#ebe5da] rounded-3xl p-5 sm:p-7 shadow-2xs space-y-4">
+            <div className="border-b border-[#ebe5da] pb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono block">
+                STEP 5: SIZES
+              </span>
+              <h3 className="text-sm sm:text-base font-bold text-[#142319]">
+                Available Sizes
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Add Smaller Size at START */}
+                <div className="flex items-center gap-1 bg-[#faf8f5] p-1 rounded-xl border border-dashed border-[#ded7cb]">
+                  <input
+                    type="text"
+                    value={newSizeStart}
+                    onChange={(e) => setNewSizeStart(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddSizeAtStart()
+                      }
+                    }}
+                    placeholder="+ Smaller (XXS)"
+                    className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSizeAtStart}
+                    className="px-2 py-1 rounded-lg bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-0.5"
+                    title="Add size to start"
+                  >
+                    <Plus size={12} />
+                    <span>Add</span>
+                  </button>
+                </div>
+
+                {/* Existing Size Pills */}
+                {allSizes.map((size) => {
+                  const hasSize = editingProduct.sizes.includes(size)
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        const updatedSizes = hasSize
+                          ? editingProduct.sizes.filter((s) => s !== size)
+                          : [...editingProduct.sizes, size]
+                        setEditingProduct({ ...editingProduct, sizes: updatedSizes })
+                      }}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        hasSize
+                          ? 'bg-[#1c3624] text-white shadow-2xs'
+                          : 'bg-[#faf6f0] text-[#556358] border border-[#ded7cb] hover:border-[#1c3624]'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  )
+                })}
+
+                {/* Add Larger Size at END */}
+                <div className="flex items-center gap-1 bg-[#faf8f5] p-1 rounded-xl border border-dashed border-[#ded7cb]">
+                  <input
+                    type="text"
+                    value={newSizeEnd}
+                    onChange={(e) => setNewSizeEnd(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddSizeAtEnd()
+                      }
+                    }}
+                    placeholder="+ Larger (4XL)"
+                    className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSizeAtEnd}
+                    className="px-2 py-1 rounded-lg bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-0.5"
+                    title="Add size to end"
+                  >
+                    <Plus size={12} />
+                    <span>Add</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 6: CUSTOMIZATION & STOREFRONT GUARANTEES */}
+          <div className="bg-white border border-[#ebe5da] rounded-3xl p-5 sm:p-7 shadow-2xs space-y-5">
+            <div className="border-b border-[#ebe5da] pb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#845d1d] font-mono block">
+                STEP 6: TAILORING &amp; TRUST
+              </span>
+              <h3 className="text-sm sm:text-base font-bold text-[#142319]">
+                Customization Add-On &amp; Customer Guarantees
+              </h3>
+            </div>
+
+            {/* Customization Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+              <div className="space-y-0.5 pr-3">
+                <div className="flex items-center gap-2">
+                  <Scissors size={15} className="text-[#845d1d]" />
+                  <span className="text-xs sm:text-sm font-bold text-[#142319]">
+                    Enable Tailoring &amp; Customization?
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      editingProduct.customization?.enabled
+                        ? 'bg-[#eef7f0] text-[#1c3624] border-[#b8e0bf]'
+                        : 'bg-[#faf6f0] text-[#6b7770] border-[#ded7cb]'
+                    }`}
+                  >
+                    {editingProduct.customization?.enabled ? 'Active' : 'Disabled'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#6b7770]">
+                  Allow customers to request monogram embroidery, DTF prints, or custom styling.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={editingProduct.customization?.enabled}
+                onClick={() => {
+                  const nextEnabled = !editingProduct.customization?.enabled
+                  setEditingProduct({
+                    ...editingProduct,
+                    customization: {
+                      ...editingProduct.customization,
+                      enabled: nextEnabled,
+                    },
+                    features: {
+                      freeDelivery: editingProduct.features?.freeDelivery ?? true,
+                      customizationAvailable: nextEnabled,
+                      returnable: editingProduct.features?.returnable ?? true,
+                      qualityAssured: editingProduct.features?.qualityAssured ?? true,
+                    },
+                  })
+                }}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                  editingProduct.customization?.enabled ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    editingProduct.customization?.enabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Customization Options List (When enabled) */}
+            {editingProduct.customization?.enabled && (
+              <div className="space-y-3 bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4">
+                <span className="text-xs font-bold text-[#142319] uppercase tracking-wider block">
+                  Customization Options
+                </span>
+                {editingProduct.customization.options.map((opt, idx) => (
+                  <div
+                    key={opt.id}
+                    className="flex flex-col sm:flex-row sm:items-center gap-2.5 bg-white p-3 rounded-xl border border-[#ebe5da]"
+                  >
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                        Type (e.g. Pocket Monogram, Back DTF Print)
+                      </label>
+                      <input
+                        type="text"
+                        value={opt.type}
+                        onChange={(e) => {
+                          const nextOpts = [...editingProduct.customization.options]
+                          nextOpts[idx].type = e.target.value
+                          setEditingProduct({
+                            ...editingProduct,
+                            customization: {
+                              ...editingProduct.customization,
+                              options: nextOpts,
+                            },
+                          })
+                        }}
+                        placeholder="e.g. Pocket Monogram Embroidery"
+                        className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden"
+                      />
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <div className="w-24">
+                        <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                          Fee (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={opt.price}
+                          onChange={(e) => {
+                            const nextOpts = [...editingProduct.customization.options]
+                            nextOpts[idx].price = parseInt(e.target.value, 10) || 0
+                            setEditingProduct({
+                              ...editingProduct,
+                              customization: {
+                                ...editingProduct.customization,
+                                options: nextOpts,
+                              },
+                            })
+                          }}
+                          className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-bold"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCustomization(opt.id)}
+                        className="p-2 text-[#b84840] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Remove Option"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={handleAddCustomization}
+                  className="w-full py-2.5 px-4 rounded-xl border border-dashed border-[#206035] bg-white hover:bg-[#eef7f0] text-[#206035] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                >
+                  <Plus size={15} />
+                  <span>+ Add Customization Option</span>
+                </button>
+              </div>
+            )}
+
+            {/* Storefront Guarantees */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-[#142319] block">
+                Storefront Assurances
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {[
+                  {
+                    key: 'freeDelivery',
+                    label: 'Express Delivery Available',
+                    sub: 'Displays "Express Delivery Available"',
+                  },
+                  {
+                    key: 'customizationAvailable',
+                    label: 'Customization Available',
+                    sub: 'Displays "Customization Available" badge',
+                  },
+                  {
+                    key: 'returnable',
+                    label: 'Easy Return & Exchange',
+                    sub: 'Displays "Easy Return & Exchange • Doorstep swap"',
+                  },
+                  {
+                    key: 'qualityAssured',
+                    label: '100% Quality Assured',
+                    sub: 'Displays "100% Pure & Quality Assured Guarantee"',
+                  },
+                ].map((feat) => {
+                  const isChecked =
+                    editingProduct.features?.[feat.key as keyof typeof editingProduct.features] ??
+                    (feat.key === 'customizationAvailable'
+                      ? Boolean(editingProduct.customization?.enabled)
+                      : true)
+
+                  return (
+                    <label
+                      key={feat.key}
+                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                        isChecked
+                          ? 'bg-[#f4f9f5] border-[#1c3624] text-[#142319]'
+                          : 'bg-[#faf8f5] border-[#ded7cb] text-[#6b7770]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const nextVal = e.target.checked
+                          setEditingProduct({
+                            ...editingProduct,
+                            features: {
+                              freeDelivery: editingProduct.features?.freeDelivery ?? true,
+                              customizationAvailable:
+                                editingProduct.features?.customizationAvailable ??
+                                Boolean(editingProduct.customization?.enabled),
+                              returnable: editingProduct.features?.returnable ?? true,
+                              qualityAssured: editingProduct.features?.qualityAssured ?? true,
+                              [feat.key]: nextVal,
+                            },
+                          })
+                        }}
+                        className="mt-0.5 rounded text-[#1c3624] focus:ring-[#1c3624] w-4 h-4 cursor-pointer accent-[#1c3624]"
+                      />
+                      <div>
+                        <span className="text-xs font-bold block">{feat.label}</span>
+                        <span className="text-[10px] text-[#6b7770]">{feat.sub}</span>
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Mobile/Desktop Bottom Action Bar */}
+        <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#ded7cb] p-3 sm:px-8 flex items-center justify-between gap-3 shadow-lg">
+          <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handleCancelOrBack}
+              className="py-2.5 px-4 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
+            >
+              Discard Changes
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveProductForm}
+              disabled={isSaving || uploading}
+              className="py-2.5 px-6 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Check size={14} />
+              <span>{isSaving ? 'Saving to Cloud...' : 'Save Product Drop'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  // Remove Customization Option
-  const handleRemoveCustomization = (optionId: string) => {
-    if (!editingProduct) return
-    setEditingProduct({
-      ...editingProduct,
-      customization: {
-        ...editingProduct.customization,
-        options: editingProduct.customization.options.filter((o) => o.id !== optionId),
-      },
-    })
-  }
-
+  // =========================================================================
+  // VIEW 2: ACTIVE CATALOG OVERVIEW & TABLE
+  // =========================================================================
   return (
     <div className="space-y-6">
       {/* Module Header Bar */}
@@ -515,7 +1422,7 @@ export default function ProductsModule({
             Products &amp; Variants Management
           </h2>
           <p className="text-xs text-[#6b7770] mt-0.5">
-            Color-to-image mapping, prices, status badges &amp; customization add-ons
+            Multi-photo uploads, color-to-image mapping, rates &amp; customization add-ons
           </p>
         </div>
 
@@ -552,17 +1459,8 @@ export default function ProductsModule({
         ))}
       </div>
 
-      {/* Product List Table / Grid */}
-      <div className="bg-white border border-[#ebe5da] rounded-3xl overflow-hidden shadow-2xs">
-        <div className="p-4 sm:p-5 border-b border-[#ebe5da] flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#142319]">
-            Active Catalog ({filteredProducts.length} items)
-          </span>
-          <span className="text-xs text-[#6b7770]">
-            Click Edit to manage colors, photos, and customization options
-          </span>
-        </div>
-
+      {/* Products Table Card */}
+      <div className="bg-white border border-[#ebe5da] rounded-3xl shadow-2xs overflow-hidden">
         {filteredProducts.length === 0 ? (
           <div className="p-10 text-center text-xs text-[#6b7770] flex flex-col items-center justify-center">
             <p>No products found in category &ldquo;{activeCategoryFilter}&rdquo;.</p>
@@ -751,7 +1649,7 @@ export default function ProductsModule({
                               e.stopPropagation()
                               handleDeleteProduct(p.id, p.name)
                             }}
-                            className="p-1.5 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[#8c978f] hover:text-[#b84840] hover:bg-[#fdf0ef] transition-colors cursor-pointer"
                             title="Delete Product"
                           >
                             <Trash2 size={14} />
@@ -766,1178 +1664,6 @@ export default function ProductsModule({
           </div>
         )}
       </div>
-
-      {/* PRODUCT EDITOR MODAL (CREATE / EDIT) */}
-      {editingProduct && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-          <div className="bg-white border border-[#ebe5da] rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-4 sm:p-7 shadow-2xl relative text-[#142319] space-y-6">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#ebe5da]">
-              <div>
-                <h3 className="font-display text-xl font-bold text-[#142319]">
-                  {isCreating ? 'Add New Product Drop' : `Edit: ${editingProduct.name}`}
-                </h3>
-                <p className="text-xs text-[#6b7770]">
-                  Configure title, pricing, color-to-image photo assignments, and customizations
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditingProduct(null)}
-                className="w-8 h-8 rounded-full bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#6b7770] hover:text-[#142319] flex items-center justify-center cursor-pointer transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Basic Info Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Product Title *
-                </label>
-                <input
-                  type="text"
-                  value={editingProduct.name}
-                  onChange={(e) =>
-                    setEditingProduct({ ...editingProduct, name: e.target.value })
-                  }
-                  placeholder="e.g., Premium Pure Linen Casual Shirt"
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3.5 py-2.5 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Category *
-                </label>
-                <select
-                  value={editingProduct.category}
-                  onChange={(e) =>
-                    setEditingProduct({ ...editingProduct, category: e.target.value })
-                  }
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden"
-                >
-                  {categoriesList.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Gender Target
-                </label>
-                <select
-                  value={editingProduct.gender}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      gender: e.target.value as 'Men' | 'Women' | 'Unisex',
-                    })
-                  }
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden"
-                >
-                  <option value="Men">Men</option>
-                  <option value="Women">Women</option>
-                  <option value="Unisex">Unisex</option>
-                </select>
-              </div>
-
-              {/* TOGGLE FOR COLOR-WISE PRICING (DEFAULT OFF) */}
-              <div className="col-span-1 sm:col-span-3 flex items-center justify-between p-3.5 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
-                <div className="space-y-0.5 pr-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#142319]">
-                      Different price for each color?
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        editingProduct.hasColorPricing
-                          ? 'bg-[#eef7f0] text-[#1c3624] border-[#b8e0bf]'
-                          : 'bg-[#faf6f0] text-[#6b7770] border-[#ded7cb]'
-                      }`}
-                    >
-                      {editingProduct.hasColorPricing
-                        ? 'Color-Wise Active'
-                        : 'Off (Same Price for All Colors)'}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#6b7770]">
-                    {editingProduct.hasColorPricing
-                      ? 'Set individual selling price and MRP for each color below.'
-                      : 'By default off. Toggle on if different colors have different prices.'}
-                  </p>
-                </div>
-
-                {/* Small toggle button */}
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={Boolean(editingProduct.hasColorPricing)}
-                  onClick={() => {
-                    const next = !editingProduct.hasColorPricing
-                    setEditingProduct({
-                      ...editingProduct,
-                      hasColorPricing: next,
-                      colors: editingProduct.colors.map((c) => ({
-                        ...c,
-                        price: c.price || editingProduct.price || 0,
-                        originalPrice: c.originalPrice || editingProduct.originalPrice || 0,
-                      })),
-                    })
-                  }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                    editingProduct.hasColorPricing ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                      editingProduct.hasColorPricing ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Selling Price with Green Main Highlight */}
-              <div className="bg-[#eef7f0] p-3 rounded-2xl border border-[#b8e0bf]">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-[#1e4a36]">
-                    {editingProduct.hasColorPricing
-                      ? 'Base / Starting Price (₹) *'
-                      : 'Selling Price (₹) *'}
-                  </label>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-[#d7eedc] text-[#1e4a36] px-2 py-0.5 rounded-full border border-[#b8e0bf]">
-                    {editingProduct.hasColorPricing ? 'Base Fallback' : 'Main / Customer Pays'}
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={sellingPriceInput}
-                  onChange={(e) => {
-                    const clean = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '')
-                    setSellingPriceInput(clean)
-                    setEditingProduct({
-                      ...editingProduct,
-                      price: clean === '' ? 0 : parseInt(clean, 10),
-                    })
-                  }}
-                  placeholder="e.g. 299"
-                  className="w-full bg-white border-2 border-[#206035] focus:border-[#14281a] focus:ring-1 focus:ring-[#14281a] rounded-xl px-3 py-2 text-sm font-bold text-[#142319] outline-hidden"
-                />
-              </div>
-
-              {/* Original MRP with Red / Strikethrough Indication */}
-              <div className="bg-[#fdf2f0] p-3 rounded-2xl border border-[#f8cfca]">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-[#8b1e1e]">
-                    {editingProduct.hasColorPricing
-                      ? 'Base Original MRP (₹) *'
-                      : 'Original MRP (₹) *'}
-                  </label>
-                  <span className="text-[9px] font-medium uppercase tracking-wider bg-[#fadcd7] text-[#8b1e1e] px-2 py-0.5 rounded-full border border-[#f8cfca]">
-                    Display Only
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={originalPriceInput}
-                  onChange={(e) => {
-                    const clean = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '')
-                    setOriginalPriceInput(clean)
-                    setEditingProduct({
-                      ...editingProduct,
-                      originalPrice: clean === '' ? 0 : parseInt(clean, 10),
-                    })
-                  }}
-                  placeholder="e.g. 1499"
-                  className="w-full bg-white border border-[#c85a44] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-sm text-[#55231c] outline-hidden"
-                />
-              </div>
-
-              {/* COLOR-WISE PRICING INPUTS (WHEN TOGGLE IS ON) */}
-              {editingProduct.hasColorPricing && (
-                <div className="col-span-1 sm:col-span-3 space-y-3 p-4 rounded-2xl bg-[#f7faf8] border-2 border-[#b8e0bf]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold text-[#1c3624] flex items-center gap-1.5">
-                        <Tag size={14} className="text-[#1c3624]" />
-                        <span>
-                          Enter Price for Each Color ({editingProduct.colors.length}{' '}
-                          {editingProduct.colors.length === 1 ? 'color' : 'colors'})
-                        </span>
-                      </h4>
-                      <p className="text-[11px] text-[#4f6b57]">
-                        Set individual selling price and original MRP for each color variant:
-                      </p>
-                    </div>
-                  </div>
-
-                  {editingProduct.colors.length === 0 ? (
-                    <div className="p-3 bg-white rounded-xl border border-[#ded7cb] text-center text-xs text-[#6b7770]">
-                      📸 No colors added yet. Upload photos in the section below and pair them with colors to assign individual prices.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {editingProduct.colors.map((c) => {
-                        const cPrice = c.price ?? editingProduct.price ?? 0
-                        const cOrig = c.originalPrice ?? editingProduct.originalPrice ?? 0
-                        const cDiscount =
-                          cOrig > cPrice && cOrig > 0
-                            ? Math.round(((cOrig - cPrice) / cOrig) * 100)
-                            : 0
-                        return (
-                          <div
-                            key={c.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white rounded-xl border border-[#ded7cb] shadow-2xs hover:border-[#1c3624] transition-colors"
-                          >
-                            {/* Color Preview & Name */}
-                            <div className="flex items-center gap-2.5 min-w-[160px]">
-                              <div className="relative w-9 h-11 rounded-lg overflow-hidden bg-[#faf8f5] border border-[#ded7cb] shrink-0">
-                                <Image
-                                  src={c.image}
-                                  alt={c.name}
-                                  fill
-                                  className="object-cover object-top"
-                                  unoptimized
-                                />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span
-                                    className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-inner shrink-0"
-                                    style={{ backgroundColor: c.hex }}
-                                  />
-                                  <span className="text-xs font-bold text-[#142319] truncate">
-                                    {c.name}
-                                  </span>
-                                </div>
-                                <span className="text-[10px] text-[#6b7770] font-mono">
-                                  {c.hex}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Price Inputs for this Color */}
-                            <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
-                              {/* Selling Price */}
-                              <div className="flex-1 sm:max-w-[150px]">
-                                <div className="flex items-center justify-between mb-0.5">
-                                  <label className="block text-[10px] font-bold text-[#1e4a36]">
-                                    Selling Price (₹) *
-                                  </label>
-                                  <span className="text-[8px] font-bold bg-[#d7eedc] text-[#1e4a36] px-1.5 rounded-sm">
-                                    Pays
-                                  </span>
-                                </div>
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  value={c.price !== undefined ? String(c.price) : ''}
-                                  onChange={(e) => {
-                                    const clean = e.target.value
-                                      .replace(/[^0-9]/g, '')
-                                      .replace(/^0+(?=\d)/, '')
-                                    const val = clean === '' ? 0 : parseInt(clean, 10)
-                                    setEditingProduct({
-                                      ...editingProduct,
-                                      colors: editingProduct.colors.map((item) =>
-                                        item.id === c.id ? { ...item, price: val } : item
-                                      ),
-                                    })
-                                  }}
-                                  placeholder="e.g. 1299"
-                                  className="w-full bg-[#fcfdfc] border-2 border-[#b8e0bf] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#142319] outline-hidden"
-                                />
-                              </div>
-
-                              {/* Original MRP */}
-                              <div className="flex-1 sm:max-w-[150px]">
-                                <div className="flex items-center justify-between mb-0.5">
-                                  <label className="block text-[10px] font-semibold text-[#8b1e1e]">
-                                    Original MRP (₹)
-                                  </label>
-                                  <span className="text-[8px] bg-[#fadcd7] text-[#8b1e1e] px-1.5 rounded-sm">
-                                    MRP
-                                  </span>
-                                </div>
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  value={
-                                    c.originalPrice !== undefined ? String(c.originalPrice) : ''
-                                  }
-                                  onChange={(e) => {
-                                    const clean = e.target.value
-                                      .replace(/[^0-9]/g, '')
-                                      .replace(/^0+(?=\d)/, '')
-                                    const val = clean === '' ? 0 : parseInt(clean, 10)
-                                    setEditingProduct({
-                                      ...editingProduct,
-                                      colors: editingProduct.colors.map((item) =>
-                                        item.id === c.id ? { ...item, originalPrice: val } : item
-                                      ),
-                                    })
-                                  }}
-                                  placeholder="e.g. 2499"
-                                  className="w-full bg-[#fffcfc] border border-[#f8cfca] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-lg px-2.5 py-1.5 text-xs text-[#55231c] outline-hidden"
-                                />
-                              </div>
-
-                              {/* Discount Tag */}
-                              {cDiscount > 0 && (
-                                <div className="hidden sm:flex flex-col items-center justify-center px-2 py-1 bg-[#fcf5e9] border border-[#f4e4cb] rounded-lg text-center min-w-[60px]">
-                                  <span className="text-[10px] font-bold text-[#845d1d] whitespace-nowrap">
-                                    {cDiscount}% OFF
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Live Discount Percentage & Savings Indicator */}
-              {(() => {
-                const sPrice = parseInt(sellingPriceInput, 10) || 0
-                const oPrice = parseInt(originalPriceInput, 10) || 0
-                if (oPrice > sPrice && oPrice > 0) {
-                  const pct = Math.round(((oPrice - sPrice) / oPrice) * 100)
-                  const diff = oPrice - sPrice
-                  return (
-                    <div className="col-span-1 sm:col-span-2 flex items-center justify-between bg-[#fcf5e9] border border-[#f4e4cb] text-[#845d1d] px-3.5 py-2 rounded-xl text-xs font-bold animate-in fade-in">
-                      <div className="flex items-center gap-2">
-                        <span className="bg-[#845d1d] text-white px-2 py-0.5 rounded-full text-[10px]">
-                          {pct}% OFF
-                        </span>
-                        <span>Customer Saves: ₹{diff.toLocaleString('en-IN')}</span>
-                      </div>
-                      <span className="text-[10px] text-[#796749] font-normal hidden sm:inline">
-                        Selling price ₹{sPrice} is charged, Original MRP ₹{oPrice} shows crossed out
-                      </span>
-                    </div>
-                  )
-                }
-                return null
-              })()}
-            </div>
-
-            {/* Product Description Field */}
-            <div>
-              <label className="block text-xs font-semibold text-[#142319] mb-1">
-                Product Description
-              </label>
-              <textarea
-                rows={3}
-                value={editingProduct.description || ''}
-                onChange={(e) =>
-                  setEditingProduct({ ...editingProduct, description: e.target.value })
-                }
-                placeholder="Describe the fabric, fit, styling drape, embroidery or unique details of this product..."
-                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl p-3 text-xs text-[#142319] outline-hidden placeholder-[#8c978f] leading-relaxed"
-              />
-            </div>
-
-            {/* Stock Urgency & Badges */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#ebe5da]">
-              <div>
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Stock Urgency Status
-                </label>
-                <select
-                  value={editingProduct.stockUrgency || 'In Stock'}
-                  onChange={(e) => {
-                    setEditingProduct({
-                      ...editingProduct,
-                      stockUrgency: e.target.value as any,
-                    })
-                  }}
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden cursor-pointer"
-                >
-                  <option value="In Stock">In Stock</option>
-                  <option value="Few Pieces Left">Few Pieces Left</option>
-                  <option value="Out of Stock">Out of Stock</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Merchandising Badge
-                </label>
-                <select
-                  value={editingProduct.badge || 'None'}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      badge: e.target.value as any,
-                    })
-                  }
-                  className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2.5 text-xs text-[#142319] outline-hidden"
-                >
-                  {BADGES.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Available Sizes with Custom Add Size Button on BOTH Sides */}
-            <div className="pt-2 border-t border-[#ebe5da] space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-[#142319]">
-                  Available Sizes
-                </label>
-                <span className="text-[10px] text-[#6b7770]">
-                  Add smaller sizes on left or larger sizes on right
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {/* 1. Add Smaller Size at START */}
-                <div className="flex items-center gap-1 bg-[#faf8f5] p-1 rounded-xl border border-dashed border-[#ded7cb]">
-                  <input
-                    type="text"
-                    value={newSizeStart}
-                    onChange={(e) => setNewSizeStart(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        handleAddSizeAtStart()
-                      }
-                    }}
-                    placeholder="+ Smaller (e.g. XXS)"
-                    className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSizeAtStart}
-                    className="px-2 py-1 rounded-lg bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-0.5"
-                    title="Add size to start of list"
-                  >
-                    <Plus size={12} />
-                    <span>Add</span>
-                  </button>
-                </div>
-
-                {/* 2. Existing Size Pills */}
-                {allSizes.map((size) => {
-                  const hasSize = editingProduct.sizes.includes(size)
-                  return (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => {
-                        const updatedSizes = hasSize
-                          ? editingProduct.sizes.filter((s) => s !== size)
-                          : [...editingProduct.sizes, size]
-                        setEditingProduct({ ...editingProduct, sizes: updatedSizes })
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        hasSize
-                          ? 'bg-[#1c3624] text-white shadow-2xs'
-                          : 'bg-[#faf6f0] text-[#556358] border border-[#ded7cb] hover:border-[#1c3624]'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  )
-                })}
-
-                {/* 3. Add Larger Size at END */}
-                <div className="flex items-center gap-1 bg-[#faf8f5] p-1 rounded-xl border border-dashed border-[#ded7cb]">
-                  <input
-                    type="text"
-                    value={newSizeEnd}
-                    onChange={(e) => setNewSizeEnd(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        handleAddSizeAtEnd()
-                      }
-                    }}
-                    placeholder="+ Larger (e.g. 4XL)"
-                    className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSizeAtEnd}
-                    className="px-2 py-1 rounded-lg bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-0.5"
-                    title="Add size to end of list"
-                  >
-                    <Plus size={12} />
-                    <span>Add</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* COLOR & IMAGE MANAGER */}
-            <div className="pt-4 border-t border-[#ebe5da] space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-[#142319] flex items-center gap-1.5">
-                    <span>Colors &amp; Product Photos</span>
-                    <span className="text-[10px] bg-[#eaf6ec] text-[#246b38] border border-[#cbe8d1] px-2 py-0.5 rounded-full font-mono font-bold">
-                      Color-to-Image Sync
-                    </span>
-                  </h4>
-                  <p className="text-xs text-[#6b7770] mt-0.5">
-                    Upload photos first, then pair each image with its color. When a customer picks that color, the main photo switches automatically!
-                  </p>
-                </div>
-              </div>
-
-              {/* Current Colors & Associated Photos Grid (Click to Edit Details) */}
-              {editingProduct.colors.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#6b7770] block">
-                    Uploaded Photos &amp; Colors ({editingProduct.colors.length}) — Click any card to edit details:
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {editingProduct.colors.map((color) => {
-                      const isSelectedForEdit = editingColorId === color.id
-                      return (
-                        <div
-                          key={color.id}
-                          onClick={() => handleSelectColorForEdit(color)}
-                          className={`border rounded-2xl p-3 flex items-start gap-3 relative group cursor-pointer transition-all ${
-                            isSelectedForEdit
-                              ? 'border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs bg-white'
-                              : 'bg-[#faf8f5] border-[#ded7cb] hover:border-[#1c3624]'
-                          }`}
-                        >
-                          <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-[#ded7cb]">
-                            <Image
-                              src={color.image}
-                              alt={color.name}
-                              fill
-                              className="object-cover object-top"
-                              unoptimized
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0 pr-6">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span
-                                className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
-                                style={{ backgroundColor: color.hex }}
-                              />
-                              <span className="text-xs font-bold text-[#142319] truncate">
-                                {color.name}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-mono text-[#6b7770] block">
-                              {color.hex}
-                            </span>
-                            {editingProduct.hasColorPricing && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <span className="text-[10px] font-bold text-[#1e4a36] bg-[#eef7f0] px-1.5 py-0.5 rounded-md border border-[#b8e0bf]">
-                                  ₹{(color.price ?? editingProduct.price ?? 0).toLocaleString('en-IN')}
-                                </span>
-                                {(color.originalPrice ?? editingProduct.originalPrice ?? 0) >
-                                  (color.price ?? editingProduct.price ?? 0) && (
-                                  <span className="text-[9px] text-[#8c978f] line-through">
-                                    ₹{(color.originalPrice ?? editingProduct.originalPrice ?? 0).toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            <span className="text-[9px] text-[#206035] font-bold block mt-1">
-                              {isSelectedForEdit ? '● Currently Editing' : '✓ Click to Edit'}
-                            </span>
-                          </div>
-
-                          {/* Delete Color Option */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              const updated = editingProduct.colors.filter((c) => c.id !== color.id)
-                              setEditingProduct({ ...editingProduct, colors: updated })
-                              if (editingColorId === color.id) {
-                                setEditingColorId(null)
-                                setPendingImageUrl(null)
-                              }
-                            }}
-                            className="absolute top-2.5 right-2.5 text-[#8c978f] hover:text-[#b84840] transition-colors p-1"
-                            title="Remove Color"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 1: PHOTO UPLOAD FIRST */}
-              <div className="bg-[#faf8f5] border border-dashed border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#142319] uppercase tracking-wider">
-                    {editingColorId
-                      ? 'Edit Photo & Color Variant'
-                      : 'Step 1: Upload Product Photo First'}
-                  </span>
-                  {uploadSuccessTick && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#206035] bg-[#eef7f0] px-2.5 py-0.5 rounded-full border border-[#d6ecda]">
-                      <Check size={13} />
-                      <span>Image Ready &amp; Synced!</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Upload Button & Preview */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* Hidden File Input for triggering */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={uploading}
-                    className="hidden"
-                  />
-
-                  {!pendingImageUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
-                    >
-                      <Upload size={15} />
-                      <span>
-                        {uploading
-                          ? 'Uploading & Optimizing to Cloudinary WebP...'
-                          : 'Upload Photo (PNG, JPG, HEIC, WEBP)'}
-                      </span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-4 flex-wrap">
-                      {/* Big, High-Definition Preview Thumbnail */}
-                      <div className="relative w-24 h-28 sm:w-28 sm:h-32 rounded-xl overflow-hidden border-2 border-[#1c3624] bg-white shadow-md flex-shrink-0">
-                        <Image
-                          src={pendingImageUrl}
-                          alt="Uploaded Preview"
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading}
-                          className="inline-flex items-center gap-2 py-2 px-3.5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
-                        >
-                          <Upload size={14} />
-                          <span>{uploading ? 'Replacing...' : 'Change Photo'}</span>
-                        </button>
-
-                        {uploading ? (
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#845d1d] bg-[#fdf8ee] px-2.5 py-1 rounded-lg border border-[#f3e5c8]">
-                            <div className="w-3 h-3 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
-                            <span>Optimizing &amp; uploading to Cloud CDN...</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#206035] bg-[#eef7f0] px-2.5 py-1 rounded-lg border border-[#d6ecda]">
-                            <Check size={14} />
-                            <span>Ready for color pairing below</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {uploading && !pendingImageUrl && (
-                    <div className="flex items-center gap-2 text-xs text-[#845d1d] font-medium">
-                      <div className="w-3.5 h-3.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
-                      <span>Converting to WebP &amp; syncing to Cloudinary CDN...</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* STEP 2: ASSIGN COLOR FOR THIS PHOTO */}
-                {(pendingImageUrl || editingColorId) && (
-                  <div className="space-y-3 bg-white p-4 rounded-xl border border-[#ebe5da] animate-in fade-in">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#ebe5da]">
-                      <div className="flex items-center gap-2.5">
-                        {pendingImageUrl && (
-                          <div className="relative w-8 h-9 rounded-md overflow-hidden border border-[#1c3624] shadow-xs flex-shrink-0">
-                            <Image
-                              src={pendingImageUrl}
-                              alt="Target Photo"
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-[11px] font-bold text-[#142319] uppercase tracking-wider block">
-                            {editingColorId
-                              ? 'Update Color Variant Details:'
-                              : 'Step 2: Choose or Add Color for this Photo:'}
-                          </span>
-                          <span className="text-[10px] text-[#6b7770]">
-                            {editingColorId
-                              ? 'Modify name or hex code for this variant'
-                              : 'Select or enter the color for the uploaded photo shown above'}
-                          </span>
-                        </div>
-                      </div>
-                      {uploading && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#845d1d] bg-[#fdf8ee] px-2.5 py-1 rounded-full border border-[#f3e5c8]">
-                          <div className="w-2.5 h-2.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
-                          <span>Syncing cloud CDN...</span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Color Name & Hex picker */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ebe5da]">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#6b7770] mb-1">
-                          Color Name
-                        </label>
-                        <input
-                          type="text"
-                          value={newColorName}
-                          onChange={(e) => setNewColorName(e.target.value)}
-                          placeholder="e.g. Sage Green, Terracotta, Navy Blue"
-                          className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#6b7770] mb-1">
-                          {supportsEyeDropper ? 'Color Hex & Eyedropper' : 'Color Hex & Swatch'}
-                        </label>
-                        <div className="flex items-center gap-2">
-                          {/* Visual color swatch button that triggers native color picker */}
-                          <div
-                            className="relative w-9 h-9 rounded-xl border border-[#ded7cb] shadow-2xs flex-shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95"
-                            style={{ backgroundColor: newColorHex || '#1c3624' }}
-                            title="Choose color swatch"
-                          >
-                            <input
-                              type="color"
-                              value={newColorHex || '#1c3624'}
-                              onChange={(e) => {
-                                const hex = e.target.value
-                                setNewColorHex(hex)
-                                const match = editingProduct.colors.find(
-                                  (c) => c.hex.toLowerCase() === hex.toLowerCase()
-                                )
-                                if (match && !editingColorId) {
-                                  setNewColorName(match.name)
-                                }
-                              }}
-                              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                              title="Native Color Picker"
-                            />
-                          </div>
-
-                          {/* Hex text input */}
-                          <input
-                            type="text"
-                            value={newColorHex}
-                            placeholder="#1c3624"
-                            onChange={(e) => {
-                              const hex = e.target.value
-                              setNewColorHex(hex)
-                              const match = editingProduct.colors.find(
-                                (c) => c.hex.toLowerCase() === hex.toLowerCase()
-                              )
-                              if (match && !editingColorId) {
-                                setNewColorName(match.name)
-                              }
-                            }}
-                            className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-2.5 py-2 text-xs text-[#142319] outline-hidden font-mono"
-                          />
-
-                          {/* Eyedropper Button - Rendered ONLY on supported desktop browsers */}
-                          {supportsEyeDropper && (
-                            <button
-                              type="button"
-                              onClick={handlePickColorFromImage}
-                              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-all cursor-pointer flex-shrink-0"
-                              title="Pick exact color from image"
-                            >
-                              <Pipette size={14} className="text-[#845d1d]" />
-                              <span className="hidden sm:inline">Pick from Image</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Color-specific Price Inputs if Color Pricing is Enabled */}
-                    {editingProduct.hasColorPricing && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ebe5da]">
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#1e4a36] mb-1">
-                            Price for this Color (₹) *
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={newColorPriceInput}
-                            onChange={(e) =>
-                              setNewColorPriceInput(e.target.value.replace(/[^0-9]/g, ''))
-                            }
-                            placeholder={`e.g. ${editingProduct.price || 1299}`}
-                            className="w-full bg-white border border-[#b8e0bf] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2 text-xs font-bold text-[#142319] outline-hidden placeholder-[#8c978f]"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#8b1e1e] mb-1">
-                            Original MRP for this Color (₹)
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={newColorOriginalPriceInput}
-                            onChange={(e) =>
-                              setNewColorOriginalPriceInput(e.target.value.replace(/[^0-9]/g, ''))
-                            }
-                            placeholder={`e.g. ${editingProduct.originalPrice || 2499}`}
-                            className="w-full bg-white border border-[#f8cfca] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-xs text-[#55231c] outline-hidden placeholder-[#8c978f]"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Commit Color & Image Button */}
-                    <div className="flex items-center justify-end gap-2 pt-2">
-                      {editingColorId && (
-                        <button
-                          type="button"
-                          onClick={handleCancelColorEdit}
-                          className="px-3.5 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
-                        >
-                          Cancel Editing
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (editingColorId) {
-                            handleUpdateCurrentColor()
-                          } else {
-                            handleAssignColorToPendingImage(newColorName, newColorHex)
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer flex items-center gap-1.5"
-                      >
-                        {uploading && !uploadedCloudUrl ? (
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Check size={14} />
-                        )}
-                        <span>
-                          {editingColorId
-                            ? 'Update Color Variant'
-                            : uploading && !uploadedCloudUrl
-                            ? 'Pair Photo with this Color (Completing Upload...)'
-                            : 'Pair Photo with this Color'}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Upload Another Photo Button (Under Card & Above Customization) */}
-              <div className="pt-1">
-                <button
-                  type="button"
-                  disabled={Boolean(pendingImageUrl)}
-                  onClick={() => {
-                    setEditingColorId(null)
-                    setPendingImageUrl(null)
-                    fileInputRef.current?.click()
-                  }}
-                  className={`w-full py-3 px-4 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs ${
-                    pendingImageUrl
-                      ? 'bg-[#f4efe8] border-[#ded7cb] text-[#8c978f] cursor-not-allowed opacity-60'
-                      : 'bg-[#faf6f0] hover:bg-[#1c3624] hover:text-white border-[#1c3624] text-[#1c3624]'
-                  }`}
-                >
-                  <Plus size={16} />
-                  <span>+ Upload Another Photo</span>
-                </button>
-                {pendingImageUrl && (
-                  <p className="text-[11px] text-[#b84840] font-semibold mt-1 text-center">
-                    ⚠️ Pair a color with the current photo above before uploading another photo.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* MULTI-OPTION CUSTOMIZATION ADD-ON */}
-            <div className="pt-4 border-t border-[#ebe5da] space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-[#142319] flex items-center gap-1.5">
-                    <Scissors size={15} className="text-[#845d1d]" />
-                    <span>Customization Add-On</span>
-                  </h4>
-                  <p className="text-xs text-[#6b7770]">
-                    Allow customers to request personalized embroidery, DTF prints, or custom initials
-                  </p>
-                </div>
-
-                {/* Sleek iOS-Style Tactile Toggle Switch */}
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-semibold text-[#142319]">
-                    {editingProduct.customization?.enabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={editingProduct.customization?.enabled}
-                    onClick={() => {
-                      const nextEnabled = !editingProduct.customization?.enabled
-                      setEditingProduct({
-                        ...editingProduct,
-                        customization: {
-                          ...editingProduct.customization,
-                          enabled: nextEnabled,
-                        },
-                        features: {
-                          freeDelivery: editingProduct.features?.freeDelivery ?? true,
-                          customizationAvailable: nextEnabled,
-                          returnable: editingProduct.features?.returnable ?? true,
-                          qualityAssured: editingProduct.features?.qualityAssured ?? true,
-                        },
-                      })
-                    }}
-                    className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                      editingProduct.customization?.enabled ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                        editingProduct.customization?.enabled ? 'translate-x-7' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              {/* If Customization is Enabled */}
-              {editingProduct.customization?.enabled && (
-                <div className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 space-y-3">
-                  <span className="text-xs font-bold text-[#142319] uppercase tracking-wider block">
-                    Customization Options Available for this Product
-                  </span>
-
-                  {editingProduct.customization.options.length === 0 ? (
-                    <div className="py-2 text-xs text-[#6b7770]">
-                      No custom options configured yet. Click the button below to add options.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {editingProduct.customization.options.map((opt, idx) => (
-                        <div
-                          key={opt.id}
-                          className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-2 bg-white p-3 sm:p-3.5 rounded-xl border border-[#ebe5da]"
-                        >
-                          <div className="flex-1 w-full">
-                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
-                              Customization Type (e.g. Pocket Monogram, Back DTF Print)
-                            </label>
-                            <input
-                              type="text"
-                              value={opt.type}
-                              onChange={(e) => {
-                                const nextOpts = [...editingProduct.customization.options]
-                                nextOpts[idx].type = e.target.value
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  customization: {
-                                    ...editingProduct.customization,
-                                    options: nextOpts,
-                                  },
-                                })
-                              }}
-                              placeholder="e.g. Pocket Monogram Embroidery, HD DTF Back Print"
-                              className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-3 py-2 text-xs text-[#142319] outline-hidden placeholder-[#8c978f]"
-                            />
-                          </div>
-
-                          <div className="flex items-end gap-2 w-full sm:w-auto">
-                            <div className="flex-1 sm:w-28">
-                              <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
-                                Fee (₹)
-                              </label>
-                              <input
-                                type="number"
-                                value={opt.price}
-                                onChange={(e) => {
-                                  const nextOpts = [...editingProduct.customization.options]
-                                  nextOpts[idx].price = parseInt(e.target.value) || 0
-                                  setEditingProduct({
-                                    ...editingProduct,
-                                    customization: {
-                                      ...editingProduct.customization,
-                                      options: nextOpts,
-                                    },
-                                  })
-                                }}
-                                className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-3 py-2 text-xs text-[#142319] outline-hidden font-bold"
-                              />
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCustomization(opt.id)}
-                              className="p-2.5 rounded-lg text-[#b84840] hover:bg-[#fdf0ef] border border-transparent hover:border-[#f3d3cf] transition-colors cursor-pointer flex-shrink-0"
-                              title="Remove Option"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add Option Button Placed Below the Last Field, Matching Field Width */}
-                  <button
-                    type="button"
-                    onClick={handleAddCustomization}
-                    className="w-full py-2.5 px-4 rounded-xl border border-dashed border-[#206035] bg-white hover:bg-[#eef7f0] text-[#206035] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs mt-2"
-                  >
-                    <Plus size={15} />
-                    <span>+ Add Customization Option (e.g. Sleeve Monogram, DTF Print)</span>
-                  </button>
-
-                  <div className="p-2.5 rounded-xl bg-[#eaf6ec] border border-[#cbe8d1] text-[11px] text-[#246b38] flex items-center gap-1.5 font-medium">
-                    <Check size={13} />
-                    <span>
-                      Customers browsing the storefront will see the <strong>&ldquo;Customization Available&rdquo;</strong> badge on this product card.
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* PRODUCT GUARANTEES & TRUST BADGES (Admin Configurable) */}
-            <div className="pt-4 border-t border-[#ebe5da] space-y-3">
-              <div>
-                <h4 className="text-sm font-bold text-[#142319]">
-                  Storefront Badges &amp; Guarantees
-                </h4>
-                <p className="text-xs text-[#6b7770]">
-                  Select which assurance cards are displayed on this product&apos;s details page
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {[
-                  {
-                    key: 'freeDelivery',
-                    label: 'Express Delivery Available',
-                    sub: 'Displays "Express Delivery Available"',
-                  },
-                  {
-                    key: 'customizationAvailable',
-                    label: 'Customization Available',
-                    sub: 'Auto-toggled with Customization switch above, or toggle manually',
-                  },
-                  {
-                    key: 'returnable',
-                    label: 'Easy Return & Exchange',
-                    sub: 'Displays "Easy Return & Exchange • Doorstep swap"',
-                  },
-                  {
-                    key: 'qualityAssured',
-                    label: '100% Quality Assured',
-                    sub: 'Displays "100% Pure & Quality Assured Guarantee"',
-                  },
-                ].map((feat) => {
-                  const isChecked =
-                    editingProduct.features?.[feat.key as keyof typeof editingProduct.features] ??
-                    (feat.key === 'customizationAvailable'
-                      ? Boolean(editingProduct.customization?.enabled)
-                      : true)
-
-                  return (
-                    <label
-                      key={feat.key}
-                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
-                        isChecked
-                          ? 'bg-[#f4f9f5] border-[#1c3624] text-[#142319]'
-                          : 'bg-white border-[#ded7cb] text-[#6b7770]'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) => {
-                          const nextVal = e.target.checked
-                          setEditingProduct({
-                            ...editingProduct,
-                            features: {
-                              freeDelivery: editingProduct.features?.freeDelivery ?? true,
-                              customizationAvailable:
-                                editingProduct.features?.customizationAvailable ??
-                                Boolean(editingProduct.customization?.enabled),
-                              returnable: editingProduct.features?.returnable ?? true,
-                              qualityAssured: editingProduct.features?.qualityAssured ?? true,
-                              [feat.key]: nextVal,
-                            },
-                          })
-                        }}
-                        className="mt-0.5 rounded text-[#1c3624] focus:ring-[#1c3624] w-4 h-4 cursor-pointer accent-[#1c3624]"
-                      />
-                      <div>
-                        <span className="text-xs font-bold block">{feat.label}</span>
-                        <span className="text-[10px] text-[#6b7770]">{feat.sub}</span>
-                      </div>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Modal Bottom Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#ebe5da]">
-              <button
-                type="button"
-                onClick={() => setEditingProduct(null)}
-                className="px-4 py-2.5 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSaveProductForm}
-                disabled={isSaving}
-                className="px-5 py-2.5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer disabled:opacity-50"
-              >
-                {isSaving ? 'Saving to Cloud...' : 'Save Product'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
