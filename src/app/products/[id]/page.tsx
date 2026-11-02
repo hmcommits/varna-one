@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import ProductDetailsView from '@/components/product/ProductDetailsView'
+import { defaultStoreData } from '@/data/defaultStoreData'
 
 export const dynamicParams = true
 
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
 }
 
 export function generateStaticParams() {
-  return [{ id: '1' }, { id: 'linen-shirt' }]
+  const ids = new Set(['1', 'linen-shirt', ...(defaultStoreData.products || []).map((p) => p.id)])
+  return Array.from(ids).map((id) => ({ id }))
 }
 
 interface ProductPageProps {
