@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { Search, Menu, X, Shield, Lock } from 'lucide-react'
+import { Search, Menu, X, Shield, Lock, Phone } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -19,6 +19,12 @@ export default function Navbar() {
   const pathname = usePathname()
   const { activeStore, searchQuery, setSearchQuery, selectCatalogFilter } = useStore()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const supportPhone = activeStore.settings?.supportPhone || '+91 6363145972'
+  const cleanPhone = supportPhone.replace(/[^0-9+]/g, '')
+  const supportEmail = activeStore.settings?.supportEmail || 'varnaprints2026@gmail.com'
+  const instagramUrl = activeStore.settings?.instagramUrl || 'https://www.instagram.com/varna_prints_/'
+  const instagramHandle = activeStore.settings?.instagramHandle || 'varna_prints_'
 
   // 5-Tap Easter Egg Detection
   const [tapCount, setTapCount] = useState(0)
@@ -272,55 +278,59 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Right Action: Clean Search Bar & Social/Email */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Email Contact Link with Uploaded Gmail Logo */}
+          {/* Right Action: Call, Email & Instagram Logo Buttons + Clean Search */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Call Support Button (Uses Support Phone from Admin Settings) */}
             <a
-              href="mailto:varnaprints2026@gmail.com"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/70 text-[#1a2e1a] transition-all cursor-pointer shadow-2xs group"
-              title="Email: varnaprints2026@gmail.com"
-              aria-label="Email: varnaprints2026@gmail.com"
+              href={`tel:${cleanPhone}`}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#1a2e1a] text-[#1a2e1a] hover:text-white border border-[#e8d5b7]/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
+              title={`Call Customer Support: ${supportPhone}`}
+              aria-label={`Call Customer Support: ${supportPhone}`}
             >
-              <div className="relative w-4 h-4 flex-shrink-0">
+              <Phone size={14} className="group-hover:scale-110 transition-transform" />
+            </a>
+
+            {/* Email Contact (Gmail Logo Only) */}
+            <a
+              href={`mailto:${supportEmail}`}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
+              title={`Email Us: ${supportEmail}`}
+              aria-label={`Email Us: ${supportEmail}`}
+            >
+              <div className="relative w-4 h-4 sm:w-4.5 sm:h-4.5 flex-shrink-0">
                 <Image
                   src="/images/gmail-logo.webp"
                   alt="Email"
                   fill
-                  sizes="16px"
+                  sizes="18px"
                   className="object-contain group-hover:scale-110 transition-transform"
                   unoptimized
                 />
               </div>
-              <span className="hidden xl:inline text-xs font-semibold text-[#1a2e1a]">
-                varnaprints2026@gmail.com
-              </span>
             </a>
 
-            {/* Instagram Link with Uploaded Logo */}
+            {/* Instagram (Instagram Logo Only) */}
             <a
-              href="https://www.instagram.com/varna_prints_/"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/70 text-[#1a2e1a] transition-all cursor-pointer shadow-2xs group"
-              title="Follow @varna_prints_ on Instagram"
-              aria-label="Follow @varna_prints_ on Instagram"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
+              title={`Instagram: @${instagramHandle}`}
+              aria-label={`Instagram: @${instagramHandle}`}
             >
-              <div className="relative w-4 h-4 flex-shrink-0">
+              <div className="relative w-4 h-4 sm:w-4.5 sm:h-4.5 flex-shrink-0">
                 <Image
                   src="/images/instagram-logo.webp"
                   alt="Instagram"
                   fill
-                  sizes="16px"
+                  sizes="18px"
                   className="object-contain group-hover:scale-110 transition-transform"
                   unoptimized
                 />
               </div>
-              <span className="hidden sm:inline text-xs font-semibold text-[#1a2e1a]">
-                @varna_prints_
-              </span>
             </a>
 
-            <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs">
+            <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs ml-1">
               <Search
                 size={15}
                 className="text-[#8a7d6e] flex-shrink-0 cursor-pointer"
@@ -392,71 +402,65 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Email Mobile Card */}
-            <div className="pt-2">
+            {/* Quick Contact & Social Logos Row (Call, Email, Instagram) */}
+            <div className="pt-2 flex items-center justify-around gap-2 bg-[#faf6f0] border border-[#e8d5b7] rounded-2xl p-2.5">
               <a
-                href="mailto:varnaprints2026@gmail.com"
+                href={`tel:${cleanPhone}`}
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-[#faf6f0] border border-[#e8d5b7] hover:bg-[#f4efe6] transition-colors"
+                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+                title={`Call ${supportPhone}`}
+                aria-label={`Call ${supportPhone}`}
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="relative w-6 h-6 flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#1a2e1a] text-white flex items-center justify-center shadow-xs">
+                  <Phone size={16} />
+                </div>
+                <span className="text-[10px] font-semibold text-[#1a2e1a]">Call</span>
+              </a>
+
+              <a
+                href={`mailto:${supportEmail}`}
+                onClick={() => setMobileOpen(false)}
+                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+                title={`Email: ${supportEmail}`}
+                aria-label={`Email: ${supportEmail}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-white border border-[#ded7cb] flex items-center justify-center shadow-xs">
+                  <div className="relative w-5 h-5">
                     <Image
                       src="/images/gmail-logo.webp"
-                      alt="Gmail"
+                      alt="Email"
                       fill
-                      sizes="24px"
+                      sizes="20px"
                       className="object-contain"
                       unoptimized
                     />
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-[#1a2e1a] block leading-tight">
-                      varnaprints2026@gmail.com
-                    </span>
-                    <span className="text-[10px] text-[#7d7062] block leading-tight">
-                      Official email &amp; custom orders
-                    </span>
-                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#1a2e1a] bg-white px-2.5 py-1 rounded-full border border-[#ded7cb]">
-                  Email
-                </span>
+                <span className="text-[10px] font-semibold text-[#1a2e1a]">Email</span>
               </a>
-            </div>
 
-            {/* Instagram Mobile Card */}
-            <div className="pt-2">
               <a
-                href="https://www.instagram.com/varna_prints_/"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-[#faf6f0] border border-[#e8d5b7] hover:bg-[#f4efe6] transition-colors"
+                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+                title={`Instagram: @${instagramHandle}`}
+                aria-label={`Instagram: @${instagramHandle}`}
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="relative w-6 h-6 flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-white border border-[#ded7cb] flex items-center justify-center shadow-xs">
+                  <div className="relative w-5 h-5">
                     <Image
                       src="/images/instagram-logo.webp"
                       alt="Instagram"
                       fill
-                      sizes="24px"
+                      sizes="20px"
                       className="object-contain"
                       unoptimized
                     />
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-[#1a2e1a] block leading-tight">
-                      Follow @varna_prints_
-                    </span>
-                    <span className="text-[10px] text-[#7d7062] block leading-tight">
-                      Explore fresh drops on Instagram
-                    </span>
-                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#1a2e1a] bg-white px-2.5 py-1 rounded-full border border-[#ded7cb]">
-                  Visit
-                </span>
+                <span className="text-[10px] font-semibold text-[#1a2e1a]">Instagram</span>
               </a>
             </div>
           </div>
