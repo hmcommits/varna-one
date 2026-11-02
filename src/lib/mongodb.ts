@@ -3,8 +3,8 @@ import { MongoClient, Db } from 'mongodb'
 const uri = process.env.MONGODB_URI
 const options = {
   maxPoolSize: 5, // Conservative pool for serverless lambdas (Vercel / Atlas M0-M10)
-  serverSelectionTimeoutMS: 1500, // Fail fast so API routes respond in milliseconds
-  connectTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 5000, // 5000ms gives serverless cold starts plenty of time
+  connectTimeoutMS: 8000,
   tls: true,
   tlsAllowInvalidCertificates: true, // Prevents Windows/OpenSSL 3.0 TLS alert 80 handshakes
 }
@@ -20,23 +20,22 @@ export function isMongoConfigured(): boolean {
   return Boolean(uri && uri.startsWith('mongodb'))
 }
 
-// 60-second circuit breaker cooldown after an Atlas connection failure
-const COOLDOWN_PERIOD_MS = 60 * 1000
+// 45-second circuit breaker cooldown after an Atlas connection failure
+const COOLDOWN_PERIOD_MS = 45 * 1000
 
 /**
- * Returns a connected MongoDB database instance with an integrated Circuit Breaker.
- * If connection fails, it fails fast (0ms) on subsequent requests and serves
- * immediately from local cached store data, completely preventing 4-6 second API stalls.
+ * Returns a connected MongoDB database instance.
+ * @param timeoutMs Maximum wait time before failing fast. Defaults to 5000ms.
  */
-export async function getMongoDb(): Promise<Db | null> {
+export async function getMongoDb(timeoutMs = 5000): Promise<Db | null> {
   if (!isMongoConfigured() || !uri) {
     return null
   }
 
-  // Circuit breaker: if recent attempt failed, fail fast (0ms) so requests are never blocked
+  // Circuit breaker: only skip for quick read requests (timeout <= 2000)
   const lastFail = global._mongoLastFailedAttempt || 0
   const now = Date.now()
-  if (now - lastFail < COOLDOWN_PERIOD_MS && !global._mongoClientPromise) {
+  if (timeoutMs <= 2000 && now - lastFail < COOLDOWN_PERIOD_MS && !global._mongoClientPromise) {
     return null
   }
 
@@ -48,13 +47,13 @@ export async function getMongoDb(): Promise<Db | null> {
     const connectedClient = await Promise.race([
       global._mongoClientPromise,
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('MongoDB connection timeout (fast fail)')), 1500)
+        setTimeout(() => reject(new Error('MongoDB connection timeout')), timeoutMs)
       ),
     ])
     global._mongoLastFailedAttempt = undefined
     return connectedClient.db('varna_store')
   } catch (error) {
-    console.warn('MongoDB Atlas temporarily unavailable, serving from fast store cache:', (error as any)?.message || error)
+    console.warn('MongoDB Atlas temporarily unavailable:', (error as any)?.message || error)
     global._mongoLastFailedAttempt = Date.now()
     // Reset the cached promise so it retries after cooldown
     global._mongoClientPromise = undefined

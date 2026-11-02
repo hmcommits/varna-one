@@ -143,7 +143,8 @@ export async function POST(req: Request) {
     const masterSecret = (process.env.ADMIN_SECRET_KEY || process.env.ADMIN_SECRET || '').trim()
     const isMaster = Boolean(masterSecret && token === masterSecret)
 
-    const db = await getMongoDb()
+    // For POST saves, allow up to 8000ms for connection to ensure data is safely persisted
+    const db = await getMongoDb(8000)
 
     // Determine expected passcode from env, MongoDB, or local config
     let storePasscode = process.env.ADMIN_PASSCODE || ''
@@ -188,9 +189,15 @@ export async function POST(req: Request) {
         { upsert: true }
       )
       savedToMongo = true
+    } else if (isVercel) {
+      console.error('MongoDB Atlas unavailable during POST /api/admin/store')
+      return NextResponse.json(
+        { error: 'Cloud database unavailable. Please verify MongoDB Atlas connection.' },
+        { status: 503 }
+      )
     }
 
-    // Also persist to local file if possible (skipped on Vercel)
+    // Also persist to local file if possible (local dev)
     writeLocalStore(body)
 
     // Invalidate public store cache so merchant updates are visible immediately

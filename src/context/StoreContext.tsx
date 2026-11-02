@@ -29,7 +29,7 @@ interface StoreContextType {
   globalPreviewMode: boolean
   setGlobalPreviewMode: (enabled: boolean) => void
   updateDraft: (updater: (prev: StoreState) => StoreState) => void
-  saveDraft: () => Promise<boolean>
+  saveDraft: (overrideDraft?: StoreState) => Promise<boolean>
   discardDraft: () => void
   logEnquiry: (enquiry: Partial<EnquiryItem>) => Promise<void>
   activeStore: StoreState
@@ -150,11 +150,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // 3. Save Draft -> Commit to Server API (MongoDB Atlas) & LocalStorage
-  const saveDraft = useCallback(async (): Promise<boolean> => {
+  const saveDraft = useCallback(async (overrideDraft?: StoreState): Promise<boolean> => {
     setIsSaving(true)
     try {
+      const dataToSave = overrideDraft || draft
       const updatedDraft = {
-        ...draft,
+        ...dataToSave,
         lastUpdated: new Date().toISOString(),
       }
 
@@ -185,23 +186,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         setIsSaving(false)
         return true
+      } else {
+        const errorData = await res.json().catch(() => ({}))
+        console.error('Server rejected store save:', errorData)
+        setIsSaving(false)
+        return false
       }
     } catch (err) {
       console.error('Error saving store to server:', err)
+      setIsSaving(false)
+      return false
     }
-
-    // Fallback save to local storage
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(draft))
-      }
-    } catch {
-      // non-fatal
-    }
-    setStore(draft)
-    setIsDirty(false)
-    setIsSaving(false)
-    return true
   }, [draft])
 
   // 4. Discard Draft -> Revert staging to published store

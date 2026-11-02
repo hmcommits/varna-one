@@ -37,7 +37,7 @@ export default function ProductsModule({
   initialCategoryFilter,
   openCreateOnMount,
 }: ProductsModuleProps) {
-  const { draft, updateDraft } = useStore()
+  const { draft, updateDraft, saveDraft, isSaving } = useStore()
 
   // Dynamically derive categories from CategoriesModule (draft.categories)
   const categoriesList = Array.from(
@@ -347,8 +347,8 @@ export default function ProductsModule({
     setNewSizeEnd('')
   }
 
-  // Save Product (in draft state)
-  const handleSaveProductForm = () => {
+  // Save Product (and immediately persist to Cloud Database)
+  const handleSaveProductForm = async () => {
     if (!editingProduct) return
 
     if (!editingProduct.name.trim()) {
@@ -361,30 +361,43 @@ export default function ProductsModule({
       return
     }
 
-    updateDraft((prev) => {
-      const existing = prev.products || []
-      const index = existing.findIndex((p) => p.id === editingProduct.id)
+    const existing = draft.products || []
+    const index = existing.findIndex((p) => p.id === editingProduct.id)
 
-      if (index >= 0) {
-        const nextList = [...existing]
-        nextList[index] = editingProduct
-        return { ...prev, products: nextList }
-      } else {
-        return { ...prev, products: [editingProduct, ...existing] }
-      }
-    })
+    let nextProducts: Product[]
+    if (index >= 0) {
+      nextProducts = [...existing]
+      nextProducts[index] = editingProduct
+    } else {
+      nextProducts = [editingProduct, ...existing]
+    }
 
+    const nextDraft = {
+      ...draft,
+      products: nextProducts,
+    }
+
+    updateDraft(() => nextDraft)
     setEditingProduct(null)
     setIsCreating(false)
+
+    // Instantly commit to MongoDB Atlas and Vercel cloud
+    const saved = await saveDraft(nextDraft)
+    if (!saved) {
+      alert('Product saved to draft. Please click "Save Changes" at the top to sync to the cloud.')
+    }
   }
 
-  // Delete product
-  const handleDeleteProduct = (id: string, name: string) => {
+  // Delete product (and immediately persist to Cloud Database)
+  const handleDeleteProduct = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
-      updateDraft((prev) => ({
-        ...prev,
-        products: (prev.products || []).filter((p) => p.id !== id),
-      }))
+      const nextProducts = (draft.products || []).filter((p) => p.id !== id)
+      const nextDraft = {
+        ...draft,
+        products: nextProducts,
+      }
+      updateDraft(() => nextDraft)
+      await saveDraft(nextDraft)
     }
   }
 
@@ -1591,9 +1604,10 @@ export default function ProductsModule({
               <button
                 type="button"
                 onClick={handleSaveProductForm}
-                className="px-5 py-2.5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
+                disabled={isSaving}
+                className="px-5 py-2.5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer disabled:opacity-50"
               >
-                Done (Save into Staging)
+                {isSaving ? 'Saving to Cloud...' : 'Save Product'}
               </button>
             </div>
           </div>
