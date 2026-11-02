@@ -261,7 +261,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     const currentUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/products/${product.id}`
-        : `https://varna.store/products/${product.id}`
+        : `https://varnaclothingin.in/products/${product.id}`
 
     const formattedPrice = `₹${totalPrice.toLocaleString('en-IN')}`
 
@@ -338,7 +338,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const productShareUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/products/${product.id}`
-      : `https://varna.store/products/${product.id}`
+      : `https://varnaclothingin.in/products/${product.id}`
 
   const whatsappOrderUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
     buildWhatsAppMessage()
@@ -364,7 +364,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     const currentUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/products/${product.id}`
-        : `https://varna.store/products/${product.id}`
+        : `https://varnaclothingin.in/products/${product.id}`
 
     setActiveViewingProduct({
       productId: product.id,

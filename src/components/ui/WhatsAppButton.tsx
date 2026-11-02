@@ -56,7 +56,7 @@ export default function WhatsAppButton() {
       activeViewingProduct?.url ||
       (typeof window !== 'undefined'
         ? window.location.href
-        : `https://varna.store/products/${activeViewingProduct?.productId || routeProduct?.id}`)
+        : `https://varnaclothingin.in/products/${activeViewingProduct?.productId || routeProduct?.id}`)
 
     const customNotesStr =
       activeViewingProduct?.customOptions && activeViewingProduct.customOptions.length > 0
