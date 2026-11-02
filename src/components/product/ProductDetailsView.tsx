@@ -422,9 +422,9 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
       {/* Main Product Stage */}
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* LEFT COLUMN: Multi-angle Product Gallery (lg:col-span-7) */}
-          <div className="lg:col-span-7 flex flex-col md:flex-row gap-4">
+          <div className="lg:col-span-7 flex flex-col md:flex-row gap-4 items-start self-start w-full lg:sticky lg:top-24">
             {/* Thumbnail Strip: Rock-solid non-collapsing dimensions on all devices */}
             <div className="order-2 md:order-1 flex md:flex-col gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 no-scrollbar shrink-0 max-w-full">
               {galleryImages.map((img, idx) => (
@@ -453,9 +453,9 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               ))}
             </div>
 
-            {/* Main Featured Photo Frame */}
+            {/* Main Featured Photo Frame - Tightly sizes to image itself without dead bottom space */}
             <div
-              className="order-1 md:order-2 relative flex-1 aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#faf8f5] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y"
+              className="order-1 md:order-2 relative flex-1 w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[#faf8f5] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -463,10 +463,12 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               <Image
                 src={currentImage.src}
                 alt={currentImage.alt}
-                fill
+                width={1200}
+                height={1500}
                 priority
                 sizes="(max-width: 1024px) 100vw, 55vw"
-                className="object-contain object-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                className="w-full h-auto max-h-[85vh] object-contain object-top block transition-transform duration-500 ease-out group-hover:scale-[1.01]"
+                unoptimized
               />
 
               {/* Badges Over Image */}
