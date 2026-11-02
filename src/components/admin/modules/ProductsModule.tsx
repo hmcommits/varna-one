@@ -38,19 +38,20 @@ export default function ProductsModule({
 }: ProductsModuleProps) {
   const { draft, updateDraft, saveDraft, isSaving } = useStore()
 
-  // Dynamically derive categories from CategoriesModule (draft.categories)
+  // Dynamically derive categories strictly from CategoriesModule (draft.categories)
   const categoriesList = Array.from(
-    new Set([
-      ...((draft.categories || []).map((c) => c.title.trim()).filter(Boolean)),
-      ...DEFAULT_CATEGORIES,
-    ])
+    new Set(
+      draft.categories && draft.categories.length > 0
+        ? draft.categories.map((c) => c.title.trim()).filter(Boolean)
+        : DEFAULT_CATEGORIES
+    )
   )
 
-  function createEmptyProduct(category = 'Shirts'): Product {
+  function createEmptyProduct(category?: string): Product {
     return {
       id: `prod-${Date.now()}`,
       name: '',
-      category,
+      category: category || categoriesList[0] || 'Linen & Casual Shirts',
       gender: 'Men',
       price: 0,
       originalPrice: 0,
@@ -79,7 +80,7 @@ export default function ProductsModule({
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(
     openCreateOnMount
-      ? createEmptyProduct(initialCategoryFilter || categoriesList[0] || 'Shirts')
+      ? createEmptyProduct(initialCategoryFilter || categoriesList[0])
       : null
   )
   const [isCreating, setIsCreating] = useState(Boolean(openCreateOnMount))
@@ -1430,7 +1431,7 @@ export default function ProductsModule({
           <button
             type="button"
             onClick={() => {
-              setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? 'Shirts' : activeCategoryFilter))
+              setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? categoriesList[0] : activeCategoryFilter))
               setIsCreating(true)
             }}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
@@ -1467,7 +1468,7 @@ export default function ProductsModule({
             <button
               type="button"
               onClick={() => {
-                setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? 'Shirts' : activeCategoryFilter))
+                setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? categoriesList[0] : activeCategoryFilter))
                 setIsCreating(true)
               }}
               className="mt-3.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
