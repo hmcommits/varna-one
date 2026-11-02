@@ -128,15 +128,38 @@ export default function Footer() {
           <p className="text-xs text-[#a89d8f] leading-relaxed max-w-sm mb-4">
             Custom wear, prints, t-shirts, jerseys &amp; hoodies. Crafted for comfort, curated to impress. Wear Your Colors with Varna.
           </p>
-          <div className="flex items-center gap-2 text-xs text-[#a89d8f]">
-            <span>Enquiries:</span>
+          <div className="flex flex-col gap-2 mt-4 pt-3 border-t border-white/10">
+            <div className="flex items-center gap-2 text-xs text-[#a89d8f]">
+              <span>Enquiries:</span>
+              <a
+                href={WHATSAPP_ENQUIRY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#25D366] hover:underline font-semibold flex items-center gap-1"
+              >
+                +91 6363145972
+              </a>
+            </div>
             <a
-              href={WHATSAPP_ENQUIRY_URL}
+              href="https://www.instagram.com/varna_prints_/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#25D366] hover:underline font-semibold flex items-center gap-1"
+              className="inline-flex items-center gap-2 self-start py-1 px-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 text-[#e8d5b7] hover:text-white transition-all group"
+              title="Follow @varna_prints_ on Instagram"
             >
-              +91 6363145972
+              <div className="relative w-4 h-4 flex-shrink-0">
+                <Image
+                  src="/images/instagram-logo.webp"
+                  alt="Instagram"
+                  fill
+                  sizes="16px"
+                  className="object-contain group-hover:scale-105 transition-transform"
+                  unoptimized
+                />
+              </div>
+              <span className="text-xs font-semibold tracking-wide">
+                @varna_prints_
+              </span>
             </a>
           </div>
         </div>
@@ -184,8 +207,26 @@ export default function Footer() {
           <p className="text-xs text-[#a89d8f] mb-3 leading-relaxed">
             Bengaluru Flagship Studio • Open 10 AM – 9 PM daily for bespoke styling &amp; orders.
           </p>
-          <div className="pt-2 border-t border-white/10 flex items-center gap-2 text-[11px] text-[#7d7062]">
+          <div className="pt-2 border-t border-white/10 flex flex-col gap-2 text-[11px] text-[#7d7062]">
             <span>⚡ Ultra-fast WhatsApp Checkout</span>
+            <a
+              href="https://www.instagram.com/varna_prints_/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[#a89d8f] hover:text-[#e8d5b7] transition-colors"
+            >
+              <div className="relative w-3.5 h-3.5 flex-shrink-0">
+                <Image
+                  src="/images/instagram-logo.webp"
+                  alt="Instagram"
+                  fill
+                  sizes="14px"
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+              <span>Follow our new drops on Instagram</span>
+            </a>
           </div>
         </div>
       </div>

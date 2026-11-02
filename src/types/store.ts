@@ -147,6 +147,8 @@ export interface StoreSettings {
   logoUrl: string
   passcode: string
   storeStatus: 'Online' | 'Flash Sale' | 'Maintenance'
+  instagramHandle?: string
+  instagramUrl?: string
 }
 
 export interface ReviewItem {

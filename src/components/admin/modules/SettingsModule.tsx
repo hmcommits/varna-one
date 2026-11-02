@@ -392,6 +392,30 @@ export default function SettingsModule() {
             <p className="text-[10px] text-[#8c978f] mt-1">Country code +91 is locked by default</p>
           </div>
 
+          {/* Instagram Account */}
+          <div>
+            <label className="block text-xs font-semibold text-[#142319] mb-1">
+              Instagram Account
+            </label>
+            <div className="flex rounded-xl overflow-hidden border border-[#ded7cb] focus-within:border-[#1c3624] focus-within:ring-1 focus-within:ring-[#1c3624]">
+              <span className="bg-[#f0ece4] text-[#6b7770] px-3 py-2 text-xs font-mono font-bold select-none border-r border-[#ded7cb] flex items-center">
+                @
+              </span>
+              <input
+                type="text"
+                value={settings.instagramHandle || 'varna_prints_'}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/^@/, '').trim()
+                  handleUpdate('instagramHandle', val)
+                  handleUpdate('instagramUrl', `https://www.instagram.com/${val}/`)
+                }}
+                placeholder="varna_prints_"
+                className="w-full bg-white px-3 py-2 text-xs text-[#142319] outline-hidden font-mono"
+              />
+            </div>
+            <p className="text-[10px] text-[#8c978f] mt-1">Auto-syncs storefront Instagram links</p>
+          </div>
+
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[#142319] mb-1">
               Studio Address

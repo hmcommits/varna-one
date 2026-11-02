@@ -14,6 +14,8 @@ export const defaultStoreData: StoreState = {
       'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
+    instagramHandle: 'varna_prints_',
+    instagramUrl: 'https://www.instagram.com/varna_prints_/',
   },
   products: [
   {

@@ -272,8 +272,32 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Right Action: Clean Search Bar */}
+          {/* Right Action: Clean Search Bar & Instagram */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Instagram Link with Uploaded Logo */}
+            <a
+              href="https://www.instagram.com/varna_prints_/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/70 text-[#1a2e1a] transition-all cursor-pointer shadow-2xs group"
+              title="Follow @varna_prints_ on Instagram"
+              aria-label="Follow @varna_prints_ on Instagram"
+            >
+              <div className="relative w-4 h-4 flex-shrink-0">
+                <Image
+                  src="/images/instagram-logo.webp"
+                  alt="Instagram"
+                  fill
+                  sizes="16px"
+                  className="object-contain group-hover:scale-110 transition-transform"
+                  unoptimized
+                />
+              </div>
+              <span className="hidden sm:inline text-xs font-semibold text-[#1a2e1a]">
+                @varna_prints_
+              </span>
+            </a>
+
             <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs">
               <Search
                 size={15}
@@ -344,6 +368,41 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+            </div>
+
+            {/* Instagram Mobile Card */}
+            <div className="pt-2">
+              <a
+                href="https://www.instagram.com/varna_prints_/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-[#faf6f0] border border-[#e8d5b7] hover:bg-[#f4efe6] transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="relative w-6 h-6 flex-shrink-0">
+                    <Image
+                      src="/images/instagram-logo.webp"
+                      alt="Instagram"
+                      fill
+                      sizes="24px"
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#1a2e1a] block leading-tight">
+                      Follow @varna_prints_
+                    </span>
+                    <span className="text-[10px] text-[#7d7062] block leading-tight">
+                      Explore fresh drops on Instagram
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-[#1a2e1a] bg-white px-2.5 py-1 rounded-full border border-[#ded7cb]">
+                  Visit
+                </span>
+              </a>
             </div>
           </div>
         )}
