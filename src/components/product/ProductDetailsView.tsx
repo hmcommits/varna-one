@@ -122,11 +122,13 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   // Re-synchronize selectedColor when product is fetched / changed
   useEffect(() => {
     if (uniqueColors.length > 0) {
-      setSelectedColor(uniqueColors[0])
-      setSelectedImageIndex(0)
+      setSelectedColor((prev) => {
+        const found = uniqueColors.find((c) => c.id === prev?.id || c.name === prev?.name)
+        return found || uniqueColors[0]
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product.id])
+  }, [product.id, product.colors])
 
   // Customization state - Multi-select supported
   const hasCustomization = product.customization?.enabled ?? false
@@ -135,14 +137,25 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const [customNotes, setCustomNotes] = useState('')
 
   const isColorPricing = Boolean(product.hasColorPricing)
+  const firstColorWithPrice = uniqueColors.find((c) => c.price && c.price > 0)
+
+  // Dynamically resolve price of the currently active / shown color
+  const activeColorPrice = selectedColor?.price || firstColorWithPrice?.price
   const price =
-    isColorPricing && selectedColor?.price
-      ? selectedColor.price
-      : product.price || 999
+    isColorPricing && activeColorPrice && activeColorPrice > 0
+      ? activeColorPrice
+      : product.price && product.price > 0
+      ? product.price
+      : activeColorPrice || 999
+
+  const activeColorOrig = selectedColor?.originalPrice || firstColorWithPrice?.originalPrice
   const originalPrice =
-    isColorPricing && selectedColor?.originalPrice
-      ? selectedColor.originalPrice
-      : product.originalPrice || price
+    isColorPricing && activeColorOrig && activeColorOrig > 0
+      ? activeColorOrig
+      : product.originalPrice && product.originalPrice > 0
+      ? product.originalPrice
+      : price
+
   const discount =
     originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
 
@@ -711,6 +724,11 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                       style={{ backgroundColor: c.hex }}
                     />
                     <span>{c.name}</span>
+                    {isColorPricing && c.price && (
+                      <span className="text-[10px] font-bold text-[#1e4a36] bg-[#eef7f0] px-1.5 py-0.5 rounded-md border border-[#b8e0bf]">
+                        ₹{c.price.toLocaleString('en-IN')}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

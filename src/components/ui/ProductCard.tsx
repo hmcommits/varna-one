@@ -73,19 +73,32 @@ export default function ProductCard({
 
   const [selectedColorIdx, setSelectedColorIdx] = useState<number | null>(null)
 
-  // Current active image: user-selected color image if clicked, otherwise strictly the first uploaded image
-  const currentColor = selectedColorIdx !== null ? normalizedColors[selectedColorIdx] : null
-  const displayImage = currentColor?.image || firstUploadedImage
+  // Current active shown color: user-selected color if clicked, otherwise strictly the first color (index 0)
+  const activeColor =
+    (selectedColorIdx !== null ? normalizedColors[selectedColorIdx] : normalizedColors[0]) || null
+  const displayImage = activeColor?.image || firstUploadedImage
 
   const isColorPricing = Boolean(hasColorPricing)
+  const firstColorWithPrice = normalizedColors.find((c) => c.price && c.price > 0)
+
+  // Dynamically resolve price of the currently shown color
   const effectivePrice =
-    isColorPricing && currentColor && typeof currentColor === 'object' && currentColor.price
-      ? currentColor.price
-      : price
+    isColorPricing && activeColor?.price && activeColor.price > 0
+      ? activeColor.price
+      : price && price > 0
+      ? price
+      : activeColor?.price && activeColor.price > 0
+      ? activeColor.price
+      : firstColorWithPrice?.price || 0
+
   const effectiveOriginalPrice =
-    isColorPricing && currentColor && typeof currentColor === 'object' && currentColor.originalPrice
-      ? currentColor.originalPrice
-      : originalPrice
+    isColorPricing && activeColor?.originalPrice && activeColor.originalPrice > 0
+      ? activeColor.originalPrice
+      : originalPrice && originalPrice > 0
+      ? originalPrice
+      : activeColor?.originalPrice && activeColor.originalPrice > 0
+      ? activeColor.originalPrice
+      : firstColorWithPrice?.originalPrice || effectivePrice
 
   const discount =
     effectiveOriginalPrice > effectivePrice
@@ -106,7 +119,7 @@ export default function ProductCard({
   const handleEnquiryClick = () => {
     logEnquiry({
       productName: name,
-      color: currentColor?.name || currentColor?.hex || 'Default',
+      color: activeColor?.name || activeColor?.hex || 'Default',
       size: 'Free Size',
       quantity: 1,
       source: 'Product Card',
@@ -254,14 +267,18 @@ export default function ProductCard({
                 <button
                   key={c.hex + idx}
                   type="button"
-                  onClick={() => setSelectedColorIdx(idx)}
+                  onMouseEnter={() => setSelectedColorIdx(idx)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedColorIdx(idx)
+                  }}
                   className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all cursor-pointer ${
                     isSelected
                       ? 'ring-2 ring-[#1a2e1a] ring-offset-1 scale-110'
                       : 'hover:scale-105'
                   }`}
                   style={{ backgroundColor: c.hex }}
-                  title={c.name || c.hex}
+                  title={`${c.name || c.hex}${c.price ? ` - ₹${c.price}` : ''}`}
                 />
               )
             })}

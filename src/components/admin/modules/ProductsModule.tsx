@@ -408,6 +408,15 @@ export default function ProductsModule({
         alert(`Please enter a valid selling price for the color "${missingPriceColor.name}".`)
         return
       }
+      // Ensure product level fallback price is never left at 0
+      const validPrices = editingProduct.colors.map((c) => c.price || 0).filter((p) => p > 0)
+      if (validPrices.length > 0 && (!editingProduct.price || editingProduct.price === 0)) {
+        editingProduct.price = validPrices[0]
+      }
+      const validOrig = editingProduct.colors.map((c) => c.originalPrice || 0).filter((p) => p > 0)
+      if (validOrig.length > 0 && (!editingProduct.originalPrice || editingProduct.originalPrice === 0)) {
+        editingProduct.originalPrice = validOrig[0]
+      }
     }
 
     const existing = draft.products || []
