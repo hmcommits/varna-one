@@ -83,27 +83,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // 1. Initial Load: Stale-While-Revalidate (Cache-first for instant 0ms load speed)
+  // 1. Initial Load: Stale-While-Revalidate (Instant 0ms first-time and returning load speed)
   useEffect(() => {
-    let hasHydratedFromCache = false
-
-    // Immediate synchronous local hydration
+    // Immediate 0ms synchronous local hydration: use localStorage if available, or defaultStoreData
+    let initialSeed = defaultStoreData
     try {
       if (typeof window !== 'undefined') {
         const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
         if (cached) {
           const parsed = JSON.parse(cached)
           if (parsed && Array.isArray(parsed.products)) {
-            setStore(parsed)
-            setDraft(parsed)
-            setIsLoading(false)
-            hasHydratedFromCache = true
+            initialSeed = parsed
           }
         }
       }
     } catch {
       // LocalStorage access restricted or invalid JSON
     }
+
+    // Instantly hydrate storefront so first-time visitors see products in 0ms without waiting
+    setStore(initialSeed)
+    setDraft(initialSeed)
+    setIsLoading(false)
 
     async function loadInitialData() {
       try {
@@ -128,19 +129,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             } catch {
               // localStorage may be full or restricted in some browsers
             }
-            setIsLoading(false)
             return
           }
         }
       } catch (err) {
         console.warn('Could not fetch from server API, using local fallback:', err)
-      }
-
-      // If we didn't hydrate from cache and network failed/returned empty, fallback to default
-      if (!hasHydratedFromCache) {
-        setStore(defaultStoreData)
-        setDraft(defaultStoreData)
-        setIsLoading(false)
       }
     }
 

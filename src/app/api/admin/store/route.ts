@@ -12,6 +12,10 @@ export const maxDuration = 15
 const LOCAL_STORE_FILE = path.join(process.cwd(), 'src', 'data', 'store.json')
 const isVercel = Boolean(process.env.VERCEL)
 
+// High-speed in-memory cache for visitor store reads (0ms response time)
+let inMemoryStoreCache: { data: any; timestamp: number } | null = null
+const CACHE_TTL_MS = 30 * 1000 // 30 seconds cache
+
 function readLocalStore(): StoreState | null {
   try {
     if (fs.existsSync(LOCAL_STORE_FILE)) {
@@ -63,12 +67,19 @@ function isAuthenticated(providedToken: string | null, expectedPasscode: string)
 
 export async function GET(req: Request) {
   try {
-    const db = await getMongoDb()
-
     // Check if request is from an authenticated admin
     const providedToken =
       req.headers.get('x-admin-token') ||
       req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+
+    // Fast path for public visitors: return in-memory cached store in 0.1ms
+    if (!providedToken && inMemoryStoreCache && Date.now() - inMemoryStoreCache.timestamp < CACHE_TTL_MS) {
+      return NextResponse.json(inMemoryStoreCache.data, {
+        headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
+      })
+    }
+
+    const db = await getMongoDb()
 
     let expectedPasscode: string =
       process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
@@ -106,6 +117,10 @@ export async function GET(req: Request) {
 
     // Sanitize: strip passcode from public storefront responses
     const responseData = isAdmin ? storeData : sanitizeForPublic(storeData)
+
+    if (!isAdmin) {
+      inMemoryStoreCache = { data: responseData, timestamp: Date.now() }
+    }
 
     return NextResponse.json(responseData, {
       headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
@@ -170,6 +185,9 @@ export async function POST(req: Request) {
 
     // Also persist to local file if possible (skipped on Vercel)
     writeLocalStore(body)
+
+    // Invalidate public store cache so merchant updates are visible immediately
+    inMemoryStoreCache = null
 
     return NextResponse.json({
       success: true,

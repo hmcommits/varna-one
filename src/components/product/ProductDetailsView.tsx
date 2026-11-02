@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Star,
   Truck,
@@ -57,7 +58,13 @@ interface ProductDetailsViewProps {
 }
 
 export default function ProductDetailsView({ productId }: ProductDetailsViewProps = {}) {
+  const router = useRouter()
   const { activeStore, logEnquiry, setActiveViewingProduct, isLoading } = useStore()
+
+  // Preload home page route on mount for instantaneous (<50ms) back navigation
+  useEffect(() => {
+    router.prefetch('/')
+  }, [router])
 
   const fallbackProduct: Product = {
     id: '',
@@ -442,27 +449,40 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     <div className="bg-[#faf8f4] min-h-screen pt-4 sm:pt-8 pb-32 sm:pb-20">
       {/* Breadcrumbs Navigation */}
       <div className="max-w-7xl mx-auto px-4 mb-4 sm:mb-6">
-        <nav className="flex items-center gap-1.5 text-xs text-[#7d7062]">
-          <Link
-            href="/"
-            className="hover:text-[#1a2e1a] flex items-center gap-1 transition-colors font-medium"
+        <nav className="flex items-center gap-1.5 text-xs text-[#7d7062] flex-wrap" aria-label="Breadcrumb">
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                router.push('/')
+              } catch {
+                window.location.href = '/'
+              }
+            }}
+            className="hover:text-[#1a2e1a] text-[#142319] flex items-center gap-1.5 transition-all font-semibold cursor-pointer py-1.5 px-2.5 -ml-2 rounded-lg bg-black/5 hover:bg-black/10 active:scale-95"
+            aria-label="Back to Home"
           >
-            <ArrowLeft size={13} />
+            <ArrowLeft size={14} className="text-[#1a2e1a]" />
             <span>Home</span>
-          </Link>
-          <ChevronRight size={13} className="text-[#c4a675]" />
-          <Link href="/#men" className="hover:text-[#1a2e1a] transition-colors font-medium">
+          </button>
+          <ChevronRight size={13} className="text-[#c4a675] shrink-0" />
+          <Link
+            href="/#men"
+            prefetch={true}
+            className="hover:text-[#1a2e1a] transition-colors font-medium py-1 px-1.5 rounded hover:bg-black/5"
+          >
             {product.gender || 'Men'}
           </Link>
-          <ChevronRight size={13} className="text-[#c4a675]" />
+          <ChevronRight size={13} className="text-[#c4a675] shrink-0" />
           <Link
             href="/#new-arrivals"
-            className="hover:text-[#1a2e1a] transition-colors font-medium"
+            prefetch={true}
+            className="hover:text-[#1a2e1a] transition-colors font-medium py-1 px-1.5 rounded hover:bg-black/5"
           >
             {product.category || 'Shirts'}
           </Link>
-          <ChevronRight size={13} className="text-[#c4a675]" />
-          <span className="text-[#1a1a1a] font-semibold truncate">
+          <ChevronRight size={13} className="text-[#c4a675] shrink-0" />
+          <span className="text-[#1a1a1a] font-semibold truncate max-w-[200px] sm:max-w-xs">
             {product.name}
           </span>
         </nav>
