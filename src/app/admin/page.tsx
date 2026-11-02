@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useStore } from '@/context/StoreContext'
 import {
   LayoutDashboard,
@@ -26,16 +27,49 @@ import {
   LucideIcon,
 } from 'lucide-react'
 
-// Admin Modules
-import DashboardModule from '@/components/admin/modules/DashboardModule'
-import ProductsModule from '@/components/admin/modules/ProductsModule'
-import CategoriesModule from '@/components/admin/modules/CategoriesModule'
-import EnquiriesModule from '@/components/admin/modules/EnquiriesModule'
-import HomepageModule from '@/components/admin/modules/HomepageModule'
-import PromotionsModule from '@/components/admin/modules/PromotionsModule'
-import WhatsAppModule from '@/components/admin/modules/WhatsAppModule'
-import SettingsModule from '@/components/admin/modules/SettingsModule'
-import ReviewsModule from '@/components/admin/modules/ReviewsModule'
+// Lightweight inline skeleton for lazy-loaded admin modules
+function AdminModuleSkeleton() {
+  return (
+    <div className="p-6 animate-pulse space-y-4">
+      <div className="h-6 w-48 bg-[#e8d5b7]/30 rounded-lg" />
+      <div className="h-4 w-72 bg-[#e8d5b7]/20 rounded" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 bg-[#e8d5b7]/15 rounded-2xl" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Code-split admin modules — only the active tab downloads its JS
+const DashboardModule = dynamic(() => import('@/components/admin/modules/DashboardModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const ProductsModule = dynamic(() => import('@/components/admin/modules/ProductsModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const CategoriesModule = dynamic(() => import('@/components/admin/modules/CategoriesModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const EnquiriesModule = dynamic(() => import('@/components/admin/modules/EnquiriesModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const HomepageModule = dynamic(() => import('@/components/admin/modules/HomepageModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const PromotionsModule = dynamic(() => import('@/components/admin/modules/PromotionsModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const WhatsAppModule = dynamic(() => import('@/components/admin/modules/WhatsAppModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const SettingsModule = dynamic(() => import('@/components/admin/modules/SettingsModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
+const ReviewsModule = dynamic(() => import('@/components/admin/modules/ReviewsModule'), {
+  loading: () => <AdminModuleSkeleton />,
+})
 import UnsavedChangesModal from '@/components/admin/UnsavedChangesModal'
 
 type TabId =
@@ -159,6 +193,10 @@ export default function AdminDashboardPage() {
         router.replace('/admin/login')
       } else {
         setAuthenticated(true)
+        // Ensure edge middleware cookie is set for multi-tab/device support
+        if (!document.cookie.includes('varna_admin_session=authenticated')) {
+          document.cookie = `varna_admin_session=authenticated; path=/; max-age=86400; SameSite=Lax`
+        }
       }
     }
   }, [router])
@@ -238,6 +276,10 @@ export default function AdminDashboardPage() {
     }
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('varna_admin_session')
+      sessionStorage.removeItem('varna_admin_token')
+      localStorage.removeItem('varna_admin_authenticated')
+      // Clear the edge middleware cookie
+      document.cookie = 'varna_admin_session=; path=/; max-age=0; SameSite=Lax'
     }
     router.replace('/admin/login')
   }

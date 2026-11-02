@@ -44,6 +44,24 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
+/**
+ * Returns the admin token from sessionStorage if authenticated.
+ * Safe for all browsers — returns null when sessionStorage is unavailable.
+ */
+function getAdminToken(): string | null {
+  try {
+    if (typeof window !== 'undefined') {
+      const isAuth = sessionStorage.getItem('varna_admin_session') === 'true'
+      if (isAuth) {
+        return sessionStorage.getItem('varna_admin_token')
+      }
+    }
+  } catch {
+    // sessionStorage may throw in some restricted contexts (e.g. cross-origin iframes)
+  }
+  return null
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [store, setStore] = useState<StoreState>(defaultStoreData)
   const [draft, setDraft] = useState<StoreState>(defaultStoreData)
@@ -69,14 +87,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const res = await fetch('/api/admin/store')
+        // If admin is authenticated, send token so server returns full data
+        // (including settings.passcode needed for password change in SettingsModule)
+        const adminToken = getAdminToken()
+        const headers: Record<string, string> = {}
+        if (adminToken) {
+          headers['x-admin-token'] = adminToken
+        }
+
+        const res = await fetch('/api/admin/store', { headers })
         if (res.ok) {
           const remoteData: StoreState = await res.json()
           if (remoteData && remoteData.products) {
             setStore(remoteData)
             setDraft(remoteData)
-            if (typeof window !== 'undefined') {
-              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remoteData))
+            try {
+              if (typeof window !== 'undefined') {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remoteData))
+              }
+            } catch {
+              // localStorage may be full or restricted in some browsers
             }
             setIsLoading(false)
             return
@@ -87,18 +117,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Local storage fallback
-      if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
-        if (cached) {
-          try {
+      try {
+        if (typeof window !== 'undefined') {
+          const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
+          if (cached) {
             const parsed = JSON.parse(cached)
             setStore(parsed)
             setDraft(parsed)
-          } catch {
-            setStore(defaultStoreData)
-            setDraft(defaultStoreData)
           }
         }
+      } catch {
+        setStore(defaultStoreData)
+        setDraft(defaultStoreData)
       }
       setIsLoading(false)
     }
@@ -125,9 +155,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       const adminToken =
-        (typeof window !== 'undefined'
-          ? sessionStorage.getItem('varna_admin_token')
-          : null) ||
+        getAdminToken() ||
         updatedDraft.settings?.passcode ||
         'varna2026'
 
@@ -144,8 +172,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setStore(updatedDraft)
         setDraft(updatedDraft)
         setIsDirty(false)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedDraft))
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedDraft))
+          }
+        } catch {
+          // localStorage quota exceeded — non-fatal
         }
         setIsSaving(false)
         return true
@@ -155,8 +187,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Fallback save to local storage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(draft))
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(draft))
+      }
+    } catch {
+      // non-fatal
     }
     setStore(draft)
     setIsDirty(false)

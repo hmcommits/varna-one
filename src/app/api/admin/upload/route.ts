@@ -6,6 +6,10 @@ import fs from 'fs'
 import path from 'path'
 import { StoreState } from '@/types/store'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 15
+
 const LOCAL_STORE_FILE = path.join(process.cwd(), 'src', 'data', 'store.json')
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB ceiling
 

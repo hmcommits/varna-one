@@ -5,7 +5,12 @@ import fs from 'fs'
 import path from 'path'
 import { StoreState } from '@/types/store'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 15
+
 const LOCAL_STORE_FILE = path.join(process.cwd(), 'src', 'data', 'store.json')
+const isVercel = Boolean(process.env.VERCEL)
 
 function readLocalStore(): StoreState | null {
   try {
@@ -20,6 +25,8 @@ function readLocalStore(): StoreState | null {
 }
 
 function writeLocalStore(state: StoreState): boolean {
+  // On Vercel, filesystem is read-only — skip silently
+  if (isVercel) return false
   try {
     const dir = path.dirname(LOCAL_STORE_FILE)
     if (!fs.existsSync(dir)) {
@@ -33,18 +40,46 @@ function writeLocalStore(state: StoreState): boolean {
   }
 }
 
-export async function GET() {
+/**
+ * Strips the admin passcode from the store data before sending to
+ * unauthenticated visitors. The storefront never needs the passcode.
+ */
+function sanitizeForPublic(data: any): any {
+  const sanitized = { ...data }
+  if (sanitized.settings) {
+    sanitized.settings = { ...sanitized.settings }
+    delete sanitized.settings.passcode
+  }
+  return sanitized
+}
+
+/**
+ * Checks if the provided token matches the expected admin passcode.
+ */
+function isAuthenticated(providedToken: string | null, expectedPasscode: string): boolean {
+  if (!providedToken || !expectedPasscode) return false
+  return providedToken.trim() === expectedPasscode.trim()
+}
+
+export async function GET(req: Request) {
   try {
     const db = await getMongoDb()
+
+    // Check if request is from an authenticated admin
+    const providedToken =
+      req.headers.get('x-admin-token') ||
+      req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+
+    let expectedPasscode: string =
+      process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || ''
+
+    let storeData: any = null
 
     if (db) {
       const config = await db.collection('config').findOne({ _id: 'store_config' as any })
       if (config) {
-        // remove mongo internal _id
-        const { _id: _, ...storeData } = config
-        return NextResponse.json(storeData, {
-          headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
-        })
+        const { _id: _, ...data } = config
+        storeData = data
       } else {
         // Seed MongoDB Atlas on first connect
         const initialData = readLocalStore() || defaultStoreData
@@ -53,22 +88,31 @@ export async function GET() {
           { $set: { ...initialData, _id: 'store_config' } },
           { upsert: true }
         )
-        return NextResponse.json(initialData, {
-          headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
-        })
+        storeData = initialData
       }
+    } else {
+      storeData = readLocalStore() || defaultStoreData
     }
 
-    // Fallback to local store.json or defaultStoreData
-    const local = readLocalStore()
-    if (local) {
-      return NextResponse.json(local)
+    // Resolve expected passcode if not from env
+    if (!expectedPasscode) {
+      expectedPasscode =
+        storeData?.settings?.passcode ||
+        defaultStoreData.settings.passcode ||
+        'varna2026'
     }
 
-    return NextResponse.json(defaultStoreData)
+    const isAdmin = isAuthenticated(providedToken || null, expectedPasscode)
+
+    // Sanitize: strip passcode from public storefront responses
+    const responseData = isAdmin ? storeData : sanitizeForPublic(storeData)
+
+    return NextResponse.json(responseData, {
+      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=59' },
+    })
   } catch (err) {
     console.error('Error fetching store state:', err)
-    return NextResponse.json(defaultStoreData)
+    return NextResponse.json(sanitizeForPublic(defaultStoreData))
   }
 }
 
@@ -124,7 +168,7 @@ export async function POST(req: Request) {
       savedToMongo = true
     }
 
-    // Also persist to local file if possible
+    // Also persist to local file if possible (skipped on Vercel)
     writeLocalStore(body)
 
     return NextResponse.json({

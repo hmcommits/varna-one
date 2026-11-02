@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server'
 import { getMongoDb } from '@/lib/mongodb'
 import { EnquiryItem } from '@/types/store'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 10
+
+/**
+ * Clamp a string to a maximum length, preventing payload abuse.
+ */
+function clamp(val: string | undefined, maxLen: number, fallback: string): string {
+  const v = (val || fallback).trim()
+  return v.length > maxLen ? v.slice(0, maxLen) : v
+}
+
 export async function POST(req: Request) {
   try {
     const body: Partial<EnquiryItem> = await req.json()
@@ -14,12 +26,12 @@ export async function POST(req: Request) {
         hour: '2-digit',
         minute: '2-digit',
       }),
-      productName: body.productName || 'General Store Enquiry',
-      color: body.color || 'Default',
-      size: body.size || 'Standard',
-      quantity: body.quantity || 1,
-      customNotes: body.customNotes || '',
-      source: body.source || 'Floating Concierge',
+      productName: clamp(body.productName, 120, 'General Store Enquiry'),
+      color: clamp(body.color, 50, 'Default'),
+      size: clamp(body.size, 50, 'Standard'),
+      quantity: Math.max(1, Math.min(100, Number(body.quantity) || 1)),
+      customNotes: clamp(body.customNotes, 500, ''),
+      source: (body.source || 'Floating Concierge') as EnquiryItem['source'],
       completed: false,
     }
 

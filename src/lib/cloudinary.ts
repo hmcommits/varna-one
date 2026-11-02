@@ -10,6 +10,9 @@ const cloudinaryUrl = process.env.CLOUDINARY_URL
 
 const isCloudinaryConfigured = Boolean((cloudName && apiKey && apiSecret) || cloudinaryUrl)
 
+// Vercel serverless lambdas have a read-only filesystem outside /tmp
+const isVercel = Boolean(process.env.VERCEL)
+
 if (isCloudinaryConfigured) {
   if (cloudName && apiKey && apiSecret) {
     cloudinary.config({
@@ -74,14 +77,25 @@ export async function processAndUploadImage(
     }
   }
 
-  // 2. Local Fallback via Sharp (saved to public/images/uploads/)
-  const uploadsDir = path.join(process.cwd(), 'public', 'images', 'uploads')
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true })
+  // 2. On Vercel, the filesystem is read-only — cannot write to public/
+  if (isVercel) {
+    throw new Error(
+      'Image upload requires Cloudinary configuration. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your Vercel environment variables.'
+    )
   }
 
-  const filePath = path.join(uploadsDir, filename)
-  fs.writeFileSync(filePath, webpBuffer)
+  // 3. Local Fallback via Sharp (saved to public/images/uploads/) — dev only
+  const uploadsDir = path.join(process.cwd(), 'public', 'images', 'uploads')
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true })
+    }
+    const filePath = path.join(uploadsDir, filename)
+    fs.writeFileSync(filePath, webpBuffer)
+  } catch (fsErr) {
+    console.warn('Local filesystem write failed (read-only environment):', fsErr)
+    throw new Error('Image upload failed: Cloudinary is not configured and local storage is unavailable.')
+  }
 
   return {
     url: `/images/uploads/${filename}`,

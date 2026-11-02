@@ -123,6 +123,10 @@ export default function SettingsModule() {
     }
 
     handleUpdate('passcode', newPassword)
+    // Update the session token so future API calls use the new passcode
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('varna_admin_token', newPassword)
+    }
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')

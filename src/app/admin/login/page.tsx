@@ -18,23 +18,47 @@ export default function AdminLoginPage() {
     router.prefetch('/admin')
   }, [router])
 
-  const masterPasscode = store.settings?.passcode || 'varna2026'
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(false)
 
-    if (passcode.trim() === masterPasscode) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('varna_admin_session', 'true')
-        sessionStorage.setItem('varna_admin_token', passcode.trim())
-        localStorage.setItem('varna_admin_authenticated', 'true')
+    try {
+      // Server-side verification — sets HttpOnly cookie for Edge Middleware
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: passcode.trim() }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('varna_admin_session', 'true')
+          sessionStorage.setItem('varna_admin_token', data.token || passcode.trim())
+          localStorage.setItem('varna_admin_authenticated', 'true')
+        }
+        router.push('/admin')
+      } else {
+        setError(true)
+        setLoading(false)
       }
-      router.push('/admin')
-    } else {
-      setError(true)
-      setLoading(false)
+    } catch {
+      // Fallback: client-side check against store passcode (offline/local dev)
+      const masterPasscode = store.settings?.passcode || 'varna2026'
+      if (passcode.trim() === masterPasscode) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('varna_admin_session', 'true')
+          sessionStorage.setItem('varna_admin_token', passcode.trim())
+          localStorage.setItem('varna_admin_authenticated', 'true')
+          // Set cookie manually for middleware fallback
+          document.cookie = `varna_admin_session=authenticated; path=/; max-age=86400; SameSite=Lax`
+        }
+        router.push('/admin')
+      } else {
+        setError(true)
+        setLoading(false)
+      }
     }
   }
 
@@ -114,7 +138,7 @@ export default function AdminLoginPage() {
               </div>
               {error && (
                 <p className="text-xs text-[#b84840] mt-1.5 font-medium flex items-center gap-1">
-                  <span>Invalid passcode. Please verify or use demo fill below.</span>
+                  <span>Invalid passcode. Please verify and try again.</span>
                 </p>
               )}
             </div>
