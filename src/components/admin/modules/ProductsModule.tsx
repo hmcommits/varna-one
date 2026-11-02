@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
 import { Product, ProductColor, CustomizationOption } from '@/types/store'
@@ -78,6 +78,19 @@ export default function ProductsModule({
   const [newColorHex, setNewColorHex] = useState('')
   const [newColorPriceInput, setNewColorPriceInput] = useState<string>('')
   const [newColorOriginalPriceInput, setNewColorOriginalPriceInput] = useState<string>('')
+  const [supportsEyeDropper, setSupportsEyeDropper] = useState(false)
+
+  // Detect Chromium desktop EyeDropper support (hide completely on mobile)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'EyeDropper' in window) {
+      const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      )
+      if (!isMobile) {
+        setSupportsEyeDropper(true)
+      }
+    }
+  }, [])
 
   function createEmptyProduct(category = 'Shirts'): Product {
     return {
@@ -1467,40 +1480,6 @@ export default function ProductsModule({
                       )}
                     </div>
 
-                    {/* Existing Colors in this product */}
-                    {editingProduct.colors.length > 0 && !editingColorId && (
-                      <div className="space-y-1.5">
-                        <span className="text-[11px] font-semibold text-[#6b7770] block">
-                          Pick from existing colors in this product:
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {Array.from(
-                            new Map(editingProduct.colors.map((c) => [c.hex.toLowerCase(), c])).values()
-                          ).map((c) => (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onClick={() => {
-                                setNewColorName(c.name)
-                                setNewColorHex(c.hex)
-                              }}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
-                                newColorHex && newColorHex.toLowerCase() === c.hex.toLowerCase()
-                                  ? 'border-[#1c3624] bg-[#eef7f0] text-[#1c3624] font-bold shadow-2xs'
-                                  : 'border-[#ded7cb] bg-white text-[#556358] hover:border-[#1c3624]'
-                              }`}
-                            >
-                              <span
-                                className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-inner"
-                                style={{ backgroundColor: c.hex }}
-                              />
-                              <span>{c.name}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Color Name & Hex picker */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ebe5da]">
                       <div>
@@ -1518,25 +1497,34 @@ export default function ProductsModule({
 
                       <div>
                         <label className="block text-[11px] font-semibold text-[#6b7770] mb-1">
-                          Color Hex &amp; Eyedropper
+                          {supportsEyeDropper ? 'Color Hex & Eyedropper' : 'Color Hex & Swatch'}
                         </label>
                         <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={newColorHex || '#1c3624'}
-                            onChange={(e) => {
-                              const hex = e.target.value
-                              setNewColorHex(hex)
-                              const match = editingProduct.colors.find(
-                                (c) => c.hex.toLowerCase() === hex.toLowerCase()
-                              )
-                              if (match && !editingColorId) {
-                                setNewColorName(match.name)
-                              }
-                            }}
-                            className="w-9 h-9 rounded-xl bg-transparent border-0 cursor-pointer flex-shrink-0"
-                            title="Native Color Picker"
-                          />
+                          {/* Visual color swatch button that triggers native color picker */}
+                          <div
+                            className="relative w-9 h-9 rounded-xl border border-[#ded7cb] shadow-2xs flex-shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95"
+                            style={{ backgroundColor: newColorHex || '#1c3624' }}
+                            title="Choose color swatch"
+                          >
+                            <input
+                              type="color"
+                              value={newColorHex || '#1c3624'}
+                              onChange={(e) => {
+                                const hex = e.target.value
+                                setNewColorHex(hex)
+                                const match = editingProduct.colors.find(
+                                  (c) => c.hex.toLowerCase() === hex.toLowerCase()
+                                )
+                                if (match && !editingColorId) {
+                                  setNewColorName(match.name)
+                                }
+                              }}
+                              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                              title="Native Color Picker"
+                            />
+                          </div>
+
+                          {/* Hex text input */}
                           <input
                             type="text"
                             value={newColorHex}
@@ -1551,18 +1539,21 @@ export default function ProductsModule({
                                 setNewColorName(match.name)
                               }
                             }}
-                            className="w-24 bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-2.5 py-2 text-xs text-[#142319] outline-hidden font-mono"
+                            className="w-28 bg-white border border-[#ded7cb] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-2.5 py-2 text-xs text-[#142319] outline-hidden font-mono"
                           />
-                          {/* Eyedropper Button */}
-                          <button
-                            type="button"
-                            onClick={handlePickColorFromImage}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-all cursor-pointer flex-shrink-0"
-                            title="Pick exact color from image"
-                          >
-                            <Pipette size={14} className="text-[#845d1d]" />
-                            <span className="hidden sm:inline">Pick from Image</span>
-                          </button>
+
+                          {/* Eyedropper Button - Rendered ONLY on supported desktop browsers */}
+                          {supportsEyeDropper && (
+                            <button
+                              type="button"
+                              onClick={handlePickColorFromImage}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#142319] transition-all cursor-pointer flex-shrink-0"
+                              title="Pick exact color from image"
+                            >
+                              <Pipette size={14} className="text-[#845d1d]" />
+                              <span className="hidden sm:inline">Pick from Image</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

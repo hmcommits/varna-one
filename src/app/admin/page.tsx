@@ -23,6 +23,7 @@ import {
   Check,
   Search,
   ChevronDown,
+  ShieldAlert,
   LucideIcon,
 } from 'lucide-react'
 
@@ -115,12 +116,19 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
   const [pendingTab, setPendingTab] = useState<TabId | null>(null)
   const [unsavedModalOpen, setUnsavedModalOpen] = useState(false)
+  const [showExitModal, setShowExitModal] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [saveSuccessToast, setSaveSuccessToast] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const searchContainerRef = useRef<HTMLDivElement | null>(null)
+  const activeTabRef = useRef<TabId>(activeTab)
+
+  // Keep activeTabRef synchronized for non-stale popstate event handling
+  useEffect(() => {
+    activeTabRef.current = activeTab
+  }, [activeTab])
 
   // Sub-navigation bridge states
   const [categoryFilterForProducts, setCategoryFilterForProducts] = useState<string | null>(null)
@@ -224,6 +232,75 @@ export default function AdminDashboardPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isDirty])
 
+  // Browser history & back-button interception
+  // 1. If back is clicked from ANY sub-section, show Dashboard.
+  // 2. If back is clicked from Dashboard:
+  //    - If device is remembered: show graceful Exit Warning modal.
+  //    - If device is not remembered: navigate to login page.
+  useEffect(() => {
+    if (!authenticated || typeof window === 'undefined') return
+
+    // Parse URL on initial load if user entered with ?tab=...
+    const urlParams = new URLSearchParams(window.location.search)
+    const initialTab = urlParams.get('tab') as TabId | null
+    if (initialTab && TABS.some((t) => t.id === initialTab)) {
+      setActiveTab(initialTab)
+      window.history.replaceState({ tab: 'dashboard', guard: true }, '', '/admin')
+      window.history.pushState({ tab: initialTab }, '', `/admin?tab=${initialTab}`)
+    } else {
+      window.history.replaceState({ tab: 'dashboard', guard: true }, '', '/admin')
+      window.history.pushState({ tab: 'dashboard', guard: true }, '', '/admin')
+    }
+
+    const handlePopState = () => {
+      const currentTab = activeTabRef.current
+      const isRemembered = localStorage.getItem('varna_remember_device') === 'true'
+
+      if (currentTab !== 'dashboard') {
+        // Back clicked from any sub-tab (Products, Categories, Settings, etc.) -> Return to Dashboard
+        setActiveTab('dashboard')
+        setPendingTab(null)
+        setUnsavedModalOpen(false)
+        setMobileMenuOpen(false)
+        window.history.replaceState({ tab: 'dashboard', guard: true }, '', '/admin')
+        return
+      }
+
+      // If user is currently on Dashboard:
+      if (isRemembered) {
+        // Device is remembered: push guard back so we don't leave page, show graceful exit modal
+        window.history.pushState({ tab: 'dashboard', guard: true }, '', '/admin')
+        setShowExitModal(true)
+      } else {
+        // Device is not remembered: navigate back to login
+        router.push('/admin/login')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [authenticated, router])
+
+  // Centralized tab transition maintaining history stack
+  const applyTabSwitch = (targetTab: TabId) => {
+    setActiveTab(targetTab)
+    setMobileMenuOpen(false)
+
+    if (typeof window !== 'undefined') {
+      if (targetTab === 'dashboard') {
+        window.history.replaceState({ tab: 'dashboard', guard: true }, '', '/admin')
+      } else {
+        if (activeTabRef.current === 'dashboard') {
+          window.history.pushState({ tab: targetTab }, '', `/admin?tab=${targetTab}`)
+        } else {
+          window.history.replaceState({ tab: targetTab }, '', `/admin?tab=${targetTab}`)
+        }
+      }
+    }
+  }
+
   // Tab switching with unsaved changes interception
   const handleTabClick = (targetTab: TabId) => {
     if (targetTab === activeTab) return
@@ -234,15 +311,14 @@ export default function AdminDashboardPage() {
       setPendingTab(targetTab)
       setUnsavedModalOpen(true)
     } else {
-      setActiveTab(targetTab)
-      setMobileMenuOpen(false)
+      applyTabSwitch(targetTab)
     }
   }
 
   const handleDiscardAndSwitch = () => {
     discardDraft()
     if (pendingTab) {
-      setActiveTab(pendingTab)
+      applyTabSwitch(pendingTab)
       setPendingTab(null)
     }
     setUnsavedModalOpen(false)
@@ -254,7 +330,7 @@ export default function AdminDashboardPage() {
     if (success) {
       showSavedToast()
       if (pendingTab) {
-        setActiveTab(pendingTab)
+        applyTabSwitch(pendingTab)
         setPendingTab(null)
       }
       setUnsavedModalOpen(false)
@@ -299,7 +375,7 @@ export default function AdminDashboardPage() {
   const handleAddProductFromCategory = (categoryName: string) => {
     setCategoryFilterForProducts(categoryName)
     setOpenCreateProductOnMount(true)
-    setActiveTab('products')
+    handleTabClick('products')
   }
 
   if (authenticated === null || isLoading) {
@@ -379,6 +455,64 @@ export default function AdminDashboardPage() {
         onSaveAndContinue={handleSaveAndContinue}
         isSaving={isSaving}
       />
+
+      {/* Graceful Exit Warning Modal for Remembered Device */}
+      {showExitModal && (
+        <div
+          onClick={() => setShowExitModal(false)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#faf8f5] border border-[#e8d5b7] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 text-center"
+          >
+            <div className="flex flex-col items-center">
+              <div className="w-14 h-14 rounded-2xl bg-[#1c3624]/10 text-[#1c3624] flex items-center justify-center mb-4 border border-[#1c3624]/15">
+                <ShieldAlert size={28} />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-[#142319] tracking-tight">
+                Exit Admin Panel?
+              </h3>
+              <p className="text-xs text-[#6b7770] mt-2 leading-relaxed">
+                You are on the dashboard with <strong>Remember Me</strong> active on this device.
+                Leaving will keep your session saved. How would you like to proceed?
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => setShowExitModal(false)}
+                className="w-full py-3 px-4 rounded-xl bg-[#1c3624] text-[#faf8f5] font-bold text-xs uppercase tracking-wider hover:bg-[#142319] transition-all cursor-pointer shadow-xs"
+              >
+                Stay in Admin Panel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExitModal(false)
+                  router.push('/')
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-white border border-[#ded7cb] text-[#142319] font-bold text-xs uppercase tracking-wider hover:bg-[#faf6f0] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <ExternalLink size={14} className="text-[#845d1d]" />
+                <span>Return to Storefront</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExitModal(false)
+                  handleLogout()
+                }}
+                className="w-full py-2.5 px-4 rounded-xl text-[#b84840] hover:bg-red-50 font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <LogOut size={14} />
+                <span>Log Out of Admin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Backdrop for Sidebar */}
       {mobileMenuOpen && (
