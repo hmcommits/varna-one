@@ -363,7 +363,7 @@ export default function ProductsModule({
     const newOption: CustomizationOption = {
       id: `cust-${Date.now()}`,
       type: '',
-      price: 150,
+      price: 0,
     }
     setEditingProduct({
       ...editingProduct,
@@ -1348,10 +1348,12 @@ export default function ProductsModule({
                         </label>
                         <input
                           type="number"
-                          value={opt.price}
+                          value={opt.price === 0 ? '' : opt.price}
+                          placeholder="0"
                           onChange={(e) => {
+                            const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10)
                             const nextOpts = [...editingProduct.customization.options]
-                            nextOpts[idx].price = parseInt(e.target.value, 10) || 0
+                            nextOpts[idx].price = isNaN(val) ? 0 : Math.max(0, val)
                             setEditingProduct({
                               ...editingProduct,
                               customization: {
@@ -1462,7 +1464,7 @@ export default function ProductsModule({
         </div>
 
         {/* Sticky Mobile/Desktop Bottom Action Bar */}
-        <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#ded7cb] p-3 sm:px-8 flex items-center justify-between gap-3 shadow-lg">
+        <div className="fixed bottom-0 left-0 lg:left-64 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#ded7cb] p-3 sm:px-8 flex items-center justify-between gap-3 shadow-lg">
           <div className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3">
             <button
               type="button"

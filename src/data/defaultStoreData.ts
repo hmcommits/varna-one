@@ -60,7 +60,7 @@ export const defaultStoreData: StoreState = {
         {
           "id": "cust-1793618847140",
           "type": "Custom Color available",
-          "price": 150
+          "price": 0
         }
       ]
     },
