@@ -267,6 +267,7 @@ export default function NewArrivals() {
                   category={p.category}
                   gender={p.gender}
                   customization={p.customization}
+                  hasColorPricing={p.hasColorPricing}
                 />
               ))}
             </div>

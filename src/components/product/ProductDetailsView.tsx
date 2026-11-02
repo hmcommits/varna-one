@@ -134,9 +134,17 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const [selectedCustomOptionIds, setSelectedCustomOptionIds] = useState<string[]>([])
   const [customNotes, setCustomNotes] = useState('')
 
-  const price = product.price || 999
-  const originalPrice = product.originalPrice || 1499
-  const discount = Math.round(((originalPrice - price) / originalPrice) * 100)
+  const isColorPricing = Boolean(product.hasColorPricing)
+  const price =
+    isColorPricing && selectedColor?.price
+      ? selectedColor.price
+      : product.price || 999
+  const originalPrice =
+    isColorPricing && selectedColor?.originalPrice
+      ? selectedColor.originalPrice
+      : product.originalPrice || price
+  const discount =
+    originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
 
   const selectedCustomOptions = customOptions.filter((opt) =>
     selectedCustomOptionIds.includes(opt.id)

@@ -143,6 +143,7 @@ export default function SaleSection() {
                   category={p.category}
                   gender={p.gender}
                   customization={p.customization}
+                  hasColorPricing={p.hasColorPricing}
                 />
               </div>
             )

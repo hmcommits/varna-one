@@ -4,6 +4,8 @@ export interface ProductColor {
   hex: string
   image: string
   gallery?: string[]
+  price?: number
+  originalPrice?: number
 }
 
 export interface CustomizationOption {
@@ -24,6 +26,7 @@ export interface Product {
   gender: 'Men' | 'Women' | 'Unisex'
   price: number
   originalPrice: number
+  hasColorPricing?: boolean
   rating: number
   reviewCount: number
   stockUrgency: 'In Stock' | 'Few Pieces Left' | 'Only 3 left' | 'Out of Stock' | string

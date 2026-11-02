@@ -19,6 +19,7 @@ export interface ProductCardProps {
   category?: string
   gender?: string
   customization?: CustomizationConfig
+  hasColorPricing?: boolean
 }
 
 const badgeStyles: Record<string, string> = {
@@ -39,6 +40,7 @@ export default function ProductCard({
   colors,
   badge,
   customization,
+  hasColorPricing,
 }: ProductCardProps) {
   const router = useRouter()
   const { activeStore, logEnquiry } = useStore()
@@ -50,7 +52,10 @@ export default function ProductCard({
     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
   // Normalize and deduplicate colors, preserving the first uploaded image for each color
-  const normalizedColorsMap = new Map<string, { hex: string; image?: string; name?: string }>()
+  const normalizedColorsMap = new Map<
+    string,
+    { hex: string; image?: string; name?: string; price?: number; originalPrice?: number }
+  >()
   for (const c of colors) {
     const hex = (typeof c === 'string' ? c : c.hex) || ''
     const key = hex.toLowerCase().trim()
@@ -59,6 +64,8 @@ export default function ProductCard({
         hex,
         image: typeof c === 'string' ? undefined : c.image,
         name: typeof c === 'string' ? c : c.name,
+        price: typeof c === 'string' ? undefined : c.price,
+        originalPrice: typeof c === 'string' ? undefined : c.originalPrice,
       })
     }
   }
@@ -70,8 +77,20 @@ export default function ProductCard({
   const currentColor = selectedColorIdx !== null ? normalizedColors[selectedColorIdx] : null
   const displayImage = currentColor?.image || firstUploadedImage
 
+  const isColorPricing = Boolean(hasColorPricing)
+  const effectivePrice =
+    isColorPricing && currentColor && typeof currentColor === 'object' && currentColor.price
+      ? currentColor.price
+      : price
+  const effectiveOriginalPrice =
+    isColorPricing && currentColor && typeof currentColor === 'object' && currentColor.originalPrice
+      ? currentColor.originalPrice
+      : originalPrice
+
   const discount =
-    originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
+    effectiveOriginalPrice > effectivePrice
+      ? Math.round(((effectiveOriginalPrice - effectivePrice) / effectiveOriginalPrice) * 100)
+      : 0
 
   // Prefetch product page route for instantaneous <50ms navigation on tap/click
   useEffect(() => {
@@ -107,7 +126,7 @@ export default function ProductCard({
 
   const enquiryMessage = `${template
     .replace('{product_name}', name)
-    .replace('{price}', `₹${price.toLocaleString('en-IN')}`)}\n• Product Link: ${productUrl}`
+    .replace('{price}', `₹${effectivePrice.toLocaleString('en-IN')}`)}\n• Product Link: ${productUrl}`
 
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(enquiryMessage)}`
 
@@ -201,12 +220,12 @@ export default function ProductCard({
 
           <div className="flex items-baseline gap-1.5 mb-1.5 flex-wrap">
             <span className="text-xs sm:text-sm font-bold text-[#1a1a1a]">
-              ₹{price.toLocaleString('en-IN')}
+              ₹{effectivePrice.toLocaleString('en-IN')}
             </span>
-            {originalPrice > price && (
+            {effectiveOriginalPrice > effectivePrice && (
               <>
                 <span className="text-[11px] text-[#8a7d6e] line-through">
-                  ₹{originalPrice.toLocaleString('en-IN')}
+                  ₹{effectiveOriginalPrice.toLocaleString('en-IN')}
                 </span>
                 <span className="text-[10px] font-bold text-[#c85a44]">
                   {discount}% OFF

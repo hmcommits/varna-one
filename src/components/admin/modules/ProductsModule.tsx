@@ -12,6 +12,7 @@ import {
   Check,
   Scissors,
   X,
+  Tag,
 } from 'lucide-react'
 
 interface ProductsModuleProps {
@@ -75,6 +76,8 @@ export default function ProductsModule({
   const [editingColorId, setEditingColorId] = useState<string | null>(null)
   const [newColorName, setNewColorName] = useState('')
   const [newColorHex, setNewColorHex] = useState('')
+  const [newColorPriceInput, setNewColorPriceInput] = useState<string>('')
+  const [newColorOriginalPriceInput, setNewColorOriginalPriceInput] = useState<string>('')
 
   function createEmptyProduct(category = 'Shirts'): Product {
     return {
@@ -84,6 +87,7 @@ export default function ProductsModule({
       gender: 'Men',
       price: 0,
       originalPrice: 0,
+      hasColorPricing: false,
       rating: 4.5,
       reviewCount: 10,
       stockUrgency: 'In Stock',
@@ -118,6 +122,8 @@ export default function ProductsModule({
       setEditingColorId(null)
       setNewColorName('')
       setNewColorHex('')
+      setNewColorPriceInput('')
+      setNewColorOriginalPriceInput('')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingProduct?.id])
@@ -250,11 +256,23 @@ export default function ProductsModule({
       ? existingSameHex.name
       : name.trim() || `Variant ${editingProduct.colors.length + 1}`
 
+    const colorPrice =
+      newColorPriceInput !== ''
+        ? parseInt(newColorPriceInput, 10)
+        : editingProduct.price || 0
+    const colorOrigPrice =
+      newColorOriginalPriceInput !== ''
+        ? parseInt(newColorOriginalPriceInput, 10)
+        : editingProduct.originalPrice || 0
+
     const newColor: ProductColor = {
       id: `col-${Date.now()}`,
       name: finalColorName,
       hex: hex,
       image: finalImageUrl,
+      ...(editingProduct.hasColorPricing
+        ? { price: colorPrice, originalPrice: colorOrigPrice }
+        : {}),
     }
 
     setEditingProduct({
@@ -269,6 +287,8 @@ export default function ProductsModule({
     setUploadSuccessTick(false)
     setNewColorName('')
     setNewColorHex('')
+    setNewColorPriceInput('')
+    setNewColorOriginalPriceInput('')
   }
 
   // Edit existing uploaded image details
@@ -277,6 +297,16 @@ export default function ProductsModule({
     setNewColorName(color.name)
     setNewColorHex(color.hex)
     setPendingImageUrl(color.image)
+    setNewColorPriceInput(
+      color.price !== undefined ? String(color.price) : editingProduct?.price ? String(editingProduct.price) : ''
+    )
+    setNewColorOriginalPriceInput(
+      color.originalPrice !== undefined
+        ? String(color.originalPrice)
+        : editingProduct?.originalPrice
+        ? String(editingProduct.originalPrice)
+        : ''
+    )
   }
 
   const handleUpdateCurrentColor = () => {
@@ -288,6 +318,18 @@ export default function ProductsModule({
             name: newColorName.trim() || c.name,
             hex: newColorHex,
             image: pendingImageUrl || c.image,
+            ...(editingProduct.hasColorPricing
+              ? {
+                  price:
+                    newColorPriceInput !== ''
+                      ? parseInt(newColorPriceInput, 10)
+                      : c.price ?? editingProduct.price ?? 0,
+                  originalPrice:
+                    newColorOriginalPriceInput !== ''
+                      ? parseInt(newColorOriginalPriceInput, 10)
+                      : c.originalPrice ?? editingProduct.originalPrice ?? 0,
+                }
+              : {}),
           }
         : c
     )
@@ -298,6 +340,9 @@ export default function ProductsModule({
     setEditingColorId(null)
     setPendingImageUrl(null)
     setNewColorName('')
+    setNewColorHex('')
+    setNewColorPriceInput('')
+    setNewColorOriginalPriceInput('')
   }
 
   const handleCancelColorEdit = () => {
@@ -307,6 +352,8 @@ export default function ProductsModule({
     uploadPromiseRef.current = null
     setNewColorName('')
     setNewColorHex('')
+    setNewColorPriceInput('')
+    setNewColorOriginalPriceInput('')
   }
 
   // Add custom size at start (smaller sizes)
@@ -353,6 +400,14 @@ export default function ProductsModule({
     if (editingProduct.colors.length === 0) {
       alert('Please add at least one color variant with an image.')
       return
+    }
+
+    if (editingProduct.hasColorPricing) {
+      const missingPriceColor = editingProduct.colors.find((c) => !c.price || c.price <= 0)
+      if (missingPriceColor) {
+        alert(`Please enter a valid selling price for the color "${missingPriceColor.name}".`)
+        return
+      }
     }
 
     const existing = draft.products || []
@@ -558,7 +613,7 @@ export default function ProductsModule({
 
                       {/* Pricing */}
                       <td className="py-3 px-4">
-                        <div className="flex items-baseline gap-1.5">
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
                           <span className="font-bold text-[#142319] text-sm">
                             ₹{p.price.toLocaleString('en-IN')}
                           </span>
@@ -568,6 +623,11 @@ export default function ProductsModule({
                           <span className="text-[10px] font-bold text-[#845d1d]">
                             {discount}% OFF
                           </span>
+                          {p.hasColorPricing && (
+                            <span className="text-[9px] font-bold bg-[#eef7f0] text-[#1c3624] px-1.5 py-0.5 rounded-sm border border-[#b8e0bf]">
+                              Color-Wise
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -738,14 +798,71 @@ export default function ProductsModule({
                 </select>
               </div>
 
-              {/* Selling Price with Green Main Highlight & 0299 leading zero fix */}
+              {/* TOGGLE FOR COLOR-WISE PRICING (DEFAULT OFF) */}
+              <div className="col-span-1 sm:col-span-3 flex items-center justify-between p-3.5 rounded-2xl bg-[#faf8f5] border border-[#ded7cb]">
+                <div className="space-y-0.5 pr-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#142319]">
+                      Different price for each color?
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        editingProduct.hasColorPricing
+                          ? 'bg-[#eef7f0] text-[#1c3624] border-[#b8e0bf]'
+                          : 'bg-[#faf6f0] text-[#6b7770] border-[#ded7cb]'
+                      }`}
+                    >
+                      {editingProduct.hasColorPricing
+                        ? 'Color-Wise Active'
+                        : 'Off (Same Price for All Colors)'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#6b7770]">
+                    {editingProduct.hasColorPricing
+                      ? 'Set individual selling price and MRP for each color below.'
+                      : 'By default off. Toggle on if different colors have different prices.'}
+                  </p>
+                </div>
+
+                {/* Small toggle button */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={Boolean(editingProduct.hasColorPricing)}
+                  onClick={() => {
+                    const next = !editingProduct.hasColorPricing
+                    setEditingProduct({
+                      ...editingProduct,
+                      hasColorPricing: next,
+                      colors: editingProduct.colors.map((c) => ({
+                        ...c,
+                        price: c.price || editingProduct.price || 0,
+                        originalPrice: c.originalPrice || editingProduct.originalPrice || 0,
+                      })),
+                    })
+                  }}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                    editingProduct.hasColorPricing ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      editingProduct.hasColorPricing ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Selling Price with Green Main Highlight */}
               <div className="bg-[#eef7f0] p-3 rounded-2xl border border-[#b8e0bf]">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-[#1e4a36]">
-                    Selling Price (₹) *
+                    {editingProduct.hasColorPricing
+                      ? 'Base / Starting Price (₹) *'
+                      : 'Selling Price (₹) *'}
                   </label>
                   <span className="text-[9px] font-bold uppercase tracking-wider bg-[#d7eedc] text-[#1e4a36] px-2 py-0.5 rounded-full border border-[#b8e0bf]">
-                    Main / Customer Pays
+                    {editingProduct.hasColorPricing ? 'Base Fallback' : 'Main / Customer Pays'}
                   </span>
                 </div>
                 <input
@@ -765,11 +882,13 @@ export default function ProductsModule({
                 />
               </div>
 
-              {/* Original MRP with Red / Strikethrough Indication & 01232 leading zero fix */}
+              {/* Original MRP with Red / Strikethrough Indication */}
               <div className="bg-[#fdf2f0] p-3 rounded-2xl border border-[#f8cfca]">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-semibold text-[#8b1e1e]">
-                    Original MRP (₹) *
+                    {editingProduct.hasColorPricing
+                      ? 'Base Original MRP (₹) *'
+                      : 'Original MRP (₹) *'}
                   </label>
                   <span className="text-[9px] font-medium uppercase tracking-wider bg-[#fadcd7] text-[#8b1e1e] px-2 py-0.5 rounded-full border border-[#f8cfca]">
                     Display Only
@@ -791,6 +910,152 @@ export default function ProductsModule({
                   className="w-full bg-white border border-[#c85a44] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-sm text-[#55231c] outline-hidden"
                 />
               </div>
+
+              {/* COLOR-WISE PRICING INPUTS (WHEN TOGGLE IS ON) */}
+              {editingProduct.hasColorPricing && (
+                <div className="col-span-1 sm:col-span-3 space-y-3 p-4 rounded-2xl bg-[#f7faf8] border-2 border-[#b8e0bf]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#1c3624] flex items-center gap-1.5">
+                        <Tag size={14} className="text-[#1c3624]" />
+                        <span>
+                          Enter Price for Each Color ({editingProduct.colors.length}{' '}
+                          {editingProduct.colors.length === 1 ? 'color' : 'colors'})
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-[#4f6b57]">
+                        Set individual selling price and original MRP for each color variant:
+                      </p>
+                    </div>
+                  </div>
+
+                  {editingProduct.colors.length === 0 ? (
+                    <div className="p-3 bg-white rounded-xl border border-[#ded7cb] text-center text-xs text-[#6b7770]">
+                      📸 No colors added yet. Upload photos in the section below and pair them with colors to assign individual prices.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {editingProduct.colors.map((c) => {
+                        const cPrice = c.price ?? editingProduct.price ?? 0
+                        const cOrig = c.originalPrice ?? editingProduct.originalPrice ?? 0
+                        const cDiscount =
+                          cOrig > cPrice && cOrig > 0
+                            ? Math.round(((cOrig - cPrice) / cOrig) * 100)
+                            : 0
+                        return (
+                          <div
+                            key={c.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white rounded-xl border border-[#ded7cb] shadow-2xs hover:border-[#1c3624] transition-colors"
+                          >
+                            {/* Color Preview & Name */}
+                            <div className="flex items-center gap-2.5 min-w-[160px]">
+                              <div className="relative w-9 h-11 rounded-lg overflow-hidden bg-[#faf8f5] border border-[#ded7cb] shrink-0">
+                                <Image
+                                  src={c.image}
+                                  alt={c.name}
+                                  fill
+                                  className="object-cover object-top"
+                                  unoptimized
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className="w-3.5 h-3.5 rounded-full border border-black/15 shadow-inner shrink-0"
+                                    style={{ backgroundColor: c.hex }}
+                                  />
+                                  <span className="text-xs font-bold text-[#142319] truncate">
+                                    {c.name}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-[#6b7770] font-mono">
+                                  {c.hex}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Price Inputs for this Color */}
+                            <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
+                              {/* Selling Price */}
+                              <div className="flex-1 sm:max-w-[150px]">
+                                <div className="flex items-center justify-between mb-0.5">
+                                  <label className="block text-[10px] font-bold text-[#1e4a36]">
+                                    Selling Price (₹) *
+                                  </label>
+                                  <span className="text-[8px] font-bold bg-[#d7eedc] text-[#1e4a36] px-1.5 rounded-sm">
+                                    Pays
+                                  </span>
+                                </div>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={c.price !== undefined ? String(c.price) : ''}
+                                  onChange={(e) => {
+                                    const clean = e.target.value
+                                      .replace(/[^0-9]/g, '')
+                                      .replace(/^0+(?=\d)/, '')
+                                    const val = clean === '' ? 0 : parseInt(clean, 10)
+                                    setEditingProduct({
+                                      ...editingProduct,
+                                      colors: editingProduct.colors.map((item) =>
+                                        item.id === c.id ? { ...item, price: val } : item
+                                      ),
+                                    })
+                                  }}
+                                  placeholder="e.g. 1299"
+                                  className="w-full bg-[#fcfdfc] border-2 border-[#b8e0bf] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#142319] outline-hidden"
+                                />
+                              </div>
+
+                              {/* Original MRP */}
+                              <div className="flex-1 sm:max-w-[150px]">
+                                <div className="flex items-center justify-between mb-0.5">
+                                  <label className="block text-[10px] font-semibold text-[#8b1e1e]">
+                                    Original MRP (₹)
+                                  </label>
+                                  <span className="text-[8px] bg-[#fadcd7] text-[#8b1e1e] px-1.5 rounded-sm">
+                                    MRP
+                                  </span>
+                                </div>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={
+                                    c.originalPrice !== undefined ? String(c.originalPrice) : ''
+                                  }
+                                  onChange={(e) => {
+                                    const clean = e.target.value
+                                      .replace(/[^0-9]/g, '')
+                                      .replace(/^0+(?=\d)/, '')
+                                    const val = clean === '' ? 0 : parseInt(clean, 10)
+                                    setEditingProduct({
+                                      ...editingProduct,
+                                      colors: editingProduct.colors.map((item) =>
+                                        item.id === c.id ? { ...item, originalPrice: val } : item
+                                      ),
+                                    })
+                                  }}
+                                  placeholder="e.g. 2499"
+                                  className="w-full bg-[#fffcfc] border border-[#f8cfca] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-lg px-2.5 py-1.5 text-xs text-[#55231c] outline-hidden"
+                                />
+                              </div>
+
+                              {/* Discount Tag */}
+                              {cDiscount > 0 && (
+                                <div className="hidden sm:flex flex-col items-center justify-center px-2 py-1 bg-[#fcf5e9] border border-[#f4e4cb] rounded-lg text-center min-w-[60px]">
+                                  <span className="text-[10px] font-bold text-[#845d1d] whitespace-nowrap">
+                                    {cDiscount}% OFF
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Live Discount Percentage & Savings Indicator */}
               {(() => {
@@ -1025,6 +1290,19 @@ export default function ProductsModule({
                             <span className="text-[10px] font-mono text-[#6b7770] block">
                               {color.hex}
                             </span>
+                            {editingProduct.hasColorPricing && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <span className="text-[10px] font-bold text-[#1e4a36] bg-[#eef7f0] px-1.5 py-0.5 rounded-md border border-[#b8e0bf]">
+                                  ₹{(color.price ?? editingProduct.price ?? 0).toLocaleString('en-IN')}
+                                </span>
+                                {(color.originalPrice ?? editingProduct.originalPrice ?? 0) >
+                                  (color.price ?? editingProduct.price ?? 0) && (
+                                  <span className="text-[9px] text-[#8c978f] line-through">
+                                    ₹{(color.originalPrice ?? editingProduct.originalPrice ?? 0).toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                             <span className="text-[9px] text-[#206035] font-bold block mt-1">
                               {isSelectedForEdit ? '● Currently Editing' : '✓ Click to Edit'}
                             </span>
@@ -1279,6 +1557,42 @@ export default function ProductsModule({
                         </div>
                       </div>
                     </div>
+
+                    {/* Color-specific Price Inputs if Color Pricing is Enabled */}
+                    {editingProduct.hasColorPricing && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ebe5da]">
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#1e4a36] mb-1">
+                            Price for this Color (₹) *
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={newColorPriceInput}
+                            onChange={(e) =>
+                              setNewColorPriceInput(e.target.value.replace(/[^0-9]/g, ''))
+                            }
+                            placeholder={`e.g. ${editingProduct.price || 1299}`}
+                            className="w-full bg-white border border-[#b8e0bf] focus:border-[#1c3624] focus:ring-1 focus:ring-[#1c3624] rounded-xl px-3 py-2 text-xs font-bold text-[#142319] outline-hidden placeholder-[#8c978f]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-[#8b1e1e] mb-1">
+                            Original MRP for this Color (₹)
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={newColorOriginalPriceInput}
+                            onChange={(e) =>
+                              setNewColorOriginalPriceInput(e.target.value.replace(/[^0-9]/g, ''))
+                            }
+                            placeholder={`e.g. ${editingProduct.originalPrice || 2499}`}
+                            className="w-full bg-white border border-[#f8cfca] focus:border-[#8b1e1e] focus:ring-1 focus:ring-[#8b1e1e] rounded-xl px-3 py-2 text-xs text-[#55231c] outline-hidden placeholder-[#8c978f]"
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     {/* Commit Color & Image Button */}
                     <div className="flex items-center justify-end gap-2 pt-2">
