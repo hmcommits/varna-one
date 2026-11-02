@@ -49,6 +49,24 @@ export default function Navbar() {
     if (nextCount >= 5) {
       setIsUnlocking(true)
       setTapCount(0)
+
+      // If this device was remembered with "Remember Me", log in immediately without password
+      if (typeof window !== 'undefined') {
+        const isRemembered =
+          localStorage.getItem('varna_remember_device') === 'true' &&
+          Boolean(localStorage.getItem('varna_admin_token'))
+
+        if (isRemembered) {
+          const token = localStorage.getItem('varna_admin_token') || ''
+          sessionStorage.setItem('varna_admin_session', 'true')
+          sessionStorage.setItem('varna_admin_token', token)
+          localStorage.setItem('varna_admin_authenticated', 'true')
+          document.cookie = `varna_admin_session=authenticated; path=/; max-age=31536000; SameSite=Lax`
+          router.push('/admin')
+          return
+        }
+      }
+
       router.push('/admin/login')
       return
     }

@@ -186,13 +186,27 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isAuth = sessionStorage.getItem('varna_admin_session') === 'true'
+      const isRemembered =
+        localStorage.getItem('varna_remember_device') === 'true' &&
+        Boolean(localStorage.getItem('varna_admin_token'))
+
+      if (isRemembered && !isAuth) {
+        // Auto-restore session for remembered device
+        const token = localStorage.getItem('varna_admin_token') || ''
+        sessionStorage.setItem('varna_admin_session', 'true')
+        sessionStorage.setItem('varna_admin_token', token)
+        setAuthenticated(true)
+        document.cookie = `varna_admin_session=authenticated; path=/; max-age=31536000; SameSite=Lax`
+        return
+      }
+
       if (!isAuth) {
         router.replace('/admin/login')
       } else {
         setAuthenticated(true)
         // Ensure edge middleware cookie is set for multi-tab/device support
         if (!document.cookie.includes('varna_admin_session=authenticated')) {
-          document.cookie = `varna_admin_session=authenticated; path=/; max-age=86400; SameSite=Lax`
+          document.cookie = `varna_admin_session=authenticated; path=/; max-age=31536000; SameSite=Lax`
         }
       }
     }
@@ -278,7 +292,7 @@ export default function AdminDashboardPage() {
       // Clear the edge middleware cookie
       document.cookie = 'varna_admin_session=; path=/; max-age=0; SameSite=Lax'
     }
-    router.replace('/admin/login')
+    router.replace('/admin/login?logged_out=1')
   }
 
   // Cross-module bridge: Add Product from Category Tile
