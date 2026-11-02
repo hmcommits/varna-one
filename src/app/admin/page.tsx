@@ -716,6 +716,10 @@ export default function AdminDashboardPage() {
                           <div className="space-y-1">
                             {searchProducts.slice(0, 4).map((p) => {
                               const thumb = p.colors?.[0]?.image || '/placeholder.png'
+                              const effPrice =
+                                p.hasColorPricing && p.colors?.[0]?.price
+                                  ? p.colors[0].price
+                                  : p.price || p.colors?.[0]?.price || 0
                               return (
                                 <div
                                   key={p.id}
@@ -742,7 +746,7 @@ export default function AdminDashboardPage() {
                                         {p.name}
                                       </p>
                                       <p className="text-[10px] text-[#6b7770]">
-                                        {p.category} • ₹{p.price}
+                                        {p.category} • ₹{effPrice.toLocaleString('en-IN')}
                                       </p>
                                     </div>
                                   </div>

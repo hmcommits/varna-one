@@ -126,8 +126,10 @@ export default function ProductsModule({
   // Synchronize inputs when opening a product for edit
   React.useEffect(() => {
     if (editingProduct) {
-      setSellingPriceInput(editingProduct.price ? String(editingProduct.price) : '')
-      setOriginalPriceInput(editingProduct.originalPrice ? String(editingProduct.originalPrice) : '')
+      const fallbackPrice = editingProduct.price || editingProduct.colors[0]?.price || ''
+      const fallbackOrigPrice = editingProduct.originalPrice || editingProduct.colors[0]?.originalPrice || ''
+      setSellingPriceInput(fallbackPrice ? String(fallbackPrice) : '')
+      setOriginalPriceInput(fallbackOrigPrice ? String(fallbackOrigPrice) : '')
       setPendingImageUrl(null)
       setUploadedCloudUrl(null)
       uploadPromiseRef.current = null
@@ -591,9 +593,29 @@ export default function ProductsModule({
               </thead>
               <tbody className="divide-y divide-[#ebe5da] text-[#142319]">
                 {filteredProducts.map((p) => {
-                  const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
+                  // Thumbnail image and price corresponding to the shown thumbnail
+                  const thumbnailColor = p.colors[0]
+                  const effectivePrice =
+                    p.hasColorPricing && thumbnailColor?.price
+                      ? thumbnailColor.price
+                      : p.price > 0
+                      ? p.price
+                      : thumbnailColor?.price || 0
+
+                  const effectiveOriginalPrice =
+                    p.hasColorPricing && thumbnailColor?.originalPrice
+                      ? thumbnailColor.originalPrice
+                      : p.originalPrice > 0
+                      ? p.originalPrice
+                      : thumbnailColor?.originalPrice || effectivePrice
+
+                  const discount =
+                    effectiveOriginalPrice > effectivePrice
+                      ? Math.round(((effectiveOriginalPrice - effectivePrice) / effectiveOriginalPrice) * 100)
+                      : 0
+
                   const primaryImage =
-                    p.colors[0]?.image ||
+                    thumbnailColor?.image ||
                     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
                   // Deduplicate colors by hex to avoid duplicate swatch dots
@@ -637,14 +659,18 @@ export default function ProductsModule({
                       <td className="py-3 px-4">
                         <div className="flex items-baseline gap-1.5 flex-wrap">
                           <span className="font-bold text-[#142319] text-sm">
-                            ₹{p.price.toLocaleString('en-IN')}
+                            ₹{effectivePrice.toLocaleString('en-IN')}
                           </span>
-                          <span className="text-[11px] text-[#8c978f] line-through">
-                            ₹{p.originalPrice.toLocaleString('en-IN')}
-                          </span>
-                          <span className="text-[10px] font-bold text-[#845d1d]">
-                            {discount}% OFF
-                          </span>
+                          {effectiveOriginalPrice > effectivePrice && (
+                            <span className="text-[11px] text-[#8c978f] line-through">
+                              ₹{effectiveOriginalPrice.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                          {discount > 0 && (
+                            <span className="text-[10px] font-bold text-[#845d1d]">
+                              {discount}% OFF
+                            </span>
+                          )}
                           {p.hasColorPricing && (
                             <span className="text-[9px] font-bold bg-[#eef7f0] text-[#1c3624] px-1.5 py-0.5 rounded-sm border border-[#b8e0bf]">
                               Color-Wise

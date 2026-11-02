@@ -509,8 +509,23 @@ export default function DashboardModule({
             ) : (
               <div className="space-y-3">
                 {products.slice(0, 4).map((p) => {
+                  const thumbnailColor = p.colors?.[0]
+                  const effectivePrice =
+                    p.hasColorPricing && thumbnailColor?.price
+                      ? thumbnailColor.price
+                      : p.price > 0
+                      ? p.price
+                      : thumbnailColor?.price || 0
+
+                  const effectiveOriginalPrice =
+                    p.hasColorPricing && thumbnailColor?.originalPrice
+                      ? thumbnailColor.originalPrice
+                      : p.originalPrice > 0
+                      ? p.originalPrice
+                      : thumbnailColor?.originalPrice || effectivePrice
+
                   const primaryImage =
-                    p.colors?.[0]?.image ||
+                    thumbnailColor?.image ||
                     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
                   return (
@@ -539,11 +554,11 @@ export default function DashboardModule({
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs font-bold text-[#142319]">
-                              ₹{p.price.toLocaleString('en-IN')}
+                              ₹{effectivePrice.toLocaleString('en-IN')}
                             </span>
-                            {p.originalPrice > p.price && (
+                            {effectiveOriginalPrice > effectivePrice && (
                               <span className="text-[10px] text-[#8c978f] line-through">
-                                ₹{p.originalPrice.toLocaleString('en-IN')}
+                                ₹{effectiveOriginalPrice.toLocaleString('en-IN')}
                               </span>
                             )}
                           </div>
