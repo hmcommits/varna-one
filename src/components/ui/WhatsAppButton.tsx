@@ -77,6 +77,9 @@ export default function WhatsAppButton() {
         .replace('{price}', priceFormatted)
         .replace('{product_url}', prodUrl)
         .replace('{custom_notes}', customNotesStr)
+      if (!message.includes(prodUrl)) {
+        message += `\n• *Product Link:* ${prodUrl}`
+      }
     } else {
       message = `Hi Varna! I'd like to enquire about the *${prodName}*:\n\n• *Color:* ${colorName}\n• *Size:* ${sizeName}\n• *Quantity:* ${qty} unit(s)\n• *Price:* ${priceFormatted}\n• *Product Link:* ${prodUrl}${customNotesStr}\n\nPlease confirm product availability & dispatch timeline!`
     }

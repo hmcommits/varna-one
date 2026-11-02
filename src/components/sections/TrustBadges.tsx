@@ -13,8 +13,8 @@ const iconMap = {
 const DEFAULT_BADGES: TrustBadgeItem[] = [
   {
     id: 'b1',
-    title: 'Free Express Shipping',
-    desc: 'Across India on all prepaid & COD orders above ₹999',
+    title: 'Express Delivery Available',
+    desc: 'Fast dispatch on all prepaid & COD orders',
     iconKey: 'truck',
   },
   {

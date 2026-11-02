@@ -3,7 +3,7 @@ import { MongoClient, Db } from 'mongodb'
 const uri = process.env.MONGODB_URI
 const options = {
   maxPoolSize: 5, // Conservative pool for serverless lambdas (Vercel / Atlas M0-M10)
-  serverSelectionTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 2000,
   connectTimeoutMS: 10000,
 }
 

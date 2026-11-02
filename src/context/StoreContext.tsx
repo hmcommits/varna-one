@@ -83,8 +83,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // 1. Initial Load: check API (MongoDB) or LocalStorage
+  // 1. Initial Load: Stale-While-Revalidate (Cache-first for instant 0ms load speed)
   useEffect(() => {
+    let hasHydratedFromCache = false
+
+    // Immediate synchronous local hydration
+    try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (parsed && Array.isArray(parsed.products)) {
+            setStore(parsed)
+            setDraft(parsed)
+            setIsLoading(false)
+            hasHydratedFromCache = true
+          }
+        }
+      }
+    } catch {
+      // LocalStorage access restricted or invalid JSON
+    }
+
     async function loadInitialData() {
       try {
         // If admin is authenticated, send token so server returns full data
@@ -116,21 +136,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         console.warn('Could not fetch from server API, using local fallback:', err)
       }
 
-      // Local storage fallback
-      try {
-        if (typeof window !== 'undefined') {
-          const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
-          if (cached) {
-            const parsed = JSON.parse(cached)
-            setStore(parsed)
-            setDraft(parsed)
-          }
-        }
-      } catch {
+      // If we didn't hydrate from cache and network failed/returned empty, fallback to default
+      if (!hasHydratedFromCache) {
         setStore(defaultStoreData)
         setDraft(defaultStoreData)
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
     loadInitialData()

@@ -79,9 +79,11 @@ export default function ProductsModule({
   // Image Upload First & Color Pairing State
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null)
+  const [uploadedCloudUrl, setUploadedCloudUrl] = useState<string | null>(null)
+  const uploadPromiseRef = React.useRef<Promise<string> | null>(null)
   const [editingColorId, setEditingColorId] = useState<string | null>(null)
   const [newColorName, setNewColorName] = useState('')
-  const [newColorHex, setNewColorHex] = useState('#c4855a')
+  const [newColorHex, setNewColorHex] = useState('')
 
   function createEmptyProduct(category = 'Shirts'): Product {
     return {
@@ -119,9 +121,12 @@ export default function ProductsModule({
       setSellingPriceInput(editingProduct.price ? String(editingProduct.price) : '')
       setOriginalPriceInput(editingProduct.originalPrice ? String(editingProduct.originalPrice) : '')
       setPendingImageUrl(null)
+      setUploadedCloudUrl(null)
+      uploadPromiseRef.current = null
       setUploadSuccessTick(false)
       setEditingColorId(null)
       setNewColorName('')
+      setNewColorHex('')
       if (
         editingProduct.stockUrgency !== 'In Stock' &&
         editingProduct.stockUrgency !== 'Few Pieces Left' &&
@@ -140,58 +145,71 @@ export default function ProductsModule({
     return p.category === activeCategoryFilter
   })
 
-  // Handle Image Upload via API (Upload Photo FIRST)
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Image Upload via API (Upload Photo FIRST with instant local preview)
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !editingProduct) return
 
+    // 1. Instant local preview (0ms UI feedback)
+    const localPreview = URL.createObjectURL(file)
+    setPendingImageUrl(localPreview)
+    setUploadedCloudUrl(null)
     setUploading(true)
     setUploadSuccessTick(false)
-    try {
-      const adminToken =
-        (typeof window !== 'undefined'
-          ? sessionStorage.getItem('varna_admin_token')
-          : null) ||
-        draft.settings?.passcode ||
-        'varna2026'
+    // Clear color selection so nothing is pre-selected for this new photo
+    setNewColorName('')
+    setNewColorHex('')
 
-      const formData = new FormData()
-      formData.append('file', file)
+    const adminToken =
+      (typeof window !== 'undefined'
+        ? sessionStorage.getItem('varna_admin_token')
+        : null) ||
+      draft.settings?.passcode ||
+      'varna2026'
 
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: { 'x-admin-token': adminToken },
-        body: formData,
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // 2. Start Cloudinary upload in background
+    const uploadPromise = fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: { 'x-admin-token': adminToken },
+      body: formData,
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error('Image upload failed')
+        }
+        const data = await res.json()
+        const uploadedWebpUrl = data.url
+        setUploadedCloudUrl(uploadedWebpUrl)
+        setPendingImageUrl(uploadedWebpUrl)
+        setUploadSuccessTick(true)
+        setUploading(false)
+
+        // If replacing image of currently edited color variant:
+        if (editingColorId) {
+          setEditingProduct((prev) => {
+            if (!prev) return null
+            return {
+              ...prev,
+              colors: prev.colors.map((c) =>
+                c.id === editingColorId ? { ...c, image: uploadedWebpUrl } : c
+              ),
+            }
+          })
+        }
+        return uploadedWebpUrl
+      })
+      .catch((err) => {
+        console.error(err)
+        setUploading(false)
+        alert('Failed to upload image. Please try again.')
+        throw err
       })
 
-      if (!res.ok) {
-        throw new Error('Image upload failed')
-      }
-
-      const data = await res.json()
-      const uploadedWebpUrl = data.url
-      setPendingImageUrl(uploadedWebpUrl)
-      setUploadSuccessTick(true)
-
-      // If replacing image of currently edited color variant:
-      if (editingColorId) {
-        setEditingProduct((prev) => {
-          if (!prev) return null
-          return {
-            ...prev,
-            colors: prev.colors.map((c) =>
-              c.id === editingColorId ? { ...c, image: uploadedWebpUrl } : c
-            ),
-          }
-        })
-      }
-    } catch (err) {
-      console.error(err)
-      alert('Failed to upload image. Please try again.')
-    } finally {
-      setUploading(false)
-      e.target.value = ''
-    }
+    uploadPromiseRef.current = uploadPromise
+    e.target.value = ''
   }
 
   // Native EyeDropper API (Chromium browsers)
@@ -219,8 +237,25 @@ export default function ProductsModule({
   }
 
   // Pair Uploaded Image with Color (Prevents duplicate variant naming for same hex)
-  const handleAssignColorToPendingImage = (name: string, hex: string) => {
+  const handleAssignColorToPendingImage = async (name: string, hex: string) => {
     if (!editingProduct || !pendingImageUrl) return
+
+    if (!hex) {
+      alert('Please choose or enter a color for this photo.')
+      return
+    }
+
+    let finalImageUrl = uploadedCloudUrl
+    if (!finalImageUrl && uploadPromiseRef.current) {
+      try {
+        finalImageUrl = await uploadPromiseRef.current
+      } catch {
+        return
+      }
+    }
+    if (!finalImageUrl) {
+      finalImageUrl = pendingImageUrl
+    }
 
     // If identical hex is already used in this product, reuse that color's name
     const existingSameHex = editingProduct.colors.find(
@@ -235,7 +270,7 @@ export default function ProductsModule({
       id: `col-${Date.now()}`,
       name: finalColorName,
       hex: hex,
-      image: pendingImageUrl,
+      image: finalImageUrl,
     }
 
     setEditingProduct({
@@ -245,8 +280,11 @@ export default function ProductsModule({
 
     // Reset upload staging
     setPendingImageUrl(null)
+    setUploadedCloudUrl(null)
+    uploadPromiseRef.current = null
     setUploadSuccessTick(false)
     setNewColorName('')
+    setNewColorHex('')
   }
 
   // Edit existing uploaded image details
@@ -281,7 +319,10 @@ export default function ProductsModule({
   const handleCancelColorEdit = () => {
     setEditingColorId(null)
     setPendingImageUrl(null)
+    setUploadedCloudUrl(null)
+    uploadPromiseRef.current = null
     setNewColorName('')
+    setNewColorHex('')
   }
 
   // Add custom size at start (smaller sizes)
@@ -421,7 +462,7 @@ export default function ProductsModule({
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
           >
             <Plus size={15} />
-            <span>Add Product Drop</span>
+            <span>Add Product</span>
           </button>
         </div>
       </div>
@@ -456,8 +497,19 @@ export default function ProductsModule({
         </div>
 
         {filteredProducts.length === 0 ? (
-          <div className="p-10 text-center text-xs text-[#6b7770]">
-            No products found in category &ldquo;{activeCategoryFilter}&rdquo;.
+          <div className="p-10 text-center text-xs text-[#6b7770] flex flex-col items-center justify-center">
+            <p>No products found in category &ldquo;{activeCategoryFilter}&rdquo;.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingProduct(createEmptyProduct(activeCategoryFilter === 'All' ? 'Shirts' : activeCategoryFilter))
+                setIsCreating(true)
+              }}
+              className="mt-3.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Add Product</span>
+            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -1113,15 +1165,22 @@ export default function ProductsModule({
                           <span>{uploading ? 'Replacing...' : 'Change Photo'}</span>
                         </button>
 
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#206035] bg-[#eef7f0] px-2.5 py-1 rounded-lg border border-[#d6ecda]">
-                          <Check size={14} />
-                          <span>Ready for color pairing below</span>
-                        </div>
+                        {uploading ? (
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#845d1d] bg-[#fdf8ee] px-2.5 py-1 rounded-lg border border-[#f3e5c8]">
+                            <div className="w-3 h-3 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
+                            <span>Optimizing &amp; uploading to Cloud CDN...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#206035] bg-[#eef7f0] px-2.5 py-1 rounded-lg border border-[#d6ecda]">
+                            <Check size={14} />
+                            <span>Ready for color pairing below</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {uploading && (
+                  {uploading && !pendingImageUrl && (
                     <div className="flex items-center gap-2 text-xs text-[#845d1d] font-medium">
                       <div className="w-3.5 h-3.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
                       <span>Converting to WebP &amp; syncing to Cloudinary CDN...</span>
@@ -1132,11 +1191,39 @@ export default function ProductsModule({
                 {/* STEP 2: ASSIGN COLOR FOR THIS PHOTO */}
                 {(pendingImageUrl || editingColorId) && (
                   <div className="space-y-3 bg-white p-4 rounded-xl border border-[#ebe5da] animate-in fade-in">
-                    <span className="text-[11px] font-bold text-[#142319] uppercase tracking-wider block">
-                      {editingColorId
-                        ? 'Update Color Variant Details:'
-                        : 'Step 2: Choose or Add Color for this Photo:'}
-                    </span>
+                    <div className="flex items-center justify-between pb-2 border-b border-[#ebe5da]">
+                      <div className="flex items-center gap-2.5">
+                        {pendingImageUrl && (
+                          <div className="relative w-8 h-9 rounded-md overflow-hidden border border-[#1c3624] shadow-xs flex-shrink-0">
+                            <Image
+                              src={pendingImageUrl}
+                              alt="Target Photo"
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-[11px] font-bold text-[#142319] uppercase tracking-wider block">
+                            {editingColorId
+                              ? 'Update Color Variant Details:'
+                              : 'Step 2: Choose or Add Color for this Photo:'}
+                          </span>
+                          <span className="text-[10px] text-[#6b7770]">
+                            {editingColorId
+                              ? 'Modify name or hex code for this variant'
+                              : 'Select or enter the color for the uploaded photo shown above'}
+                          </span>
+                        </div>
+                      </div>
+                      {uploading && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#845d1d] bg-[#fdf8ee] px-2.5 py-1 rounded-full border border-[#f3e5c8]">
+                          <div className="w-2.5 h-2.5 border-2 border-[#845d1d] border-t-transparent rounded-full animate-spin" />
+                          <span>Syncing cloud CDN...</span>
+                        </span>
+                      )}
+                    </div>
 
                     {/* Existing Colors in this product */}
                     {editingProduct.colors.length > 0 && !editingColorId && (
@@ -1156,7 +1243,7 @@ export default function ProductsModule({
                                 setNewColorHex(c.hex)
                               }}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
-                                newColorHex.toLowerCase() === c.hex.toLowerCase()
+                                newColorHex && newColorHex.toLowerCase() === c.hex.toLowerCase()
                                   ? 'border-[#1c3624] bg-[#eef7f0] text-[#1c3624] font-bold shadow-2xs'
                                   : 'border-[#ded7cb] bg-white text-[#556358] hover:border-[#1c3624]'
                               }`}
@@ -1194,7 +1281,7 @@ export default function ProductsModule({
                         <div className="flex items-center gap-2">
                           <input
                             type="color"
-                            value={newColorHex}
+                            value={newColorHex || '#1c3624'}
                             onChange={(e) => {
                               const hex = e.target.value
                               setNewColorHex(hex)
@@ -1211,6 +1298,7 @@ export default function ProductsModule({
                           <input
                             type="text"
                             value={newColorHex}
+                            placeholder="#1c3624"
                             onChange={(e) => {
                               const hex = e.target.value
                               setNewColorHex(hex)
@@ -1260,9 +1348,17 @@ export default function ProductsModule({
                         }}
                         className="px-4 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer flex items-center gap-1.5"
                       >
-                        <Check size={14} />
+                        {uploading && !uploadedCloudUrl ? (
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Check size={14} />
+                        )}
                         <span>
-                          {editingColorId ? 'Update Color Variant' : 'Pair Photo with this Color'}
+                          {editingColorId
+                            ? 'Update Color Variant'
+                            : uploading && !uploadedCloudUrl
+                            ? 'Pair Photo with this Color (Completing Upload...)'
+                            : 'Pair Photo with this Color'}
                         </span>
                       </button>
                     </div>
@@ -1459,8 +1555,8 @@ export default function ProductsModule({
                 {[
                   {
                     key: 'freeDelivery',
-                    label: 'Free Express Delivery',
-                    sub: 'Displays "Free Express Delivery Across India"',
+                    label: 'Express Delivery Available',
+                    sub: 'Displays "Express Delivery Available"',
                   },
                   {
                     key: 'customizationAvailable',

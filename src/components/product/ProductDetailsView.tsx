@@ -217,7 +217,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     // Evaluate activeStore.whatsapp?.templatePdp if configured
     const template = activeStore.whatsapp?.templatePdp
     if (template && template.includes('{product_name}')) {
-      return template
+      let customMsg = template
         .replace(/{product_name}/g, product.name)
         .replace(/{color}/g, selectedColor.name)
         .replace(/{size}/g, selectedSize)
@@ -225,9 +225,15 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
         .replace(/{price}/g, formattedPrice)
         .replace(/{product_url}/g, currentUrl)
         .replace(/{custom_notes}/g, customNotesBlock)
+
+      // Guarantee product link is always present even if custom template lacked the token
+      if (!customMsg.includes(currentUrl)) {
+        customMsg += `\n• *Product Link:* ${currentUrl}`
+      }
+      return customMsg
     }
 
-    // Standard high-converting default format
+    // Standard high-converting default format with clean WhatsApp bolds and line breaks
     let msg = `Hi Varna! I'd like to order the *${product.name}*:\n\n`
     msg += `• *Color:* ${selectedColor.name}\n`
     msg += `• *Size:* ${selectedSize}\n`
@@ -270,7 +276,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     buildWhatsAppMessage()
   )}`
   const whatsappQuestionUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-    `Hi Varna! I have a question about the ${product.name} (Size ${selectedSize}, ${selectedColor.name}).\n• Product Link: ${productShareUrl}\nCan you help me with sizing & fabric photos?`
+    `Hi Varna! I have a question about the *${product.name}*:\n\n• *Color:* ${selectedColor.name}\n• *Size:* ${selectedSize}\n• *Product Link:* ${productShareUrl}\n\nCould you please help me with fabric details & sizing?`
   )}`
 
   const handleShare = async () => {
@@ -449,7 +455,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
             {/* Main Featured Photo Frame */}
             <div
-              className="order-1 md:order-2 relative flex-1 aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#f0ece4] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y"
+              className="order-1 md:order-2 relative flex-1 aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#faf8f5] border border-[#e8d5b7]/60 shadow-lg group select-none touch-pan-y flex items-center justify-center"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -460,7 +466,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 55vw"
-                className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-contain object-center transition-transform duration-500 ease-out group-hover:scale-102"
               />
 
               {/* Badges Over Image */}
@@ -602,7 +608,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               <p className="text-[11px] text-[#7d7062] flex items-center gap-1.5">
                 <span className="text-[#1a2e1a] font-semibold">✓ Inclusive of all taxes</span>
                 <span>•</span>
-                <span>Free express door delivery across India</span>
+                <span>Express delivery available</span>
               </p>
             </div>
 
@@ -862,7 +868,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                     className="object-contain"
                   />
                 </div>
-                <span>Order via WhatsApp • ₹{totalPrice.toLocaleString('en-IN')}</span>
+                <span>Order via WhatsApp</span>
                 <Sparkles size={16} className="text-[#e8d5b7] group-hover:text-white transition-colors" />
               </a>
 
@@ -875,7 +881,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-[#faf8f4] text-[#1a2e1a] rounded-xl text-xs sm:text-sm font-semibold border border-[#e8d5b7] hover:border-[#1a2e1a] shadow-xs transition-all cursor-pointer"
               >
                 <HelpCircle size={15} />
-                <span>Ask a Question / Request Fabric Video Sample</span>
+                <span>Ask a Question</span>
               </a>
             </div>
 
@@ -891,8 +897,8 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               const activeBadges = [
                 features.freeDelivery && {
                   icon: Truck,
-                  title: 'Free Express Delivery',
-                  desc: 'Across India',
+                  title: 'Express Delivery Available',
+                  desc: 'Fast dispatch',
                 },
                 features.returnable && {
                   icon: RotateCcw,

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Heart, Star, Scissors } from 'lucide-react'
@@ -74,6 +74,13 @@ export default function ProductCard({
   const discount =
     originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
 
+  // Prefetch product page route for instantaneous <50ms navigation on tap/click
+  useEffect(() => {
+    if (id) {
+      router.prefetch(`/products/${id}`)
+    }
+  }, [id, router])
+
   const handleCardClick = () => {
     router.push(`/products/${id}`)
   }
@@ -114,6 +121,8 @@ export default function ProductCard({
   return (
     <div
       onClick={handleCardClick}
+      onMouseEnter={() => router.prefetch(`/products/${id}`)}
+      onTouchStart={() => router.prefetch(`/products/${id}`)}
       className="group relative bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-shrink-0 w-44 sm:w-48 md:w-52 border border-[#e8d5b7]/50 hover:border-[#1a2e1a] flex flex-col select-none cursor-pointer"
     >
       {/* Product Image Frame */}

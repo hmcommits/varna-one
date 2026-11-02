@@ -109,16 +109,16 @@ export const defaultStoreData: StoreState = {
     topBarVisible: true,
     topBarTexts: [
       '⚡ FESTIVE DROP: FLAT 30% OFF ON ALL CUSTOM PRINTS',
-      '🚚 FREE EXPRESS DOORSTEP DELIVERY ACROSS INDIA',
+      '🚚 EXPRESS DELIVERY AVAILABLE',
       '🧵 100% PURE EUROPEAN FLAX LINEN • ZERO SHRINKAGE',
     ],
     tickerChips: [
       '⚡ FLAT 30% OFF ON ALL CUSTOM PRINTS',
       'PREMIUM 240 GSM HEAVYWEIGHT COTTON',
       '100% PURE EUROPEAN FLAX LINEN',
-      'OVERNIGHT DISPATCH ACROSS INDIA',
+      'OVERNIGHT DISPATCH AVAILABLE',
       'JAPANESE LOCK-STITCH EMBROIDERY',
-      'FREE EXPRESS SHIPPING ON ALL ORDERS',
+      'EXPRESS DELIVERY AVAILABLE',
     ],
     promoBanners: [
       {
@@ -143,8 +143,8 @@ export const defaultStoreData: StoreState = {
     trustBadges: [
       {
         id: 'badge-1',
-        title: 'Free Express Delivery',
-        desc: 'Dispatched within 24h across India via premier couriers',
+        title: 'Express Delivery Available',
+        desc: 'Dispatched within 24h via premier couriers',
         iconKey: 'truck',
       },
       {
@@ -185,7 +185,7 @@ export const defaultStoreData: StoreState = {
     templateCard:
       "Hi Varna! I'd like to enquire about the {product_name} ({price}). Please share availability and delivery timeframe.",
     templatePdp:
-      "Hi Varna! I'd like to order the {product_name}:\n• Color: {color}\n• Size: {size}\n• Quantity: {quantity}{custom_notes}\nPlease confirm product availability and dispatch timeline!",
+      "Hi Varna! I'd like to order the *{product_name}*:\n\n• *Color:* {color}\n• *Size:* {size}\n• *Quantity:* {quantity} unit(s)\n• *Total Amount:* {price}\n• *Product Link:* {product_url}{custom_notes}\n\nPlease confirm product availability & dispatch timeline!",
     templateCustomPrint:
       "Hi Varna! I'm interested in bulk custom prints / embroidery for our team/college. Can we discuss designs, fabric samples, and volume pricing?",
   },
