@@ -20,6 +20,8 @@ export interface ProductCardProps {
   gender?: string
   customization?: CustomizationConfig
   hasColorPricing?: boolean
+  fullWidth?: boolean
+  className?: string
 }
 
 const badgeStyles: Record<string, string> = {
@@ -41,6 +43,8 @@ export default function ProductCard({
   badge,
   customization,
   hasColorPricing,
+  fullWidth = false,
+  className = '',
 }: ProductCardProps) {
   const router = useRouter()
   const { activeStore, logEnquiry } = useStore()
@@ -148,7 +152,9 @@ export default function ProductCard({
       onClick={handleCardClick}
       onMouseEnter={() => router.prefetch(`/products/${id}`)}
       onTouchStart={() => router.prefetch(`/products/${id}`)}
-      className="group relative bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-shrink-0 w-44 sm:w-48 md:w-52 border border-[#e8d5b7]/50 hover:border-[#1a2e1a] flex flex-col select-none cursor-pointer"
+      className={`group relative bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-[#e8d5b7]/50 hover:border-[#1a2e1a] flex flex-col select-none cursor-pointer ${
+        fullWidth ? 'w-full' : 'flex-shrink-0 w-44 sm:w-48 md:w-52'
+      } ${className}`}
     >
       {/* Product Image Frame */}
       <div className="relative aspect-[3/4] bg-[#f0ece4] overflow-hidden">
@@ -156,7 +162,11 @@ export default function ProductCard({
           src={displayImage}
           alt={name}
           fill
-          sizes="(max-width: 640px) 176px, 208px"
+          sizes={
+            fullWidth
+              ? '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'
+              : '(max-width: 640px) 176px, 208px'
+          }
           className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
         />
 

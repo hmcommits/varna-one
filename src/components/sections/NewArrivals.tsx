@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Sparkles, X, Search } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight, Sparkles, X, Search, ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/ui/ProductCard'
 import { useStore } from '@/context/StoreContext'
 import { Product } from '@/types/store'
@@ -122,9 +123,19 @@ export default function NewArrivals() {
         {/* Section Header with Filter Pills */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-8 gap-4">
           <div>
-            <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
-              CURATED COLLECTION
-            </p>
+            <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
+              <p className="text-[11px] md:text-xs font-bold tracking-[0.25em] uppercase text-[#1a2e1a]">
+                CURATED COLLECTION
+              </p>
+              <Link
+                href={catalogFilter !== 'All' ? `/products?category=${encodeURIComponent(catalogFilter)}` : '/products'}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1a2e1a] hover:bg-[#284628] text-white text-[11px] font-semibold transition-all cursor-pointer shadow-xs group"
+                title="View all products in catalog grid"
+              >
+                <span>View All</span>
+                <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
               {catalogFilter === 'All' ? 'New Arrivals & Drops' : `${catalogFilter} Collection`}
             </h2>

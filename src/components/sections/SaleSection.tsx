@@ -129,8 +129,9 @@ export default function SaleSection() {
               'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
             return (
-              <div key={p.id} className="flex justify-center">
+              <div key={p.id} className="w-full">
                 <ProductCard
+                  fullWidth
                   id={p.id}
                   name={p.name}
                   image={primaryImage}
