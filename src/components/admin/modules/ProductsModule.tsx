@@ -153,22 +153,20 @@ export default function ProductsModule({
       'varna2026'
 
     // Instant local previews (0ms latency UI feedback)
-    const currentColorsCount = editingProduct.colors.length
     const tempVariants: Array<{
       tempId: string
       file: File
       variant: ProductColor
     }> = files.map((file, idx) => {
       const tempId = `temp-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`
-      const variantName = `Color ${currentColorsCount + idx + 1}`
       const localUrl = URL.createObjectURL(file)
       return {
         tempId,
         file,
         variant: {
           id: tempId,
-          name: variantName,
-          hex: '#1c3624',
+          name: '', // Empty first, filled by admin or picked from existing colors
+          hex: '',  // Empty first, chosen via picker or hex input
           image: localUrl,
           price: editingProduct.price || 0,
           originalPrice: editingProduct.originalPrice || 0,
@@ -398,6 +396,14 @@ export default function ProductsModule({
 
     if (editingProduct.colors.length === 0) {
       alert('Please upload at least one photo for this product.')
+      return
+    }
+
+    const unconfigured = editingProduct.colors.find(
+      (c) => !c.name.trim() || !c.hex.trim()
+    )
+    if (unconfigured) {
+      alert('Please enter a color name and select a color swatch for each uploaded photo.')
       return
     }
 
@@ -840,118 +846,189 @@ export default function ProductsModule({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-                  {editingProduct.colors.map((color, idx) => {
-                    const isCover = idx === 0
-                    return (
-                      <div
-                        key={color.id}
-                        className={`bg-white border rounded-2xl p-3 space-y-3 transition-all relative ${
-                          isCover
-                            ? 'border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
-                            : 'border-[#ded7cb] hover:border-[#1c3624]'
-                        }`}
-                      >
-                        {/* Top Card Bar: Cover Badge & Delete Button */}
-                        <div className="flex items-center justify-between">
-                          {isCover ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#1c3624] text-white px-2 py-0.5 rounded-full shadow-2xs">
-                              <Star size={11} className="fill-white" />
-                              <span>Cover Photo</span>
-                            </span>
-                          ) : (
+                  {(() => {
+                    // Collect all unique colors configured with a name and hex so other cards can reuse them with 1 tap
+                    const definedColors = Array.from(
+                      new Map(
+                        editingProduct.colors
+                          .filter((c) => c.name.trim() && c.hex.trim())
+                          .map((c) => [
+                            c.name.trim().toLowerCase(),
+                            {
+                              name: c.name.trim(),
+                              hex: c.hex.trim(),
+                              price: c.price,
+                              originalPrice: c.originalPrice,
+                            },
+                          ])
+                      ).values()
+                    )
+
+                    return editingProduct.colors.map((color, idx) => {
+                      const isCover = idx === 0
+                      return (
+                        <div
+                          key={color.id}
+                          className={`bg-white border rounded-2xl p-3.5 space-y-3 transition-all relative ${
+                            isCover
+                              ? 'border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
+                              : 'border-[#ded7cb] hover:border-[#1c3624]'
+                          }`}
+                        >
+                          {/* Top Card Bar: Cover Badge & Delete Button */}
+                          <div className="flex items-center justify-between">
+                            {isCover ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#1c3624] text-white px-2 py-0.5 rounded-full shadow-2xs">
+                                <Star size={11} className="fill-white" />
+                                <span>Cover Photo</span>
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleSetAsCover(idx)}
+                                className="text-[10px] font-bold text-[#556358] hover:text-[#1c3624] bg-[#faf6f0] hover:bg-[#eef7f0] border border-[#ded7cb] px-2 py-0.5 rounded-full transition-all cursor-pointer"
+                                title="Set as Cover Photo / Catalog Thumbnail"
+                              >
+                                ★ Make Cover
+                              </button>
+                            )}
+
                             <button
                               type="button"
-                              onClick={() => handleSetAsCover(idx)}
-                              className="text-[10px] font-bold text-[#556358] hover:text-[#1c3624] bg-[#faf6f0] hover:bg-[#eef7f0] border border-[#ded7cb] px-2 py-0.5 rounded-full transition-all cursor-pointer"
-                              title="Set as Cover Photo / Catalog Thumbnail"
+                              onClick={() => handleRemovePhoto(color.id)}
+                              className="text-[#8c978f] hover:text-[#b84840] p-1 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Remove Photo"
                             >
-                              ★ Make Cover
+                              <Trash2 size={14} />
                             </button>
+                          </div>
+
+                          {/* Photo Thumbnail */}
+                          <div className="relative w-full h-44 rounded-xl overflow-hidden bg-[#faf8f5] border border-[#ded7cb]">
+                            <Image
+                              src={color.image}
+                              alt={color.name || 'Product photo'}
+                              fill
+                              className="object-cover object-top"
+                              unoptimized
+                            />
+                          </div>
+
+                          {/* Quick-Pick Existing Colors from this product (if any defined) */}
+                          {definedColors.length > 0 && (
+                            <div className="space-y-1 bg-[#faf8f5] p-2 rounded-xl border border-[#ebe5da]">
+                              <span className="text-[9px] font-bold text-[#845d1d] uppercase tracking-wider block">
+                                Or select existing color:
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {definedColors.map((dc) => {
+                                  const isCurrent =
+                                    color.name.trim().toLowerCase() === dc.name.toLowerCase() &&
+                                    color.hex.trim().toLowerCase() === dc.hex.toLowerCase()
+
+                                  return (
+                                    <button
+                                      key={dc.name}
+                                      type="button"
+                                      onClick={() => {
+                                        handleUpdateColorField(color.id, 'name', dc.name)
+                                        handleUpdateColorField(color.id, 'hex', dc.hex)
+                                        if (editingProduct.hasColorPricing) {
+                                          if (dc.price !== undefined) {
+                                            handleUpdateColorField(color.id, 'price', dc.price)
+                                          }
+                                          if (dc.originalPrice !== undefined) {
+                                            handleUpdateColorField(color.id, 'originalPrice', dc.originalPrice)
+                                          }
+                                        }
+                                      }}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
+                                        isCurrent
+                                          ? 'bg-[#1c3624] text-white border-[#1c3624] shadow-xs'
+                                          : 'bg-white hover:bg-[#faf6f0] text-[#556358] border-[#ded7cb] hover:border-[#1c3624]'
+                                      }`}
+                                      title={`Apply "${dc.name}" (${dc.hex}) to this photo`}
+                                    >
+                                      <span
+                                        className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 shadow-inner"
+                                        style={{ backgroundColor: dc.hex }}
+                                      />
+                                      <span className="truncate max-w-[90px]">{dc.name}</span>
+                                      {isCurrent && <Check size={10} className="stroke-[3]" />}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
                           )}
 
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePhoto(color.id)}
-                            className="text-[#8c978f] hover:text-[#b84840] p-1 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
-                            title="Remove Photo"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                          {/* Color Name Input */}
+                          <div>
+                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                              Color Variant Name
+                            </label>
+                            <input
+                              type="text"
+                              value={color.name}
+                              onChange={(e) =>
+                                handleUpdateColorField(color.id, 'name', e.target.value)
+                              }
+                              placeholder="e.g. White, Sage Green, Beige"
+                              className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-medium placeholder-[#8c978f]"
+                            />
+                          </div>
 
-                        {/* Photo Thumbnail */}
-                        <div className="relative w-full h-44 rounded-xl overflow-hidden bg-[#faf8f5] border border-[#ded7cb]">
-                          <Image
-                            src={color.image}
-                            alt={color.name}
-                            fill
-                            className="object-cover object-top"
-                            unoptimized
-                          />
-                        </div>
+                          {/* Color Swatch & Hex */}
+                          <div>
+                            <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
+                              Color Swatch &amp; Hex
+                            </label>
+                            <div className="flex items-center gap-2">
+                              {/* Swatch Square with hidden native color picker inside */}
+                              <div
+                                className={`relative w-8 h-8 rounded-lg border shadow-2xs flex-shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 flex items-center justify-center ${
+                                  color.hex ? 'border-[#ded7cb]' : 'border-dashed border-[#b8b0a2] bg-[#f4efe8]'
+                                }`}
+                                style={{ backgroundColor: color.hex || 'transparent' }}
+                                title={color.hex ? `Color: ${color.hex}` : 'Click to pick color'}
+                              >
+                                {!color.hex && (
+                                  <span className="text-[10px] text-[#8c978f] font-bold">+</span>
+                                )}
+                                <input
+                                  type="color"
+                                  value={color.hex || '#1c3624'}
+                                  onChange={(e) =>
+                                    handleUpdateColorField(color.id, 'hex', e.target.value)
+                                  }
+                                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                                />
+                              </div>
 
-                        {/* Color Name Input */}
-                        <div>
-                          <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
-                            Color Variant Name
-                          </label>
-                          <input
-                            type="text"
-                            value={color.name}
-                            onChange={(e) =>
-                              handleUpdateColorField(color.id, 'name', e.target.value)
-                            }
-                            placeholder="e.g. Sage Green, Navy, Ivory"
-                            className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-medium"
-                          />
-                        </div>
-
-                        {/* Color Swatch & Hex */}
-                        <div>
-                          <label className="block text-[10px] font-semibold text-[#6b7770] mb-0.5">
-                            {supportsEyeDropper ? 'Color Hex & Swatch' : 'Color Swatch & Hex'}
-                          </label>
-                          <div className="flex items-center gap-2">
-                            {/* Swatch Square with hidden native color picker inside */}
-                            <div
-                              className="relative w-8 h-8 rounded-lg border border-[#ded7cb] shadow-2xs flex-shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95"
-                              style={{ backgroundColor: color.hex || '#1c3624' }}
-                              title="Choose color swatch"
-                            >
+                              {/* Hex Text Box */}
                               <input
-                                type="color"
-                                value={color.hex || '#1c3624'}
+                                type="text"
+                                value={color.hex}
+                                placeholder="#HEX"
                                 onChange={(e) =>
                                   handleUpdateColorField(color.id, 'hex', e.target.value)
                                 }
-                                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                                className="flex-1 bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1.5 text-xs text-[#142319] outline-hidden font-mono uppercase placeholder-[#8c978f]"
                               />
+
+                              {/* Eyedropper on supported desktop browsers */}
+                              {supportsEyeDropper && (
+                                <button
+                                  type="button"
+                                  onClick={() => handlePickColorForCard(color.id)}
+                                  className="p-1.5 rounded-lg bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#845d1d] transition-all cursor-pointer flex-shrink-0"
+                                  title="Pick exact color from image"
+                                >
+                                  <Pipette size={13} />
+                                </button>
+                              )}
                             </div>
-
-                            {/* Hex Text Box */}
-                            <input
-                              type="text"
-                              value={color.hex}
-                              placeholder="#1C3624"
-                              onChange={(e) =>
-                                handleUpdateColorField(color.id, 'hex', e.target.value)
-                              }
-                              className="flex-1 bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1.5 text-xs text-[#142319] outline-hidden font-mono uppercase"
-                            />
-
-                            {/* Eyedropper on supported desktop browsers */}
-                            {supportsEyeDropper && (
-                              <button
-                                type="button"
-                                onClick={() => handlePickColorForCard(color.id)}
-                                className="p-1.5 rounded-lg bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#845d1d] transition-all cursor-pointer flex-shrink-0"
-                                title="Pick exact color from image"
-                              >
-                                <Pipette size={13} />
-                              </button>
-                            )}
                           </div>
-                        </div>
 
                         {/* DYNAMIC COLOR-WISE PRICING INPUTS (WHEN TOGGLE IS ON) */}
                         {editingProduct.hasColorPricing && (
@@ -1010,7 +1087,8 @@ export default function ProductsModule({
                         )}
                       </div>
                     )
-                  })}
+                  })
+                })()}
                 </div>
               </div>
             )}
