@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import { HexColorPicker } from 'react-colorful'
 import { useStore } from '@/context/StoreContext'
 import { Product, ProductColor, CustomizationOption } from '@/types/store'
 import {
@@ -14,12 +15,29 @@ import {
   ArrowLeft,
   Star,
   Sparkles,
+  Palette,
+  X,
 } from 'lucide-react'
 
 interface ProductsModuleProps {
   initialCategoryFilter?: string | null
   openCreateOnMount?: boolean
 }
+
+const APPAREL_COLOR_PRESETS = [
+  { name: 'Pure White', hex: '#FFFFFF', border: true },
+  { name: 'Linen Cream', hex: '#F5F0E8', border: true },
+  { name: 'Beige Khaki', hex: '#D4C5B9', border: false },
+  { name: 'Terracotta', hex: '#B45309', border: false },
+  { name: 'Olive Green', hex: '#4A6B53', border: false },
+  { name: 'Forest Green', hex: '#1C3624', border: false },
+  { name: 'Navy Blue', hex: '#1E3A8A', border: false },
+  { name: 'Sky Blue', hex: '#60A5FA', border: false },
+  { name: 'Charcoal Grey', hex: '#374151', border: false },
+  { name: 'Jet Black', hex: '#111111', border: false },
+  { name: 'Maroon Wine', hex: '#7F1D1D', border: false },
+  { name: 'Mustard Sand', hex: '#CA8A04', border: false },
+]
 
 const DEFAULT_CATEGORIES = [
   'Shirts',
@@ -107,6 +125,8 @@ export default function ProductsModule({
 
   // Desktop Chromium EyeDropper API detection
   const [supportsEyeDropper, setSupportsEyeDropper] = useState(false)
+  // Active card ID for custom desktop-style visual color picker
+  const [activeColorPickerCardId, setActiveColorPickerCardId] = useState<string | null>(null)
   useEffect(() => {
     if (typeof window !== 'undefined' && 'EyeDropper' in window) {
       const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -1014,26 +1034,20 @@ export default function ProductsModule({
                               Color Swatch &amp; Hex
                             </label>
                             <div className="flex items-center gap-2">
-                              {/* Swatch Square with hidden native color picker inside */}
-                              <div
+                              {/* Swatch Square Button -> Opens Visual Desktop-Style Color Picker */}
+                              <button
+                                type="button"
+                                onClick={() => setActiveColorPickerCardId(color.id)}
                                 className={`relative w-8 h-8 rounded-lg border shadow-2xs flex-shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 flex items-center justify-center ${
                                   color.hex ? 'border-[#ded7cb]' : 'border-dashed border-[#b8b0a2] bg-[#f4efe8]'
                                 }`}
                                 style={{ backgroundColor: color.hex || 'transparent' }}
-                                title={color.hex ? `Color: ${color.hex}` : 'Click to pick color'}
+                                title={color.hex ? `Color: ${color.hex} (Click to open visual color picker)` : 'Click to pick color'}
                               >
                                 {!color.hex && (
                                   <span className="text-[10px] text-[#8c978f] font-bold">+</span>
                                 )}
-                                <input
-                                  type="color"
-                                  value={color.hex || '#1c3624'}
-                                  onChange={(e) =>
-                                    handleUpdateColorField(color.id, 'hex', e.target.value)
-                                  }
-                                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                                />
-                              </div>
+                              </button>
 
                               {/* Hex Text Box */}
                               <input
@@ -1045,6 +1059,16 @@ export default function ProductsModule({
                                 }
                                 className="flex-1 bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2 py-1.5 text-xs text-[#142319] outline-hidden font-mono uppercase placeholder-[#8c978f]"
                               />
+
+                              {/* Visual Palette Picker Button */}
+                              <button
+                                type="button"
+                                onClick={() => setActiveColorPickerCardId(color.id)}
+                                className="p-1.5 rounded-lg bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#1c3624] transition-all cursor-pointer flex-shrink-0"
+                                title="Open visual desktop-style color picker"
+                              >
+                                <Palette size={13} />
+                              </button>
 
                               {/* Eyedropper on supported desktop browsers */}
                               {supportsEyeDropper && (
@@ -1514,6 +1538,193 @@ export default function ProductsModule({
             </button>
           </div>
         </div>
+
+        {/* VISUAL DESKTOP-STYLE COLOR STUDIO MODAL / BOTTOM SHEET */}
+        {activeColorPickerCardId && (() => {
+          const targetColor = editingProduct.colors.find((c) => c.id === activeColorPickerCardId)
+          if (!targetColor) return null
+
+          const currentColorHex =
+            targetColor.hex && targetColor.hex.startsWith('#')
+              ? targetColor.hex
+              : '#1C3624'
+
+          return (
+            <div
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
+              onClick={() => setActiveColorPickerCardId(null)}
+            >
+              <div
+                className="bg-white rounded-3xl p-5 w-full max-w-sm border border-[#ebe5da] shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-[#ebe5da] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-6 h-6 rounded-lg border border-[#ded7cb] shadow-2xs shrink-0"
+                      style={{ backgroundColor: targetColor.hex || 'transparent' }}
+                    />
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-bold text-[#142319] leading-tight">
+                        Color Variant Selector
+                      </h3>
+                      <p className="text-[10px] text-[#6b7770]">
+                        {targetColor.name ? `Editing: ${targetColor.name}` : 'Desktop-style visual color picker'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveColorPickerCardId(null)}
+                    className="p-1 rounded-lg text-[#8b948d] hover:text-[#142319] hover:bg-[#faf6f0] transition-colors cursor-pointer"
+                    title="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* 1. Desktop-Style 2D Visual Gradient Box + Rainbow Hue Slider */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-[#6b7770]">
+                      Visual Spectrum
+                    </label>
+                    <span className="text-[10px] text-[#845d1d] font-semibold">Touch &amp; Drag</span>
+                  </div>
+                  <div className="rounded-2xl overflow-hidden shadow-2xs border border-[#ebe5da] p-1.5 bg-[#faf8f5]">
+                    <HexColorPicker
+                      color={currentColorHex}
+                      onChange={(newHex) => {
+                        handleUpdateColorField(targetColor.id, 'hex', newHex.toUpperCase())
+                      }}
+                      style={{ width: '100%', height: '175px' }}
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Hex Code Input with Live Preview Swatch */}
+                <div className="flex items-center gap-2 bg-[#faf8f5] border border-[#ded7cb] rounded-xl px-3 py-2">
+                  <div
+                    className="w-5 h-5 rounded-md border border-[#ded7cb] shadow-2xs shrink-0"
+                    style={{ backgroundColor: targetColor.hex || '#1C3624' }}
+                  />
+                  <span className="text-xs font-mono font-bold text-[#845d1d]">HEX:</span>
+                  <input
+                    type="text"
+                    value={targetColor.hex || ''}
+                    onChange={(e) => {
+                      let val = e.target.value.trim().toUpperCase()
+                      if (val && !val.startsWith('#')) val = '#' + val
+                      handleUpdateColorField(targetColor.id, 'hex', val)
+                    }}
+                    placeholder="#1C3624"
+                    className="w-full bg-transparent text-xs font-mono font-bold text-[#142319] outline-hidden uppercase"
+                  />
+                </div>
+
+                {/* 3. 1-Tap Popular Apparel Clothing Presets */}
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#6b7770]">
+                    Popular Apparel Presets
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {APPAREL_COLOR_PRESETS.map((preset) => {
+                      const isSelected = targetColor.hex?.toUpperCase() === preset.hex.toUpperCase()
+                      return (
+                        <button
+                          key={preset.hex}
+                          type="button"
+                          onClick={() => {
+                            handleUpdateColorField(targetColor.id, 'hex', preset.hex)
+                            if (!targetColor.name.trim()) {
+                              handleUpdateColorField(targetColor.id, 'name', preset.name)
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 p-1.5 rounded-xl border transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-[#1c3624] bg-[#f4f9f5] ring-2 ring-[#1c3624]/20 shadow-xs'
+                              : 'border-[#ded7cb] bg-white hover:bg-[#faf6f0]'
+                          }`}
+                          title={preset.name}
+                        >
+                          <span
+                            className="w-4 h-4 rounded-md border shrink-0"
+                            style={{
+                              backgroundColor: preset.hex,
+                              borderColor: preset.border ? '#ded7cb' : preset.hex,
+                            }}
+                          />
+                          <span className="text-[10px] font-medium text-[#142319] truncate leading-tight">
+                            {preset.name.split(' ')[0]}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 4. Existing Colors in Current Product Drop */}
+                {(() => {
+                  const otherColors = editingProduct.colors.filter(
+                    (c) => c.id !== targetColor.id && c.hex && c.hex.trim()
+                  )
+                  if (otherColors.length === 0) return null
+                  return (
+                    <div className="space-y-1.5 pt-2 border-t border-[#ebe5da]">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#6b7770]">
+                        Existing Colors in Drop
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {otherColors.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              handleUpdateColorField(targetColor.id, 'hex', c.hex)
+                              if (!targetColor.name.trim() && c.name.trim()) {
+                                handleUpdateColorField(targetColor.id, 'name', c.name)
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-[#f4f9f5] hover:bg-[#eaf6ec] border border-[#cbe8d1] text-xs text-[#1c502b] font-medium cursor-pointer transition-all"
+                          >
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
+                              style={{ backgroundColor: c.hex }}
+                            />
+                            <span className="truncate max-w-[120px]">{c.name || c.hex}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* 5. Footer Done Button */}
+                <div className="pt-2 border-t border-[#ebe5da] flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUpdateColorField(targetColor.id, 'hex', '')
+                      setActiveColorPickerCardId(null)
+                    }}
+                    className="py-2 px-3 text-xs text-[#8c978f] hover:text-[#b84840] font-medium cursor-pointer"
+                  >
+                    Clear Swatch
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveColorPickerCardId(null)}
+                    className="py-2 px-5 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-97 flex items-center gap-1.5"
+                  >
+                    <Check size={14} />
+                    <span>Apply Color</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
       </div>
     )
   }
