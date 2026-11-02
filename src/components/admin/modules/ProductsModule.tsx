@@ -283,38 +283,53 @@ export default function ProductsModule({
 
   // 1-Click Set as Primary Cover Thumbnail
   const handleSetAsCover = (index: number) => {
-    if (!editingProduct || index === 0) return
-    const updated = [...editingProduct.colors]
-    const [selected] = updated.splice(index, 1)
-    updated.unshift(selected)
-    setEditingProduct({
-      ...editingProduct,
-      colors: updated,
+    if (index === 0) return
+    setEditingProduct((prev) => {
+      if (!prev) return prev
+      const updated = [...prev.colors]
+      const [selected] = updated.splice(index, 1)
+      updated.unshift(selected)
+      return {
+        ...prev,
+        colors: updated,
+      }
     })
   }
 
   // Remove photo variant
   const handleRemovePhoto = (colorId: string) => {
-    if (!editingProduct) return
-    setEditingProduct({
-      ...editingProduct,
-      colors: editingProduct.colors.filter((c) => c.id !== colorId),
+    setEditingProduct((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        colors: prev.colors.filter((c) => c.id !== colorId),
+      }
     })
   }
 
-  // Update color variant fields (name, hex, price, originalPrice)
+  // Update multiple color variant fields atomically
+  const handleUpdateColorFields = (
+    colorId: string,
+    updates: Partial<ProductColor>
+  ) => {
+    setEditingProduct((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        colors: prev.colors.map((c) =>
+          c.id === colorId ? { ...c, ...updates } : c
+        ),
+      }
+    })
+  }
+
+  // Update a single color variant field (name, hex, price, originalPrice)
   const handleUpdateColorField = (
     colorId: string,
     field: keyof ProductColor,
     value: any
   ) => {
-    if (!editingProduct) return
-    setEditingProduct({
-      ...editingProduct,
-      colors: editingProduct.colors.map((c) =>
-        c.id === colorId ? { ...c, [field]: value } : c
-      ),
-    })
+    handleUpdateColorFields(colorId, { [field]: value })
   }
 
   // Native desktop EyeDropper
@@ -981,16 +996,19 @@ export default function ProductsModule({
                                       key={dc.name}
                                       type="button"
                                       onClick={() => {
-                                        handleUpdateColorField(color.id, 'name', dc.name)
-                                        handleUpdateColorField(color.id, 'hex', dc.hex)
+                                        const updates: Partial<ProductColor> = {
+                                          name: dc.name,
+                                          hex: dc.hex,
+                                        }
                                         if (editingProduct.hasColorPricing) {
                                           if (dc.price !== undefined) {
-                                            handleUpdateColorField(color.id, 'price', dc.price)
+                                            updates.price = dc.price
                                           }
                                           if (dc.originalPrice !== undefined) {
-                                            handleUpdateColorField(color.id, 'originalPrice', dc.originalPrice)
+                                            updates.originalPrice = dc.originalPrice
                                           }
                                         }
+                                        handleUpdateColorFields(color.id, updates)
                                       }}
                                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
                                         isCurrent
@@ -1636,10 +1654,15 @@ export default function ProductsModule({
                           key={preset.hex}
                           type="button"
                           onClick={() => {
-                            handleUpdateColorField(targetColor.id, 'hex', preset.hex)
-                            if (!targetColor.name.trim()) {
-                              handleUpdateColorField(targetColor.id, 'name', preset.name)
-                            }
+                            handleUpdateColorFields(targetColor.id, {
+                              hex: preset.hex,
+                              ...(!targetColor.name?.trim() ||
+                              APPAREL_COLOR_PRESETS.some(
+                                (p) => p.name.toLowerCase() === targetColor.name.trim().toLowerCase()
+                              )
+                                ? { name: preset.name }
+                                : {}),
+                            })
                           }}
                           className={`flex items-center gap-1.5 p-1.5 rounded-xl border transition-all cursor-pointer ${
                             isSelected
@@ -1681,10 +1704,10 @@ export default function ProductsModule({
                             key={c.id}
                             type="button"
                             onClick={() => {
-                              handleUpdateColorField(targetColor.id, 'hex', c.hex)
-                              if (!targetColor.name.trim() && c.name.trim()) {
-                                handleUpdateColorField(targetColor.id, 'name', c.name)
-                              }
+                              handleUpdateColorFields(targetColor.id, {
+                                hex: c.hex,
+                                ...(!targetColor.name?.trim() && c.name?.trim() ? { name: c.name } : {}),
+                              })
                             }}
                             className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-[#f4f9f5] hover:bg-[#eaf6ec] border border-[#cbe8d1] text-xs text-[#1c502b] font-medium cursor-pointer transition-all"
                           >
