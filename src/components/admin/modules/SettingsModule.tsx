@@ -201,14 +201,14 @@ export default function SettingsModule() {
                 />
               </label>
               <p className="text-[11px] text-[#6b7770]">
-                PNG, JPG, SVG auto-converted to WebP and hosted on Cloudinary CDN.
+                PNG, JPG, SVG supported.
               </p>
             </div>
           </div>
 
           <div className="p-3 bg-[#eaf6ec] border border-[#cbe8d1] rounded-xl flex items-center gap-2 text-xs font-semibold text-[#1c502b]">
             <CheckCircle2 size={15} />
-            <span>Active Logo Synced to Cloudinary CDN</span>
+            <span>Active Store Logo Connected</span>
           </div>
         </div>
 

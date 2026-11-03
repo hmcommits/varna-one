@@ -389,10 +389,10 @@ export default function CategoriesModule({
                 />
               </div>
 
-              {/* Direct Photo Upload (Cloudinary WebP) */}
+              {/* Direct Photo Upload */}
               <div>
                 <label className="block text-xs font-semibold text-[#142319] mb-1">
-                  Category Image (Auto-converts to WebP on Cloudinary) *
+                  Category Image *
                 </label>
                 <div className="flex items-center gap-4 p-3 bg-[#faf6f0] border border-[#ded7cb] rounded-2xl">
                   {editingCategory.image ? (
@@ -415,7 +415,7 @@ export default function CategoriesModule({
                       {uploading ? (
                         <>
                           <Loader2 size={13} className="animate-spin" />
-                          <span>Uploading to Cloudinary...</span>
+                          <span>Uploading photo...</span>
                         </>
                       ) : (
                         <>
@@ -435,11 +435,11 @@ export default function CategoriesModule({
                     {uploadSuccess && (
                       <div className="flex items-center gap-1 text-[11px] text-[#206035] font-semibold">
                         <CheckCircle2 size={13} />
-                        <span>Ready &amp; Synced to Cloudinary WebP</span>
+                        <span>Photo Ready</span>
                       </div>
                     )}
                     <p className="text-[10px] text-[#6b7770]">
-                      Accepts PNG, JPG, WEBP. Converted to WebP format automatically.
+                      Accepts PNG, JPG, WEBP.
                     </p>
                   </div>
                 </div>

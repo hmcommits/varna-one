@@ -452,11 +452,11 @@ export default function HomepageModule() {
                       <Upload size={22} className="text-[#e8d5b7]" />
                       <span>
                         {uploadingHeroId === slide.id
-                          ? 'Uploading photo to CDN...'
+                          ? 'Uploading photo...'
                           : 'Click to Replace Banner Photo'}
                       </span>
-                      <span className="text-[10px] text-[#e8d5b7] font-normal">
-                        Supports WebP, PNG, JPG (High Res)
+                      <span className="text-[10px] text-[#e8d5b7]/90 font-normal">
+                        Click anywhere to pick a new photo
                       </span>
                       <input
                         type="file"
@@ -479,7 +479,7 @@ export default function HomepageModule() {
                       <span>
                         {uploadingHeroId === slide.id
                           ? 'Uploading...'
-                          : 'Upload Banner Photo'}
+                          : 'Upload / Replace Photo'}
                       </span>
                       <input
                         type="file"
@@ -497,29 +497,15 @@ export default function HomepageModule() {
                     {slide.image && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#206035] bg-[#eef7f0] px-2.5 py-2 rounded-xl border border-[#d6ecda]">
                         <Check size={12} />
-                        <span>Connected</span>
+                        <span>Photo Ready</span>
                       </span>
                     )}
-                  </div>
-
-                  {/* Image CDN URL Input (Direct Link) */}
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
-                      Direct Photo URL (Cloudinary / Web CDN)
-                    </label>
-                    <input
-                      type="text"
-                      value={slide.image}
-                      onChange={(e) => handleUpdateHeroSlide(slide.id, 'image', e.target.value)}
-                      placeholder="https://res.cloudinary.com/..."
-                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-mono"
-                    />
                   </div>
 
                   {/* Mobile Focal Alignment Preset */}
                   <div>
                     <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
-                      Mobile Focal Alignment (Focal Crop Position)
+                      Mobile Photo Framing (Adjust if model is off-center on mobile)
                     </label>
                     <select
                       value={slide.mobilePosition || 'object-[72%_center]'}
@@ -528,11 +514,11 @@ export default function HomepageModule() {
                       }
                       className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden cursor-pointer"
                     >
-                      <option value="object-[72%_center]">Right Model Focus (72% - Recommended)</option>
-                      <option value="object-[78%_center]">Far Right Focus (78%)</option>
-                      <option value="object-[65%_center]">Center-Right Focus (65%)</option>
-                      <option value="object-center">True Center (50%)</option>
-                      <option value="object-[35%_center]">Left Focus (35%)</option>
+                      <option value="object-[72%_center]">Right Model Focus (Recommended for fashion poses)</option>
+                      <option value="object-[78%_center]">Far Right Focus</option>
+                      <option value="object-[65%_center]">Center-Right Focus</option>
+                      <option value="object-center">Centered</option>
+                      <option value="object-[35%_center]">Left Focus</option>
                     </select>
                   </div>
                 </div>
@@ -860,7 +846,7 @@ export default function HomepageModule() {
                     <Upload size={20} />
                     <span>
                       {uploadingBannerId === banner.id
-                        ? 'Uploading to CDN...'
+                        ? 'Uploading photo...'
                         : 'Click to Change Banner Photo'}
                     </span>
                     <input
