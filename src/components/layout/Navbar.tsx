@@ -38,7 +38,13 @@ export default function Navbar() {
   }, [router])
 
   const handleLogoTap = (e: React.MouseEvent) => {
-    // Intercept default navigation so tapping 1, 2, 3, 4 times doesn't trigger page reloads
+    // If user is on a product page or any subpage, immediately allow standard navigation to main storefront
+    if (pathname !== '/') {
+      setMobileOpen(false)
+      return
+    }
+
+    // On the homepage, intercept default navigation so tapping 1, 2, 3, 4 times doesn't trigger page reloads
     e.preventDefault()
 
     const nextCount = tapCount + 1
@@ -79,9 +85,9 @@ export default function Navbar() {
 
     // Reset tap counter if user stops tapping after 450ms
     tapTimerRef.current = setTimeout(() => {
-      // If user only clicked once (standard logo click), navigate to home
+      // If user tapped on homepage, scroll to top
       if (nextCount === 1) {
-        router.push('/')
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       }
       setTapCount(0)
     }, 450)
