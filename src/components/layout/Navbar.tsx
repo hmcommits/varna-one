@@ -38,9 +38,20 @@ export default function Navbar() {
   }, [router])
 
   const handleLogoTap = (e: React.MouseEvent) => {
-    // If user is on a product page or any subpage, immediately allow standard navigation to main storefront
-    if (pathname !== '/') {
+    const isCurrentlyHome =
+      pathname === '/' ||
+      (typeof window !== 'undefined' && window.location.pathname === '/')
+
+    // If user is on a product page or any subpage, immediately redirect to main storefront
+    if (!isCurrentlyHome) {
+      e.preventDefault()
+      e.stopPropagation()
       setMobileOpen(false)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      } else {
+        router.push('/')
+      }
       return
     }
 

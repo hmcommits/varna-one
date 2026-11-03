@@ -12,10 +12,33 @@ const shopLinks = [
   { label: 'Collections', href: '/#collections' },
   { label: 'Sale', href: '/#sale' },
 ]
-const helpLinks = ['Custom Orders', 'Bulk Enquiries', 'Size Guide', 'FAQs', 'Contact Us']
+interface CustomerCareLink {
+  label: string
+  message: string
+}
 
-const WHATSAPP_ENQUIRY_URL =
-  "https://wa.me/916363145972?text=Hi%20Varna!%20I'm%20interested%20in%20your%20styles%20and%20would%20like%20to%20place%20an%20enquiry."
+const customerCareLinks: CustomerCareLink[] = [
+  {
+    label: 'Custom Orders',
+    message: "Hi Varna! I'm interested in placing a Custom Order (custom prints/embroidery). Could you guide me through the customization options and pricing?",
+  },
+  {
+    label: 'Bulk Enquiries',
+    message: "Hi Varna! I have a Bulk Enquiry for uniforms, corporate or event merchandise. Could you please share catalog details and bulk pricing?",
+  },
+  {
+    label: 'Size Guide',
+    message: "Hi Varna! I need assistance with sizing and fit measurements. Could you please help me pick the right size?",
+  },
+  {
+    label: 'FAQs',
+    message: "Hi Varna! I have questions regarding shipping, delivery timelines, and order tracking. Could you assist me?",
+  },
+  {
+    label: 'Contact Us',
+    message: "Hi Varna! I'd like to get in touch with your customer care concierge for assistance.",
+  },
+]
 
 export default function Footer() {
   const router = useRouter()
@@ -77,6 +100,19 @@ export default function Footer() {
 
   const handleFooterLogoTap = (e: React.MouseEvent) => {
     e.preventDefault()
+    const isCurrentlyHome =
+      pathname === '/' ||
+      (typeof window !== 'undefined' && window.location.pathname === '/')
+
+    if (!isCurrentlyHome) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      } else {
+        router.push('/')
+      }
+      return
+    }
+
     const next = tapCount + 1
     setTapCount(next)
 
@@ -95,6 +131,20 @@ export default function Footer() {
       setTapCount(0)
     }, 450)
   }
+
+  const supportPhone =
+    activeStore.settings?.supportPhone ||
+    (activeStore.whatsapp?.phoneNumber ? `+${activeStore.whatsapp.phoneNumber}` : '+91 6363145972')
+
+  const rawDigits = (
+    activeStore.settings?.supportPhone?.replace(/\D/g, '') ||
+    activeStore.whatsapp?.phoneNumber?.replace(/\D/g, '') ||
+    '916363145972'
+  )
+  const fullWaPhone = rawDigits.length === 10 ? `91${rawDigits}` : rawDigits
+
+  const getWaLink = (message: string) =>
+    `https://wa.me/${fullWaPhone}?text=${encodeURIComponent(message)}`
 
   return (
     <footer className="bg-[#111] text-[#a89d8f] py-12 px-4 text-xs sm:text-sm border-t border-[#e8d5b7]/15">
@@ -132,12 +182,12 @@ export default function Footer() {
             <div className="flex items-center gap-2 text-xs text-[#a89d8f]">
               <span>Enquiries:</span>
               <a
-                href={WHATSAPP_ENQUIRY_URL}
+                href={getWaLink("Hi Varna! I'm interested in your styles and would like to place an enquiry.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[#25D366] hover:underline font-semibold flex items-center gap-1"
               >
-                +91 6363145972
+                {supportPhone}
               </a>
             </div>
 
@@ -209,15 +259,15 @@ export default function Footer() {
         <div className="col-span-1 md:col-span-3">
           <h4 className="font-semibold text-white uppercase tracking-wider text-xs mb-3">Customer Care</h4>
           <ul className="space-y-2">
-            {helpLinks.map((link) => (
-              <li key={link}>
+            {customerCareLinks.map((item) => (
+              <li key={item.label}>
                 <a
-                  href={link === 'Contact Us' ? 'mailto:varnaprints2026@gmail.com' : WHATSAPP_ENQUIRY_URL}
-                  target={link === 'Contact Us' ? undefined : '_blank'}
+                  href={getWaLink(item.message)}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  {link}
+                  {item.label}
                 </a>
               </li>
             ))}
@@ -226,9 +276,9 @@ export default function Footer() {
 
         {/* Brand & Studio */}
         <div className="col-span-2 md:col-span-3">
-          <h4 className="font-semibold text-white uppercase tracking-wider text-xs mb-3">Studio &amp; Hours</h4>
+          <h4 className="font-semibold text-white uppercase tracking-wider text-xs mb-3">Studio</h4>
           <p className="text-xs text-[#a89d8f] mb-3 leading-relaxed">
-            Bengaluru Flagship Studio • Open 10 AM – 9 PM daily for bespoke styling &amp; orders.
+            {activeStore.settings?.studioAddress || 'Karkala, Udupi, Karnataka'}
           </p>
           <div className="pt-2 border-t border-white/10 flex flex-col gap-2 text-[11px] text-[#7d7062]">
             <span>⚡ Ultra-fast WhatsApp Checkout</span>

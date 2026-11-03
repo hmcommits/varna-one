@@ -24,7 +24,11 @@ export default function WhatsAppButton() {
     return null
   }
 
-  const phone = wa.phoneNumber || '916363145972'
+  const rawWaDigits =
+    wa.phoneNumber?.replace(/\D/g, '') ||
+    activeStore.settings?.supportPhone?.replace(/\D/g, '') ||
+    '916363145972'
+  const phone = rawWaDigits.length === 10 ? `91${rawWaDigits}` : rawWaDigits
 
   // Detect whether a particular product is currently open
   const isProductRoute = Boolean(pathname?.startsWith('/products/'))

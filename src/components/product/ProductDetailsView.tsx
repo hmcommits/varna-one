@@ -254,7 +254,11 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     }
   }
 
-  const whatsappPhone = activeStore.whatsapp?.phoneNumber || '916363145972'
+  const rawPhoneDigits =
+    activeStore.whatsapp?.phoneNumber?.replace(/\D/g, '') ||
+    activeStore.settings?.supportPhone?.replace(/\D/g, '') ||
+    '916363145972'
+  const whatsappPhone = rawPhoneDigits.length === 10 ? `91${rawPhoneDigits}` : rawPhoneDigits
 
   // Dynamic WhatsApp Concierge Order Link - Evaluates editable Admin templatePdp
   const buildWhatsAppMessage = () => {
@@ -453,7 +457,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               Explore Collection
             </Link>
             <a
-              href={`https://wa.me/${activeStore.whatsapp?.phoneNumber || '916363145972'}?text=Hi%20Varna!%20I'm%20looking%20for%20a%20product%20on%20your%20store.`}
+              href={`https://wa.me/${whatsappPhone}?text=Hi%20Varna!%20I'm%20looking%20for%20a%20product%20on%20your%20store.`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-5 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-full text-xs font-semibold shadow-sm transition-all"

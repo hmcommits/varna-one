@@ -157,10 +157,10 @@ const localBusinessSchema = {
   email: 'varnaprints2026@gmail.com',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Indiranagar 100ft Road',
-    addressLocality: 'Bengaluru',
+    streetAddress: 'Karkala',
+    addressLocality: 'Karkala, Udupi',
     addressRegion: 'Karnataka',
-    postalCode: '560038',
+    postalCode: '574104',
     addressCountry: 'IN',
   },
   priceRange: '₹₹',
