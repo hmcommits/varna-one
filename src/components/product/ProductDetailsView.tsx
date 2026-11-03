@@ -1285,16 +1285,26 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                           View Style →
                         </Link>
                         <span className="text-[#ded7cb] text-xs">•</span>
-                        <a
-                          href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                            `Hi Varna! I'm interested in ordering ${p.name} alongside ${product.name}.`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[11px] text-[#25D366] font-bold hover:underline"
-                        >
-                          WhatsApp
-                        </a>
+                        {(() => {
+                          const pairProductUrl =
+                            typeof window !== 'undefined'
+                              ? `${window.location.origin}/products/${p.id}`
+                              : `https://www.varnaclothingin.in/products/${p.id}`
+                          const pairMessage = `Hi Varna! I'm interested in ordering *${p.name}* (₹${p.price.toLocaleString(
+                            'en-IN'
+                          )}) alongside *${product.name}*.\n\n• Product Link: ${pairProductUrl}`
+
+                          return (
+                            <a
+                              href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(pairMessage)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-[#25D366] font-bold hover:underline"
+                            >
+                              WhatsApp
+                            </a>
+                          )
+                        })()}
                       </div>
                     </div>
                   </div>
