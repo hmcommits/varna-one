@@ -13,7 +13,7 @@ export function getSiteUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`
   }
-  return 'https://varnaclothingin.in'
+  return 'https://www.varnaclothingin.in'
 }
 
 function readLocalStore(): StoreState | null {

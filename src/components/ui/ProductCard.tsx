@@ -134,7 +134,7 @@ export default function ProductCard({
   const productUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/products/${id}`
-      : `https://varnaclothingin.in/products/${id}`
+      : `https://www.varnaclothingin.in/products/${id}`
 
   const phone = activeStore.whatsapp?.phoneNumber || '916363145972'
   const template =
