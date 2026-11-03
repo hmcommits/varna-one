@@ -232,6 +232,50 @@ export const defaultStoreData: StoreState = {
     },
   ],
   homepage: {
+    heroSlides: [
+      {
+        id: 'hero-1',
+        image:
+          'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532664/varna_store/hero/hero-slide-1.webp',
+        badge: 'NEW SEASON',
+        title: 'Everyday Style,\nElevated',
+        subtitle: 'Modern fits for every mood. From workdays to weekends.',
+        scriptText: 'Looks for every you',
+        ctaPrimary: 'Shop Men →',
+        ctaPrimaryFilter: 'Men',
+        ctaSecondary: 'Shop Women',
+        ctaSecondaryFilter: 'Women',
+        mobilePosition: 'object-[72%_center]',
+      },
+      {
+        id: 'hero-2',
+        image:
+          'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532665/varna_store/hero/hero-slide-2.webp',
+        badge: 'NEW COLLECTION',
+        title: 'Festive Looks,\nRedefined',
+        subtitle: 'Celebrate every occasion with style and grace.',
+        scriptText: 'Dress to express',
+        ctaPrimary: 'Shop Women →',
+        ctaPrimaryFilter: 'Women',
+        ctaSecondary: 'Shop Men',
+        ctaSecondaryFilter: 'Men',
+        mobilePosition: 'object-[78%_center]',
+      },
+      {
+        id: 'hero-3',
+        image:
+          'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532666/varna_store/hero/hero-slide-3.webp',
+        badge: 'LINEN EDIT',
+        title: 'Breathe Easy,\nLook Effortless',
+        subtitle: 'Premium linen collection for every season.',
+        scriptText: 'Comfort meets class',
+        ctaPrimary: 'Shop Now →',
+        ctaPrimaryFilter: 'All',
+        ctaSecondary: 'View All',
+        ctaSecondaryFilter: 'All',
+        mobilePosition: 'object-[65%_center]',
+      },
+    ],
     topBarVisible: true,
     topBarTexts: [
       '⚡ FESTIVE DROP: FLAT 30% OFF ON ALL CUSTOM PRINTS',

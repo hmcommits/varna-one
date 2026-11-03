@@ -115,7 +115,22 @@ export interface WhyVarnaItem {
   iconKey?: 'shield' | 'sparkles' | 'layers' | 'users'
 }
 
+export interface HeroSlide {
+  id: string
+  image: string
+  badge: string
+  title: string
+  subtitle: string
+  scriptText?: string
+  ctaPrimary: string
+  ctaPrimaryFilter: string
+  ctaSecondary: string
+  ctaSecondaryFilter: string
+  mobilePosition?: string
+}
+
 export interface HomepageConfig {
+  heroSlides?: HeroSlide[]
   topBarVisible: boolean
   topBarTexts: string[] // max 3 text entries
   tickerChips: string[]

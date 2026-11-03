@@ -2,13 +2,59 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
-import { PromoBanner, WhyVarnaItem } from '@/types/store'
-import { Plus, Trash2, Upload, ImageIcon, Check } from 'lucide-react'
+import { HeroSlide, PromoBanner, WhyVarnaItem } from '@/types/store'
+import { Plus, Trash2, Upload, ImageIcon, Check, ArrowUp, ArrowDown } from 'lucide-react'
+
+const defaultHeroSlides: HeroSlide[] = [
+  {
+    id: 'hero-1',
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532664/varna_store/hero/hero-slide-1.webp',
+    badge: 'NEW SEASON',
+    title: 'Everyday Style,\nElevated',
+    subtitle: 'Modern fits for every mood. From workdays to weekends.',
+    scriptText: 'Looks for every you',
+    ctaPrimary: 'Shop Men →',
+    ctaPrimaryFilter: 'Men',
+    ctaSecondary: 'Shop Women',
+    ctaSecondaryFilter: 'Women',
+    mobilePosition: 'object-[72%_center]',
+  },
+  {
+    id: 'hero-2',
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532665/varna_store/hero/hero-slide-2.webp',
+    badge: 'NEW COLLECTION',
+    title: 'Festive Looks,\nRedefined',
+    subtitle: 'Celebrate every occasion with style and grace.',
+    scriptText: 'Dress to express',
+    ctaPrimary: 'Shop Women →',
+    ctaPrimaryFilter: 'Women',
+    ctaSecondary: 'Shop Men',
+    ctaSecondaryFilter: 'Men',
+    mobilePosition: 'object-[78%_center]',
+  },
+  {
+    id: 'hero-3',
+    image:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532666/varna_store/hero/hero-slide-3.webp',
+    badge: 'LINEN EDIT',
+    title: 'Breathe Easy,\nLook Effortless',
+    subtitle: 'Premium linen collection for every season.',
+    scriptText: 'Comfort meets class',
+    ctaPrimary: 'Shop Now →',
+    ctaPrimaryFilter: 'All',
+    ctaSecondary: 'View All',
+    ctaSecondaryFilter: 'All',
+    mobilePosition: 'object-[65%_center]',
+  },
+]
 
 export default function HomepageModule() {
   const { draft, updateDraft } = useStore()
   const [newChipText, setNewChipText] = useState('')
   const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null)
+  const [uploadingHeroId, setUploadingHeroId] = useState<string | null>(null)
 
   const homepage = draft.homepage || {
     topBarVisible: true,
@@ -16,6 +62,104 @@ export default function HomepageModule() {
     tickerChips: [],
     promoBanners: [],
     trustBadges: [],
+  }
+
+  const heroSlides =
+    homepage.heroSlides && homepage.heroSlides.length > 0
+      ? homepage.heroSlides
+      : defaultHeroSlides
+
+  // Hero Slider Handlers
+  const handleAddHeroSlide = () => {
+    const newSlide: HeroSlide = {
+      id: `hero-${Date.now()}`,
+      image:
+        'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532664/varna_store/hero/hero-slide-1.webp',
+      badge: 'NEW DROP',
+      title: 'New Headline,\nHandcrafted Fits',
+      subtitle: 'Tailored comfort, custom embroidery and premium everyday silhouettes.',
+      scriptText: 'Crafted for you',
+      ctaPrimary: 'Shop Now →',
+      ctaPrimaryFilter: 'All',
+      ctaSecondary: 'View Collection',
+      ctaSecondaryFilter: 'All',
+      mobilePosition: 'object-center',
+    }
+    const currentSlides = homepage.heroSlides?.length ? homepage.heroSlides : defaultHeroSlides
+    updateDraft((prev) => ({
+      ...prev,
+      homepage: {
+        ...prev.homepage,
+        heroSlides: [...currentSlides, newSlide],
+      },
+    }))
+  }
+
+  const handleUpdateHeroSlide = (id: string, field: keyof HeroSlide, val: string) => {
+    const currentSlides = homepage.heroSlides?.length ? homepage.heroSlides : defaultHeroSlides
+    const updated = currentSlides.map((s) => (s.id === id ? { ...s, [field]: val } : s))
+    updateDraft((prev) => ({
+      ...prev,
+      homepage: { ...prev.homepage, heroSlides: updated },
+    }))
+  }
+
+  const handleDeleteHeroSlide = (id: string) => {
+    const currentSlides = homepage.heroSlides?.length ? homepage.heroSlides : defaultHeroSlides
+    if (currentSlides.length <= 1) {
+      alert('You must keep at least 1 hero banner slide.')
+      return
+    }
+    const updated = currentSlides.filter((s) => s.id !== id)
+    updateDraft((prev) => ({
+      ...prev,
+      homepage: { ...prev.homepage, heroSlides: updated },
+    }))
+  }
+
+  const handleMoveHeroSlide = (index: number, direction: 'up' | 'down') => {
+    const currentSlides = [...(homepage.heroSlides?.length ? homepage.heroSlides : defaultHeroSlides)]
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= currentSlides.length) return
+    const temp = currentSlides[index]
+    currentSlides[index] = currentSlides[targetIndex]
+    currentSlides[targetIndex] = temp
+    updateDraft((prev) => ({
+      ...prev,
+      homepage: { ...prev.homepage, heroSlides: currentSlides },
+    }))
+  }
+
+  const handleUploadHeroImage = async (slideId: string, file: File) => {
+    if (!file) return
+    setUploadingHeroId(slideId)
+    try {
+      const adminToken =
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('varna_admin_token')
+          : null) ||
+        draft.settings?.passcode ||
+        'varna2026'
+
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-token': adminToken },
+        body: formData,
+      })
+      const data = await res.json()
+      if (data.url) {
+        handleUpdateHeroSlide(slideId, 'image', data.url)
+      } else {
+        alert(data.error || 'Failed to upload hero banner image.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error uploading hero banner image. Please try again.')
+    } finally {
+      setUploadingHeroId(null)
+    }
   }
 
   // Top Bar Texts (Max 3)
@@ -189,12 +333,349 @@ export default function HomepageModule() {
             Homepage Editor &amp; Banners
           </h2>
           <p className="text-xs text-[#6b7770] mt-0.5">
-            Top announcement bar (max 3 texts), ticker marquee, dynamic split promo banners &amp; trust guarantees
+            Full-width hero banner carousel, top announcement bar, marquee ticker, split promo banners &amp; trust guarantees
           </p>
         </div>
       </div>
 
-      {/* 1. TOP GREEN ANNOUNCEMENT BAR (MAX 3 FIELDS) */}
+      {/* 1. HERO BANNERS & SLIDER SECTION */}
+      <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f0eae1]">
+          <div>
+            <h3 className="font-display text-base sm:text-lg font-bold text-[#142319] flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#c4a675] border border-[#a88a58]" />
+              <span>Hero Banners &amp; Slider ({heroSlides.length} Active Slides)</span>
+            </h3>
+            <p className="text-xs text-[#6b7770]">
+              The full-width high-resolution hero banner carousel at the very top of your storefront. Customize background photos, titles, subtitles, cursive calligraphy notes, and CTA shopping buttons.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAddHeroSlide}
+            className="self-start sm:self-auto flex items-center gap-1.5 py-2 px-4 bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-97 cursor-pointer"
+          >
+            <Plus size={14} />
+            <span>+ Add Hero Slide</span>
+          </button>
+        </div>
+
+        {/* List of Hero Slides */}
+        <div className="space-y-6">
+          {heroSlides.map((slide, idx) => (
+            <div
+              key={slide.id || idx}
+              className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs transition-all hover:border-[#c4a675]/60"
+            >
+              {/* Header Bar: Slide Number, Badge & Reorder/Delete */}
+              <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#ebe5da]">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-1 bg-[#142319] text-[#e8d5b7] font-mono text-xs font-bold rounded-lg">
+                    Slide #{idx + 1}
+                  </span>
+                  {slide.badge && (
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#845d1d] bg-[#f5ede0] px-2 py-0.5 rounded-md border border-[#e5d5be]">
+                      {slide.badge}
+                    </span>
+                  )}
+                  <span className="text-xs font-medium text-[#6b7770] truncate max-w-xs">
+                    {slide.title.replace(/\n/g, ' ')}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleMoveHeroSlide(idx, 'up')}
+                    disabled={idx === 0}
+                    className="p-1.5 text-[#6b7770] hover:text-[#142319] hover:bg-white rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                    title="Move Slide Up"
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMoveHeroSlide(idx, 'down')}
+                    disabled={idx === heroSlides.length - 1}
+                    className="p-1.5 text-[#6b7770] hover:text-[#142319] hover:bg-white rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                    title="Move Slide Down"
+                  >
+                    <ArrowDown size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteHeroSlide(slide.id)}
+                    className="p-1.5 text-[#b84840] hover:bg-[#fdf0ef] rounded-lg transition-colors cursor-pointer ml-1"
+                    title="Delete Slide"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid: Left Column (Banner Image & Upload) | Right Column (Texts & CTAs) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left Column (5 cols) */}
+                <div className="lg:col-span-5 space-y-3">
+                  <div className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden bg-[#1a2e1a] border border-[#ded7cb] shadow-inner group/heroimg">
+                    {slide.image ? (
+                      <Image
+                        src={slide.image}
+                        alt={slide.badge || 'Hero Slide'}
+                        fill
+                        className={`object-cover ${slide.mobilePosition || 'object-center'}`}
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-[#e8d5b7] gap-2">
+                        <ImageIcon size={32} />
+                        <span className="text-xs">No image provided</span>
+                      </div>
+                    )}
+
+                    {/* Gradient Overlay Preview */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+
+                    {/* Live Badge & Title Preview on Image */}
+                    <div className="absolute bottom-2.5 left-3 right-3 text-white pointer-events-none">
+                      <p className="text-[9px] font-bold tracking-widest uppercase text-[#e8d5b7]">
+                        {slide.badge || 'BADGE'}
+                      </p>
+                      <p className="font-display text-sm font-bold truncate">
+                        {slide.title.replace(/\n/g, ' ') || 'Hero Headline'}
+                      </p>
+                    </div>
+
+                    {/* Hover Upload Overlay */}
+                    <label className="absolute inset-0 bg-black/55 opacity-0 group-hover/heroimg:opacity-100 flex flex-col items-center justify-center text-white font-bold text-xs cursor-pointer transition-opacity backdrop-blur-xs gap-1.5 p-3 text-center">
+                      <Upload size={22} className="text-[#e8d5b7]" />
+                      <span>
+                        {uploadingHeroId === slide.id
+                          ? 'Uploading photo to CDN...'
+                          : 'Click to Replace Banner Photo'}
+                      </span>
+                      <span className="text-[10px] text-[#e8d5b7] font-normal">
+                        Supports WebP, PNG, JPG (High Res)
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingHeroId === slide.id}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleUploadHeroImage(slide.id, file)
+                          e.target.value = ''
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Upload Action Button + Ready Indicator */}
+                  <div className="flex items-center gap-2">
+                    <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-[#1c3624] hover:text-white border border-[#ded7cb] hover:border-[#1c3624] text-[#1c3624] font-bold text-xs rounded-xl shadow-2xs transition-all cursor-pointer">
+                      <Upload size={13} />
+                      <span>
+                        {uploadingHeroId === slide.id
+                          ? 'Uploading...'
+                          : 'Upload Banner Photo'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingHeroId === slide.id}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleUploadHeroImage(slide.id, file)
+                          e.target.value = ''
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {slide.image && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#206035] bg-[#eef7f0] px-2.5 py-2 rounded-xl border border-[#d6ecda]">
+                        <Check size={12} />
+                        <span>Connected</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Image CDN URL Input (Direct Link) */}
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
+                      Direct Photo URL (Cloudinary / Web CDN)
+                    </label>
+                    <input
+                      type="text"
+                      value={slide.image}
+                      onChange={(e) => handleUpdateHeroSlide(slide.id, 'image', e.target.value)}
+                      placeholder="https://res.cloudinary.com/..."
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-mono"
+                    />
+                  </div>
+
+                  {/* Mobile Focal Alignment Preset */}
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
+                      Mobile Focal Alignment (Focal Crop Position)
+                    </label>
+                    <select
+                      value={slide.mobilePosition || 'object-[72%_center]'}
+                      onChange={(e) =>
+                        handleUpdateHeroSlide(slide.id, 'mobilePosition', e.target.value)
+                      }
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden cursor-pointer"
+                    >
+                      <option value="object-[72%_center]">Right Model Focus (72% - Recommended)</option>
+                      <option value="object-[78%_center]">Far Right Focus (78%)</option>
+                      <option value="object-[65%_center]">Center-Right Focus (65%)</option>
+                      <option value="object-center">True Center (50%)</option>
+                      <option value="object-[35%_center]">Left Focus (35%)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Right Column (7 cols): Texts & CTA Buttons */}
+                <div className="lg:col-span-7 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Badge Pill */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#845d1d] mb-1">
+                        Badge Pill (Category / Tag)
+                      </label>
+                      <input
+                        type="text"
+                        value={slide.badge}
+                        onChange={(e) => handleUpdateHeroSlide(slide.id, 'badge', e.target.value)}
+                        placeholder="e.g. NEW SEASON, LINEN EDIT"
+                        className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] font-bold outline-hidden uppercase"
+                      />
+                    </div>
+
+                    {/* Calligraphy Script Text (Desktop Only) */}
+                    <div>
+                      <label className="block text-[10px] font-bold tracking-wider text-[#6b7770] mb-1">
+                        Cursive Calligraphy Note (Desktop Flourish)
+                      </label>
+                      <input
+                        type="text"
+                        value={slide.scriptText || ''}
+                        onChange={(e) =>
+                          handleUpdateHeroSlide(slide.id, 'scriptText', e.target.value)
+                        }
+                        placeholder="e.g. Looks for every you"
+                        className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden italic"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Main Headline Title */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-[#142319]">
+                        Main Headline Title
+                      </label>
+                      <span className="text-[10px] text-[#8c978f] font-mono">
+                        (Tip: Press Enter for multi-line)
+                      </span>
+                    </div>
+                    <textarea
+                      value={slide.title}
+                      onChange={(e) => handleUpdateHeroSlide(slide.id, 'title', e.target.value)}
+                      rows={2}
+                      placeholder="e.g. Everyday Style,\nElevated"
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg p-2.5 text-xs sm:text-sm font-display font-bold text-[#142319] outline-hidden resize-none"
+                    />
+                  </div>
+
+                  {/* Subtitle */}
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#6b7770] mb-1">
+                      Subtitle Description
+                    </label>
+                    <textarea
+                      value={slide.subtitle}
+                      onChange={(e) => handleUpdateHeroSlide(slide.id, 'subtitle', e.target.value)}
+                      rows={2}
+                      placeholder="e.g. Modern fits for every mood. From workdays to weekends."
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg p-2 text-xs text-[#6b7770] outline-hidden resize-none"
+                    />
+                  </div>
+
+                  {/* CTA Buttons Row */}
+                  <div className="pt-2 border-t border-[#ebe5da] grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Primary Button */}
+                    <div className="space-y-1.5 p-3 rounded-xl bg-white border border-[#ded7cb]">
+                      <span className="text-[10px] font-bold uppercase text-[#1c3624] block">
+                        Primary CTA Button (Solid Green)
+                      </span>
+                      <input
+                        type="text"
+                        value={slide.ctaPrimary}
+                        onChange={(e) =>
+                          handleUpdateHeroSlide(slide.id, 'ctaPrimary', e.target.value)
+                        }
+                        placeholder="Button Text, e.g. Shop Men →"
+                        className="w-full bg-[#faf8f5] border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] font-bold outline-hidden"
+                      />
+                      <div className="flex items-center gap-1.5 text-[10px] text-[#6b7770]">
+                        <span>Filter:</span>
+                        <select
+                          value={slide.ctaPrimaryFilter || 'All'}
+                          onChange={(e) =>
+                            handleUpdateHeroSlide(slide.id, 'ctaPrimaryFilter', e.target.value)
+                          }
+                          className="flex-1 bg-white border border-[#ded7cb] rounded px-1.5 py-1 text-[11px] text-[#142319] outline-hidden cursor-pointer"
+                        >
+                          <option value="All">All Products</option>
+                          <option value="Men">Men</option>
+                          <option value="Women">Women</option>
+                          <option value="Sale">Sale / Promotions</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Secondary Button */}
+                    <div className="space-y-1.5 p-3 rounded-xl bg-white border border-[#ded7cb]">
+                      <span className="text-[10px] font-bold uppercase text-[#845d1d] block">
+                        Secondary CTA Button (Glass Outline)
+                      </span>
+                      <input
+                        type="text"
+                        value={slide.ctaSecondary}
+                        onChange={(e) =>
+                          handleUpdateHeroSlide(slide.id, 'ctaSecondary', e.target.value)
+                        }
+                        placeholder="Button Text, e.g. Shop Women"
+                        className="w-full bg-[#faf8f5] border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] font-bold outline-hidden"
+                      />
+                      <div className="flex items-center gap-1.5 text-[10px] text-[#6b7770]">
+                        <span>Filter:</span>
+                        <select
+                          value={slide.ctaSecondaryFilter || 'All'}
+                          onChange={(e) =>
+                            handleUpdateHeroSlide(slide.id, 'ctaSecondaryFilter', e.target.value)
+                          }
+                          className="flex-1 bg-white border border-[#ded7cb] rounded px-1.5 py-1 text-[11px] text-[#142319] outline-hidden cursor-pointer"
+                        >
+                          <option value="All">All Products</option>
+                          <option value="Women">Women</option>
+                          <option value="Men">Men</option>
+                          <option value="Sale">Sale / Promotions</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 2. TOP GREEN ANNOUNCEMENT BAR (MAX 3 FIELDS) */}
       <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -261,7 +742,7 @@ export default function HomepageModule() {
         </div>
       </div>
 
-      {/* 2. TRENDING TICKER MARQUEE */}
+      {/* 3. TRENDING TICKER MARQUEE */}
       <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div>
           <h3 className="font-display text-base font-bold text-[#142319]">
@@ -310,7 +791,7 @@ export default function HomepageModule() {
         </form>
       </div>
 
-      {/* 3. DYNAMIC SPLIT PROMO BANNERS */}
+      {/* 4. DYNAMIC SPLIT PROMO BANNERS */}
       <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -470,7 +951,7 @@ export default function HomepageModule() {
         </div>
       </div>
 
-      {/* 4. TRUST BADGES ("WHY VARNA") */}
+      {/* 5. TRUST BADGES ("WHY VARNA") */}
       <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div>
           <h3 className="font-display text-base font-bold text-[#142319]">
@@ -504,7 +985,7 @@ export default function HomepageModule() {
         </div>
       </div>
 
-      {/* 5. WHY SHOP VARNA? BRAND PILLARS */}
+      {/* 6. WHY SHOP VARNA? BRAND PILLARS */}
       <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 shadow-2xs space-y-4">
         <div>
           <h3 className="font-display text-base font-bold text-[#142319] flex items-center gap-2">

@@ -3,10 +3,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { useStore } from '@/context/StoreContext'
+import { HeroSlide } from '@/types/store'
 
-const slides = [
+const defaultSlides: HeroSlide[] = [
   {
-    id: 1,
+    id: 'hero-1',
     image:
       'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532664/varna_store/hero/hero-slide-1.webp',
     badge: 'NEW SEASON',
@@ -20,7 +21,7 @@ const slides = [
     mobilePosition: 'object-[72%_center]',
   },
   {
-    id: 2,
+    id: 'hero-2',
     image:
       'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532665/varna_store/hero/hero-slide-2.webp',
     badge: 'NEW COLLECTION',
@@ -34,7 +35,7 @@ const slides = [
     mobilePosition: 'object-[78%_center]',
   },
   {
-    id: 3,
+    id: 'hero-3',
     image:
       'https://res.cloudinary.com/o6jv6xte/image/upload/f_auto,q_auto:good/v1793532666/varna_store/hero/hero-slide-3.webp',
     badge: 'LINEN EDIT',
@@ -50,18 +51,24 @@ const slides = [
 ]
 
 export default function HeroSlider() {
-  const { selectCatalogFilter } = useStore()
+  const { activeStore, selectCatalogFilter } = useStore()
+  const slides =
+    activeStore.homepage?.heroSlides && activeStore.homepage.heroSlides.length > 0
+      ? activeStore.homepage.heroSlides
+      : defaultSlides
+
   const [current, setCurrent] = useState(0)
+  const safeCurrent = current >= slides.length ? 0 : current
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
 
   const nextSlide = useCallback(() => {
     setCurrent((prev) => (prev + 1) % slides.length)
-  }, [])
+  }, [slides.length])
 
   const prevSlide = useCallback(() => {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length)
-  }, [])
+  }, [slides.length])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -121,20 +128,20 @@ export default function HeroSlider() {
       {/* High-Resolution Background Slides with smooth crossfade */}
       {slides.map((s, idx) => (
         <div
-          key={s.id}
+          key={s.id || idx}
           className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-            idx === current ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none'
+            idx === safeCurrent ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none'
           }`}
         >
           <Image
             src={s.image}
-            alt={s.badge}
+            alt={s.badge || 'Hero Slide'}
             fill
             sizes="100vw"
             quality={80}
             priority={idx === 0}
             loading={idx === 0 ? 'eager' : 'lazy'}
-            className={`object-cover ${s.mobilePosition} md:object-center transition-all duration-700`}
+            className={`object-cover ${s.mobilePosition || 'object-center'} md:object-center transition-all duration-700`}
           />
           {/* Mobile Gradient: darker at the bottom for text legibility, clear top half for models */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent md:hidden" />
@@ -147,51 +154,61 @@ export default function HeroSlider() {
       {/* Slide Content */}
       <div className="relative z-20 h-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex flex-col justify-end md:justify-center pb-12 sm:pb-14 md:pb-0 pointer-events-none">
         <div className="max-w-md md:max-w-lg text-white pointer-events-auto">
-          <p className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase mb-1 md:mb-2 text-[#e8d5b7]">
-            {slides[current].badge}
-          </p>
+          {slides[safeCurrent]?.badge && (
+            <p className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase mb-1 md:mb-2 text-[#e8d5b7]">
+              {slides[safeCurrent].badge}
+            </p>
+          )}
           <h1 className="font-display text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-1.5 sm:mb-2 md:mb-4 whitespace-pre-line drop-shadow-md">
-            {slides[current].title}
+            {slides[safeCurrent]?.title}
           </h1>
-          <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 md:mb-6 leading-relaxed line-clamp-2 md:line-clamp-none max-w-sm md:max-w-md drop-shadow">
-            {slides[current].subtitle}
-          </p>
+          {slides[safeCurrent]?.subtitle && (
+            <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 md:mb-6 leading-relaxed line-clamp-2 md:line-clamp-none max-w-sm md:max-w-md drop-shadow">
+              {slides[safeCurrent].subtitle}
+            </p>
+          )}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={() => handleCtaClick(slides[current].ctaPrimaryFilter)}
-              className="bg-[#1a2e1a] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#2d4a2d] active:scale-95 transition-all shadow-md cursor-pointer border border-[#e8d5b7]/30"
-            >
-              {slides[current].ctaPrimary}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCtaClick(slides[current].ctaSecondaryFilter)}
-              className="border border-[#e8d5b7]/70 backdrop-blur-md bg-black/25 text-[#e8d5b7] hover:text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-white/20 active:scale-95 transition-all cursor-pointer shadow-md"
-            >
-              {slides[current].ctaSecondary}
-            </button>
+            {slides[safeCurrent]?.ctaPrimary && (
+              <button
+                type="button"
+                onClick={() => handleCtaClick(slides[safeCurrent]?.ctaPrimaryFilter || 'All')}
+                className="bg-[#1a2e1a] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#2d4a2d] active:scale-95 transition-all shadow-md cursor-pointer border border-[#e8d5b7]/30"
+              >
+                {slides[safeCurrent].ctaPrimary}
+              </button>
+            )}
+            {slides[safeCurrent]?.ctaSecondary && (
+              <button
+                type="button"
+                onClick={() => handleCtaClick(slides[safeCurrent]?.ctaSecondaryFilter || 'All')}
+                className="border border-[#e8d5b7]/70 backdrop-blur-md bg-black/25 text-[#e8d5b7] hover:text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold hover:bg-white/20 active:scale-95 transition-all cursor-pointer shadow-md"
+              >
+                {slides[safeCurrent].ctaSecondary}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Fluid Calligraphy Script on right with curved arrow flourish (desktop only) */}
-      <div className="absolute right-6 md:right-14 top-1/2 -translate-y-1/2 z-10 hidden md:block pointer-events-none select-none">
-        <p className="font-script text-[#e8d5b7] text-5xl lg:text-6xl leading-tight text-right drop-shadow-lg transform -rotate-3">
-          {slides[current].scriptText}
-        </p>
-        <div className="mt-1 flex justify-end">
-          <svg width="85" height="24" viewBox="0 0 85 24" fill="none" className="text-[#e8d5b7] opacity-80">
-            <path
-              d="M3 14 C25 2, 65 3, 80 12 M70 6 L81 12 L72 19"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+      {slides[safeCurrent]?.scriptText && (
+        <div className="absolute right-6 md:right-14 top-1/2 -translate-y-1/2 z-10 hidden md:block pointer-events-none select-none">
+          <p className="font-script text-[#e8d5b7] text-5xl lg:text-6xl leading-tight text-right drop-shadow-lg transform -rotate-3">
+            {slides[safeCurrent].scriptText}
+          </p>
+          <div className="mt-1 flex justify-end">
+            <svg width="85" height="24" viewBox="0 0 85 24" fill="none" className="text-[#e8d5b7] opacity-80">
+              <path
+                d="M3 14 C25 2, 65 3, 80 12 M70 6 L81 12 L72 19"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Desktop Navigation Arrows (Far left and far right) */}
       <button
@@ -223,16 +240,16 @@ export default function HeroSlider() {
               onClick={() => setCurrent(i)}
               aria-label={`Go to slide ${i + 1}`}
               className={`group relative flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                i === current
+                i === safeCurrent
                   ? 'w-5 h-5 sm:w-6 sm:h-6'
                   : 'w-2 h-2 sm:w-2.5 sm:h-2.5 opacity-50 hover:opacity-100 hover:scale-125'
               }`}
             >
-              {i === current ? (
+              {i === safeCurrent ? (
                 <>
                   {/* Outer Orbital Progress Ring (Modern Watch / Story Timer in 6.5s) */}
                   <svg
-                    key={current}
+                    key={safeCurrent}
                     className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
                     viewBox="0 0 24 24"
                   >
