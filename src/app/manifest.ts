@@ -16,14 +16,14 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/x-icon',
       },
       {
-        src: '/images/logo/varna-emblem.webp',
+        src: '/images/logo/icon-192.png',
         sizes: '192x192',
-        type: 'image/webp',
+        type: 'image/png',
       },
       {
-        src: '/images/logo/varna-emblem.webp',
+        src: '/images/logo/icon-512.png',
         sizes: '512x512',
-        type: 'image/webp',
+        type: 'image/png',
       },
     ],
   }

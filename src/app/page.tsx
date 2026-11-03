@@ -16,7 +16,7 @@ const siteUrl = getSiteUrl()
 export const metadata: Metadata = {
   title: 'Varna – Wear Your Colors | Custom Wear, Linen Shirts & Drops',
   description:
-    'Shop handcrafted linen shirts, oversized tees, custom jerseys & streetwear. Tailored comfort, personalized prints, and direct WhatsApp concierge ordering in India.',
+    'Shop handcrafted linen shirts, oversized tees, custom jerseys and streetwear. Tailored comfort, personalized prints, and direct WhatsApp concierge ordering in India.',
   alternates: {
     canonical: siteUrl,
   },

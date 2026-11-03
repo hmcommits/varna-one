@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     template: '%s | Varna',
   },
   description:
-    'T-Shirts, Jerseys, Hoodies, Linen Shirts & Elevated Everyday Styles. Handcrafted with custom embroidery, DTF prints & direct WhatsApp concierge in Bengaluru, India.',
+    'T-Shirts, Jerseys, Hoodies, Linen Shirts and Elevated Everyday Styles. Handcrafted with custom embroidery, DTF prints and direct WhatsApp concierge in Bengaluru, India.',
   keywords: [
     'Varna',
     'Varna prints',
@@ -72,13 +72,13 @@ export const metadata: Metadata = {
     siteName: 'Varna – Custom Wear & Prints',
     title: 'Varna – Wear Your Colors | Custom Wear & Premium Prints',
     description:
-      'T-Shirts, Jerseys, Hoodies, Linen Shirts & Elevated Everyday Styles. Handcrafted with custom embroidery, DTF prints & direct WhatsApp concierge.',
+      'T-Shirts, Jerseys, Hoodies, Linen Shirts and Elevated Everyday Styles. Handcrafted with custom embroidery, DTF prints and direct WhatsApp concierge.',
     images: [
       {
         url: '/images/banners/men-banner.webp',
         width: 1200,
         height: 630,
-        alt: 'Varna Custom Wear & Prints Collection',
+        alt: 'Varna Custom Wear and Prints Collection',
       },
     ],
   },
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Varna – Custom Wear & Prints',
     description:
-      'T-Shirts, Jerseys, Hoodies & Elevated Everyday Styles. Wear Your Colors with Varna.',
+      'T-Shirts, Jerseys, Hoodies and Elevated Everyday Styles. Wear Your Colors with Varna.',
     images: ['/images/banners/men-banner.webp'],
     creator: '@varna_prints_',
   },
@@ -105,8 +105,14 @@ export const metadata: Metadata = {
     canonical: siteUrl,
   },
   icons: {
-    icon: '/favicon.ico',
-    apple: '/images/logo/varna-emblem.webp',
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/images/logo/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/images/logo/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 }
 
