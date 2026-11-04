@@ -73,6 +73,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Helper to synchronously write cart to browser localStorage
+  const persistCart = useCallback((newCart: CartItem[]) => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newCart))
+    } catch (err) {
+      console.warn('Could not save cart to storage:', err)
+    }
+  }, [])
+
   // Rehydrate cart and address from localStorage on client mount
   useEffect(() => {
     try {
@@ -98,20 +107,47 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Real-time synchronization across browser tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === CART_STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue)
+          if (Array.isArray(parsed)) setCart(parsed)
+        } catch {
+          // Ignore parse errors from other sources
+        }
+      }
+      if (e.key === ADDRESS_STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue)
+          if (parsed && typeof parsed === 'object') setSavedAddress(parsed)
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
   // Persist cart to localStorage whenever it changes (after initial hydration)
   useEffect(() => {
     if (!isHydrated) return
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart))
-    } catch (err) {
-      console.warn('Could not save cart to storage:', err)
-    }
-  }, [cart, isHydrated])
+    persistCart(cart)
+  }, [cart, isHydrated, persistCart])
 
   const openCart = useCallback(() => {
     setIsCheckoutOpen(false)
     setIsCartOpen(false)
-    router.push('/cart')
+    if (typeof window !== 'undefined') {
+      try {
+        router.push('/cart')
+      } catch {
+        window.location.href = '/cart'
+      }
+    }
   }, [router])
 
   const closeCart = useCallback(() => {

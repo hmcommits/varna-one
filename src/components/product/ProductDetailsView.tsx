@@ -63,7 +63,7 @@ interface ProductDetailsViewProps {
 export default function ProductDetailsView({ productId }: ProductDetailsViewProps = {}) {
   const router = useRouter()
   const { activeStore, setActiveViewingProduct, isLoading } = useStore()
-  const { addToCart, openCheckout } = useCart()
+  const { addToCart, openCheckout, openCart, totalItems } = useCart()
   const [isAddedFeedback, setIsAddedFeedback] = useState(false)
 
   const supportPhone = activeStore.settings?.supportPhone || '+91 6363145972'
@@ -931,6 +931,18 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 <span>Buy Now (Express WhatsApp Checkout)</span>
                 <ArrowRight size={15} />
               </button>
+
+              {/* Dedicated View Bag Link from PDP */}
+              {totalItems > 0 && (
+                <Link
+                  href="/cart"
+                  onClick={openCart}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#faf8f4] hover:bg-[#f3ede2] text-[#1a2e1a] rounded-xl text-xs font-bold border border-[#e8d5b7] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                >
+                  <ShoppingBag size={14} className="text-[#845d1d]" />
+                  <span>View Shopping Bag ({totalItems} {totalItems === 1 ? 'item' : 'items'}) →</span>
+                </Link>
+              )}
             </div>
 
             {/* DYNAMIC TRUST BADGES (Configured by Admin) */}

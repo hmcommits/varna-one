@@ -74,7 +74,7 @@ export default function CheckoutModal() {
 
   const { activeStore, logEnquiry } = useStore()
 
-  // Form State initialized with saved address or sensible Indian defaults
+  // Form State initialized with saved address or empty state for user selection
   const [formData, setFormData] = useState<DeliveryAddress>({
     fullName: '',
     phoneNumber: '',
@@ -82,7 +82,7 @@ export default function CheckoutModal() {
     streetAddress: '',
     landmark: '',
     city: '',
-    state: 'Karnataka',
+    state: '',
     pincode: '',
     addressType: 'Home',
   })
@@ -97,12 +97,33 @@ export default function CheckoutModal() {
     totalAmount: number
   } | null>(null)
 
-  // Re-populate from saved address if available
+  // Re-populate from saved address if available in user's browser data
   useEffect(() => {
     if (savedAddress) {
-      setFormData(savedAddress)
+      setFormData((prev) => ({
+        ...prev,
+        ...savedAddress,
+      }))
     }
   }, [savedAddress])
+
+  // Automatically save address to localStorage so customers never lose it
+  useEffect(() => {
+    const hasAnyContent = Boolean(
+      formData.fullName.trim() ||
+      formData.phoneNumber.trim() ||
+      formData.houseNumber.trim() ||
+      formData.streetAddress.trim() ||
+      formData.landmark.trim() ||
+      formData.city.trim() ||
+      formData.pincode.trim() ||
+      formData.state.trim()
+    )
+
+    if (hasAnyContent) {
+      saveAddress(formData)
+    }
+  }, [formData, saveAddress])
 
   // Prevent background scroll
   useEffect(() => {
@@ -646,14 +667,20 @@ export default function CheckoutModal() {
                         setFormData({ ...formData, state: e.target.value })
                         if (errors.state) setErrors({ ...errors, state: '' })
                       }}
-                      className="w-full bg-white border border-[#e8d5b7] rounded-xl px-3 py-2.5 text-xs text-[#1a1a1a] outline-none focus:border-[#1a2e1a] focus:ring-1 focus:ring-[#1a2e1a] cursor-pointer"
+                      className={`w-full bg-white border ${
+                        errors.state ? 'border-red-400 bg-red-50/20' : 'border-[#e8d5b7]'
+                      } rounded-xl px-3 py-2.5 text-xs text-[#1a1a1a] outline-none focus:border-[#1a2e1a] focus:ring-1 focus:ring-[#1a2e1a] cursor-pointer`}
                     >
+                      <option value="">-- Select State / Union Territory --</option>
                       {INDIAN_STATES.map((st) => (
                         <option key={st} value={st}>
                           {st}
                         </option>
                       ))}
                     </select>
+                    {errors.state && (
+                      <p className="text-[10px] text-red-600 mt-1">{errors.state}</p>
+                    )}
                   </div>
 
                   <div>

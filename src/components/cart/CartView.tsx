@@ -16,6 +16,7 @@ import {
   RotateCcw,
   MessageCircle,
   ChevronDown,
+  MapPin,
 } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { useStore } from '@/context/StoreContext'
@@ -38,6 +39,7 @@ export default function CartView() {
     removeFromCart,
     clearCart,
     openCheckout,
+    savedAddress,
   } = useCart()
 
   // Map product map for fast lookup of available colors and sizes
@@ -448,6 +450,28 @@ export default function CartView() {
                     </span>
                   </div>
                 </div>
+
+                {/* Saved Address Confirmation */}
+                {savedAddress && Boolean(savedAddress.fullName?.trim() && savedAddress.city?.trim()) && (
+                  <div className="bg-[#faf8f4] border border-[#e8d5b7] rounded-xl p-3 text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#1a1a1a] flex items-center gap-1.5">
+                        <MapPin size={13} className="text-[#1a2e1a]" />
+                        <span>Saved Delivery Address</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={openCheckout}
+                        className="text-[11px] font-bold text-[#1a2e1a] hover:underline cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-[#63574a] leading-tight truncate">
+                      {savedAddress.fullName} • {savedAddress.houseNumber ? `${savedAddress.houseNumber}, ` : ''}{savedAddress.city}{savedAddress.state ? `, ${savedAddress.state}` : ''}{savedAddress.pincode ? ` - ${savedAddress.pincode}` : ''}
+                    </p>
+                  </div>
+                )}
 
                 {/* Primary Checkout CTA */}
                 <button
