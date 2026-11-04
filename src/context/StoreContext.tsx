@@ -93,8 +93,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
         if (cached) {
           const parsed = JSON.parse(cached)
-          if (parsed && Array.isArray(parsed.products)) {
-            initialSeed = parsed
+          if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+            const validProducts = parsed.products.filter(
+              (p: any) => p && typeof p === 'object' && p.id && p.name
+            )
+            if (validProducts.length > 0) {
+              initialSeed = { ...parsed, products: validProducts }
+            }
           }
         }
       }

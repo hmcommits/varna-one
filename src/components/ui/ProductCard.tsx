@@ -47,9 +47,11 @@ export default function ProductCard({
 }: ProductCardProps) {
   const router = useRouter()
 
+  const safeColors = Array.isArray(colors) ? colors : []
+
   // Determine the primary first uploaded image for default card thumbnail
   const firstUploadedImage =
-    (typeof colors[0] === 'object' && colors[0]?.image) ||
+    (typeof safeColors[0] === 'object' && safeColors[0]?.image) ||
     image ||
     'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
@@ -58,16 +60,16 @@ export default function ProductCard({
     string,
     { hex: string; image?: string; name?: string; price?: number; originalPrice?: number }
   >()
-  for (const c of colors) {
-    const hex = (typeof c === 'string' ? c : c.hex) || ''
+  for (const c of safeColors) {
+    const hex = (typeof c === 'string' ? c : c?.hex) || ''
     const key = hex.toLowerCase().trim()
     if (!normalizedColorsMap.has(key)) {
       normalizedColorsMap.set(key, {
         hex,
-        image: typeof c === 'string' ? undefined : c.image,
-        name: typeof c === 'string' ? c : c.name,
-        price: typeof c === 'string' ? undefined : c.price,
-        originalPrice: typeof c === 'string' ? undefined : c.originalPrice,
+        image: typeof c === 'string' ? undefined : c?.image,
+        name: typeof c === 'string' ? c : c?.name,
+        price: typeof c === 'string' ? undefined : c?.price,
+        originalPrice: typeof c === 'string' ? undefined : c?.originalPrice,
       })
     }
   }
@@ -110,25 +112,54 @@ export default function ProductCard({
   // Prefetch product page route for instantaneous <50ms navigation on tap/click
   useEffect(() => {
     if (id) {
-      router.prefetch(`/products/${id}`)
+      try {
+        router.prefetch(`/products/${id}`)
+      } catch {
+        // Safe prefetch
+      }
     }
   }, [id, router])
 
-  const handleCardClick = () => {
-    router.push(`/products/${id}`)
+  const handleCardClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = `/products/${id}`
+    } else {
+      router.push(`/products/${id}`)
+    }
   }
 
   return (
     <div
       onClick={handleCardClick}
-      onMouseEnter={() => router.prefetch(`/products/${id}`)}
-      onTouchStart={() => router.prefetch(`/products/${id}`)}
+      onMouseEnter={() => {
+        try {
+          router.prefetch(`/products/${id}`)
+        } catch {}
+      }}
+      onTouchStart={() => {
+        try {
+          router.prefetch(`/products/${id}`)
+        } catch {}
+      }}
       className={`group relative bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-[#e8d5b7]/50 hover:border-[#1a2e1a] flex flex-col select-none cursor-pointer ${
         fullWidth ? 'w-full' : 'flex-shrink-0 w-44 sm:w-48 md:w-52'
       } ${className}`}
     >
+      {/* Real HTML Anchor overlay for SEO, middle-click / new-tab, and bulletproof native navigation */}
+      <a
+        href={`/products/${id}`}
+        onClick={handleCardClick}
+        aria-label={`View style ${name}`}
+        className="absolute inset-0 z-0 cursor-pointer pointer-events-auto"
+        tabIndex={-1}
+      />
+
       {/* Product Image Frame */}
-      <div className="relative aspect-[3/4] bg-[#f0ece4] overflow-hidden">
+      <div className="relative aspect-[3/4] bg-[#f0ece4] overflow-hidden pointer-events-none">
         <Image
           src={displayImage}
           alt={name}
@@ -142,7 +173,7 @@ export default function ProductCard({
         />
 
         {/* Status Badges top-left */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10 pointer-events-none">
           {badge && badge !== 'None' && badgeStyles[badge] && (
             <span
               className={`text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm tracking-wide ${badgeStyles[badge]}`}
@@ -160,15 +191,11 @@ export default function ProductCard({
           )}
         </div>
 
-
         {/* Quick Action Hover Bar: View Style Details */}
-        <div className="hidden sm:flex absolute inset-x-3 bottom-3 items-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10">
+        <div className="hidden sm:flex absolute inset-x-3 bottom-3 items-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10 pointer-events-auto">
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleCardClick()
-            }}
+            onClick={handleCardClick}
             className="w-full py-2 px-3 bg-[#1a2e1a] hover:bg-[#25D366] text-white rounded-xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             title="View Details & Select Size"
           >
@@ -179,7 +206,7 @@ export default function ProductCard({
       </div>
 
       {/* Product Info */}
-      <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between bg-white">
+      <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between bg-white relative z-10 pointer-events-none">
         <div>
           <div className="flex items-center justify-between gap-1 mb-1">
             <h3 className="text-xs sm:text-sm font-semibold text-[#1a1a1a] line-clamp-1 group-hover:text-[#1a2e1a] transition-colors flex items-center gap-1">
@@ -216,7 +243,7 @@ export default function ProductCard({
 
         {/* Color Swatches (Clicking changes image live!) */}
         <div
-          className="flex items-center justify-between pt-1"
+          className="flex items-center justify-between pt-1 relative z-20 pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center gap-1.5">
@@ -251,7 +278,7 @@ export default function ProductCard({
 
         {/* Mobile Action Button */}
         <div
-          className="sm:hidden mt-2.5"
+          className="sm:hidden mt-2.5 relative z-20 pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <button

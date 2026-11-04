@@ -76,7 +76,11 @@ export default function CartView() {
   }
 
   const handleCardClick = (productId: string) => {
-    router.push(`/products/${productId}`)
+    if (typeof window !== 'undefined') {
+      window.location.href = `/products/${productId}`
+    } else {
+      router.push(`/products/${productId}`)
+    }
   }
 
   return (

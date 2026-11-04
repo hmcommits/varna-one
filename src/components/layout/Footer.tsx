@@ -57,16 +57,22 @@ export default function Footer() {
 
     if (label === 'Men') {
       selectCatalogFilter('Men', isHome)
-      if (!isHome) router.push('/#men')
-      else window.history.replaceState(null, '', '#men')
+      if (!isHome) {
+        if (typeof window !== 'undefined') window.location.href = '/#men'
+        else router.push('/#men')
+      } else window.history.replaceState(null, '', '#men')
     } else if (label === 'Women') {
       selectCatalogFilter('Women', isHome)
-      if (!isHome) router.push('/#women')
-      else window.history.replaceState(null, '', '#women')
+      if (!isHome) {
+        if (typeof window !== 'undefined') window.location.href = '/#women'
+        else router.push('/#women')
+      } else window.history.replaceState(null, '', '#women')
     } else if (label === 'New Arrivals') {
       selectCatalogFilter('All', isHome)
-      if (!isHome) router.push('/#new-arrivals')
-      else window.history.replaceState(null, '', '#new-arrivals')
+      if (!isHome) {
+        if (typeof window !== 'undefined') window.location.href = '/#new-arrivals'
+        else router.push('/#new-arrivals')
+      } else window.history.replaceState(null, '', '#new-arrivals')
     } else if (label === 'Collections') {
       if (isHome) {
         const collectionsEl = document.getElementById('collections')
@@ -75,7 +81,8 @@ export default function Footer() {
         window.history.replaceState(null, '', '#collections')
       } else {
         selectCatalogFilter('All', false)
-        router.push('/#collections')
+        if (typeof window !== 'undefined') window.location.href = '/#collections'
+        else router.push('/#collections')
       }
     } else if (label === 'Sale') {
       const hasActiveSale = (activeStore.promotions || []).some(
@@ -88,12 +95,15 @@ export default function Footer() {
           else selectCatalogFilter('Sale', true)
           window.history.replaceState(null, '', '#sale')
         } else {
-          router.push('/#sale')
+          if (typeof window !== 'undefined') window.location.href = '/#sale'
+          else router.push('/#sale')
         }
       } else {
         selectCatalogFilter('All', isHome)
-        if (!isHome) router.push('/#new-arrivals')
-        else window.history.replaceState(null, '', '#new-arrivals')
+        if (!isHome) {
+          if (typeof window !== 'undefined') window.location.href = '/#new-arrivals'
+          else router.push('/#new-arrivals')
+        } else window.history.replaceState(null, '', '#new-arrivals')
       }
     }
   }

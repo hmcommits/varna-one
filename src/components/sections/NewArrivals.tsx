@@ -129,6 +129,12 @@ export default function NewArrivals() {
               </p>
               <Link
                 href="/products"
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/products'
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a2e1a] hover:bg-[#284628] text-white text-xs sm:text-[13px] font-bold transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg hover:scale-105 active:scale-95 group border border-[#1a2e1a]"
                 title="View all products in all products catalog grid"
               >
@@ -283,6 +289,12 @@ export default function NewArrivals() {
               {/* View All Products End Card */}
               <Link
                 href="/products"
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/products'
+                  }
+                }}
                 className="group relative bg-[#1a2e1a] hover:bg-[#223d22] text-[#faf8f4] rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-shrink-0 w-44 sm:w-48 md:w-52 border border-[#1a2e1a] flex flex-col items-center justify-center p-6 text-center select-none cursor-pointer"
                 title="View full products catalog grid"
               >
