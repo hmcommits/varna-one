@@ -150,7 +150,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const openCheckout = useCallback(() => {
     setIsCartOpen(false)
-    setIsCheckoutOpen(true)
+    setIsCheckoutOpen(false)
+    if (typeof window !== 'undefined') {
+      window.location.href = '/checkout'
+    }
   }, [])
 
   const closeCheckout = useCallback(() => {

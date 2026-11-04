@@ -432,13 +432,16 @@ export default function CartView() {
                         <MapPin size={13} className="text-[#1a2e1a]" />
                         <span>Saved Delivery Address</span>
                       </span>
-                      <button
-                        type="button"
-                        onClick={openCheckout}
+                      <a
+                        href="/checkout"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          openCheckout()
+                        }}
                         className="text-[11px] font-bold text-[#1a2e1a] hover:underline cursor-pointer"
                       >
                         Edit
-                      </button>
+                      </a>
                     </div>
                     <p className="text-[11px] text-[#63574a] leading-tight truncate">
                       {savedAddress.fullName} • {savedAddress.houseNumber ? `${savedAddress.houseNumber}, ` : ''}{savedAddress.city}{savedAddress.state ? `, ${savedAddress.state}` : ''}{savedAddress.pincode ? ` - ${savedAddress.pincode}` : ''}
@@ -447,17 +450,20 @@ export default function CartView() {
                 )}
 
                 {/* Primary Checkout CTA */}
-                <button
-                  type="button"
-                  onClick={openCheckout}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#1a2e1a] hover:bg-[#25D366] text-white font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer group"
+                <a
+                  href="/checkout"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    openCheckout()
+                  }}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#1a2e1a] hover:bg-[#25D366] text-white font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer group text-center"
                 >
-                  <span>Proceed to WhatsApp Checkout</span>
+                  <span>Proceed to Delivery &amp; Checkout</span>
                   <ArrowRight
                     size={16}
                     className="group-hover:translate-x-1 transition-transform"
                   />
-                </button>
+                </a>
 
                 <p className="text-[11px] text-[#7d7062] text-center leading-relaxed">
                   Enter your delivery address on the next step. Order &amp; payment will be verified directly via WhatsApp.
