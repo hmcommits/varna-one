@@ -637,7 +637,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
             {/* Price Showcase */}
             <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8d5b7]/60 shadow-xs mb-5">
-              <div className="flex items-baseline gap-3 mb-1">
+              <div className="flex items-baseline gap-2.5 sm:gap-3 flex-wrap mb-1">
                 <span className="font-display text-3xl sm:text-4xl font-bold text-[#1a1a1a]">
                   ₹{price.toLocaleString('en-IN')}
                 </span>
@@ -651,12 +651,40 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                     </span>
                   </>
                 )}
+
+                {/* Shipping Charge Badge (Small but clearly noticed) */}
+                {product.chargeShipping && (Number(product.shippingCharges) || 0) > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-[#975a16] bg-[#fef6e7] border border-[#fae4ba] px-2.5 py-0.5 rounded-full shadow-2xs">
+                    <Truck size={12} className="text-[#975a16]" />
+                    <span>+₹{product.shippingCharges} Shipping</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-[#1c3624] bg-[#eef7f0] border border-[#b8e0bf] px-2.5 py-0.5 rounded-full shadow-2xs">
+                    <Truck size={12} className="text-[#1c3624]" />
+                    <span>Free Shipping</span>
+                  </span>
+                )}
               </div>
-              <p className="text-[11px] text-[#7d7062] flex items-center gap-1.5">
-                <span className="text-[#1a2e1a] font-semibold">✓ Inclusive of all taxes</span>
-                <span>•</span>
-                <span>Express delivery available</span>
-              </p>
+
+              <div className="mt-2.5 pt-2 border-t border-[#f0ece4] flex items-center justify-between gap-2 flex-wrap text-[11px]">
+                <div className="flex items-center gap-2 text-[#7d7062]">
+                  <span className="text-[#1a2e1a] font-semibold">✓ Inclusive of all taxes</span>
+                  <span>•</span>
+                  <span>Dispatches in 24–48 hrs</span>
+                </div>
+
+                {product.chargeShipping && (Number(product.shippingCharges) || 0) > 0 ? (
+                  <div className="flex items-center gap-1 text-[#975a16] font-semibold bg-[#fef6e7] px-2 py-0.5 rounded-md border border-[#fae4ba]">
+                    <Truck size={11} className="text-[#975a16]" />
+                    <span>Shipping: ₹{product.shippingCharges}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-emerald-700 font-semibold bg-[#eef7f0] px-2 py-0.5 rounded-md border border-[#b8e0bf]">
+                    <Truck size={11} />
+                    <span>Free Pan-India Delivery</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* COLOR SELECTOR (Clicking updates color & auto-switches main image!) */}
@@ -1113,6 +1141,18 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
                 {activeTab === 'shipping' && (
                   <ul className="space-y-1.5 list-disc list-inside">
+                    <li>
+                      <strong className="text-[#1a1a1a]">Shipping Charges:</strong>{' '}
+                      {product.chargeShipping && (Number(product.shippingCharges) || 0) > 0 ? (
+                        <span className="text-[#975a16] font-semibold">
+                          ₹{product.shippingCharges} Pan-India shipping charge applies at checkout.
+                        </span>
+                      ) : (
+                        <span className="text-emerald-700 font-semibold">
+                          100% Free Express Delivery for this item across India.
+                        </span>
+                      )}
+                    </li>
                     <li>
                       <strong className="text-[#1a1a1a]">Dispatch:</strong> Ready stock dispatches within 24–48 hours from our studio.
                     </li>

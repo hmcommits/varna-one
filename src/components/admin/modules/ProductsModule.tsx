@@ -1969,6 +1969,7 @@ export default function ProductsModule({
                 <tr>
                   <th className="py-3 px-4 font-bold">Product</th>
                   <th className="py-3 px-4 font-bold">Price</th>
+                  <th className="py-3 px-4 font-bold">Shipping Charge</th>
                   <th className="py-3 px-4 font-bold">Badge</th>
                   <th className="py-3 px-4 font-bold">Colors &amp; Photos</th>
                   <th className="py-3 px-4 font-bold">Customization</th>
@@ -2032,9 +2033,22 @@ export default function ProductsModule({
                             <span className="font-semibold text-[#142319] block text-sm group-hover:text-[#1c3624] transition-colors">
                               {p.name}
                             </span>
-                            <span className="text-[10px] text-[#6b7770]">
-                              {p.category} • {p.gender} • {p.stockUrgency}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <span className="text-[10px] text-[#6b7770]">
+                                {p.category} • {p.gender} • {p.stockUrgency}
+                              </span>
+                              {p.chargeShipping && (Number(p.shippingCharges) || 0) > 0 ? (
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold bg-[#fef6e7] text-[#975a16] border border-[#fae4ba] px-1.5 py-0.2 rounded-md shadow-2xs">
+                                  <Truck size={10} className="text-[#975a16]" />
+                                  <span>₹{p.shippingCharges} Shipping</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold bg-[#eef7f0] text-[#1c3624] border border-[#b8e0bf] px-1.5 py-0.2 rounded-md">
+                                  <Truck size={10} className="text-[#1c3624]" />
+                                  <span>Free Delivery</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -2061,6 +2075,21 @@ export default function ProductsModule({
                             </span>
                           )}
                         </div>
+                      </td>
+
+                      {/* Shipping Charges Badge */}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {p.chargeShipping && (Number(p.shippingCharges) || 0) > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#fef6e7] text-[#975a16] border border-[#fae4ba] shadow-2xs">
+                            <Truck size={12} className="text-[#975a16]" />
+                            <span>₹{p.shippingCharges} Shipping</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#eef7f0] text-[#1c3624] border border-[#b8e0bf]">
+                            <Truck size={12} className="text-[#1c3624]" />
+                            <span>Free Delivery</span>
+                          </span>
+                        )}
                       </td>
 
                       {/* Badge */}
