@@ -209,6 +209,11 @@ export default function CheckoutModal() {
 
   // Generate structured Indian WhatsApp Message
   const buildOrderWhatsAppMessage = (orderId: string, currentCart: CartItem[]) => {
+    const siteOrigin =
+      typeof window !== 'undefined' && window.location.origin
+        ? window.location.origin
+        : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.varnaclothingin.in')
+
     let msg = `🛍️ *NEW ORDER - VARNA APPAREL*\n`
     msg += `*Order Reference:* #${orderId}\n`
     msg += `───────────────────────────\n`
@@ -216,6 +221,10 @@ export default function CheckoutModal() {
 
     currentCart.forEach((item, index) => {
       const lineSubtotal = item.price * item.quantity
+      const productLink = item.productId
+        ? `${siteOrigin}/products/${item.productId}`
+        : ''
+
       msg += `${index + 1}. *${item.name}*\n`
       msg += `   • Shade: *${item.color}*\n`
       msg += `   • Size: *${item.size}*\n`
@@ -223,6 +232,9 @@ export default function CheckoutModal() {
 
       if (item.customNotes && item.customNotes.trim()) {
         msg += `   • Customization Note: "${item.customNotes.trim()}"\n`
+      }
+      if (productLink) {
+        msg += `   • Product Link: ${productLink}\n`
       }
       msg += `\n`
     })

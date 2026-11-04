@@ -367,11 +367,22 @@ Address Type: ${addr.addressType}`
             const phoneForWhatsApp = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone
             const currentStatus = enq.status || (enq.completed ? 'Delivered' : 'New')
 
+            const siteOrigin =
+              typeof window !== 'undefined' && window.location.origin
+                ? window.location.origin
+                : 'https://www.varnaclothingin.in'
+
             // Direct WhatsApp message from store admin to customer
             const adminFollowupText = encodeURIComponent(
               `Hi ${customerName}! Thank you for your order with Varna (Ref: #${enq.id}). We are reviewing your order details:\n\n` +
                 (enq.items
-                  ? enq.items.map((i) => `• ${i.name} (${i.color}, ${i.size}) × ${i.quantity}`).join('\n')
+                  ? enq.items
+                      .map(
+                        (i) =>
+                          `• ${i.name} (${i.color}, ${i.size}) × ${i.quantity}` +
+                          (i.productId ? `\n  Link: ${siteOrigin}/products/${i.productId}` : '')
+                      )
+                      .join('\n\n')
                   : `• ${enq.productName} (${enq.color}, ${enq.size}) × ${enq.quantity}`) +
                 (enq.totalAmount ? `\n\nTotal Payable: ₹${enq.totalAmount.toLocaleString('en-IN')}` : '') +
                 `\n\nPlease reply here to confirm and we will share the UPI payment QR code!`
@@ -598,9 +609,22 @@ Address Type: ${addr.addressType}`
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <span className="font-semibold text-xs text-[#142319] block truncate">
-                                  {item.name}
-                                </span>
+                                {item.productId ? (
+                                  <a
+                                    href={`/products/${item.productId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-semibold text-xs text-[#142319] hover:text-[#1c3624] hover:underline flex items-center gap-1 group truncate"
+                                    title="View product description page in store"
+                                  >
+                                    <span className="truncate">{item.name}</span>
+                                    <span className="text-[10px] text-[#845d1d] opacity-70 group-hover:opacity-100 transition-opacity">↗</span>
+                                  </a>
+                                ) : (
+                                  <span className="font-semibold text-xs text-[#142319] block truncate">
+                                    {item.name}
+                                  </span>
+                                )}
                                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                   <span className="text-[10px] font-medium bg-white px-1.5 py-0.5 rounded border border-[#ebe5da]">
                                     Color: {item.color}
