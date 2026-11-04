@@ -1,6 +1,7 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { CartItem, DeliveryAddress } from '@/types/store'
+import { useStore } from '@/context/StoreContext'
 
 interface CartContextType {
   cart: CartItem[]
@@ -46,6 +47,7 @@ const CART_STORAGE_KEY = 'varna_cart_items'
 const ADDRESS_STORAGE_KEY = 'varna_delivery_address'
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { activeStore } = useStore()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -316,7 +318,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   }, [cart])
 
-  // Product-Level Shipping Charges Engine
+  // Product-Level Shipping Charges Engine: Calculates total shipping by summing fees for all items/units
   const deliveryPolicy = useMemo(() => {
     if (cart.length === 0) {
       return {
@@ -328,13 +330,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Collect shipping charges from items where admin toggled shipping ON
-    const productShippingFees = cart
-      .filter((ci) => Boolean(ci.chargeShipping) && (Number(ci.shippingCharges) || 0) > 0)
-      .map((ci) => Number(ci.shippingCharges))
+    const storeProducts = activeStore?.products || []
 
-    // If no item has shipping charges toggled ON, delivery is completely FREE
-    if (productShippingFees.length === 0) {
+    // Calculate total shipping fee: sum of shipping charges for each unit in the cart
+    let totalShippingFee = 0
+
+    for (const item of cart) {
+      const liveProduct = storeProducts.find((p) => p.id === item.productId)
+
+      // Check item's stored shipping properties, falling back to live store product
+      const isCharged =
+        item.chargeShipping !== undefined
+          ? Boolean(item.chargeShipping)
+          : Boolean(liveProduct?.chargeShipping)
+
+      const fee =
+        item.shippingCharges !== undefined
+          ? Number(item.shippingCharges) || 0
+          : Number(liveProduct?.shippingCharges) || 0
+
+      if (isCharged && fee > 0) {
+        totalShippingFee += fee * (item.quantity || 1)
+      }
+    }
+
+    if (totalShippingFee === 0) {
       return {
         deliveryFee: 0,
         isFreeDelivery: true,
@@ -344,17 +364,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Single parcel delivery fee based on product shipping charges
-    const applicableFee = Math.max(...productShippingFees)
-
     return {
-      deliveryFee: applicableFee,
+      deliveryFee: totalShippingFee,
       isFreeDelivery: false,
-      totalPayable: subtotal + applicableFee,
+      totalPayable: subtotal + totalShippingFee,
       freeThreshold: 0,
       amountToFreeDelivery: 0,
     }
-  }, [cart, subtotal])
+  }, [cart, subtotal, activeStore?.products])
 
   const contextValue = useMemo<CartContextType>(
     () => ({
