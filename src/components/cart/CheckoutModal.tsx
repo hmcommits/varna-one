@@ -547,7 +547,6 @@ export default function CheckoutModal() {
                           setFormData({ ...formData, phoneNumber: digitsOnly })
                           if (errors.phoneNumber) setErrors({ ...errors, phoneNumber: '' })
                         }}
-                        placeholder="9876543210"
                         className={`w-full bg-white border ${
                           errors.phoneNumber ? 'border-red-400 bg-red-50/20' : 'border-[#e8d5b7]'
                         } rounded-xl pl-12 pr-3.5 py-2.5 text-xs text-[#1a1a1a] placeholder-[#9e9080] outline-none focus:border-[#1a2e1a] focus:ring-1 focus:ring-[#1a2e1a] font-mono`}
