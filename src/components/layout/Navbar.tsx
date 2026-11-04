@@ -350,9 +350,12 @@ export default function Navbar() {
 
             {/* Shopping Bag / Cart Trigger with Bounce & Glow Animation on Add */}
             <div className="relative">
-              <Link
+              <a
                 href="/cart"
-                onClick={openCart}
+                onClick={(e) => {
+                  e.preventDefault()
+                  openCart()
+                }}
                 className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 shadow-xs group ${
                   isBagAnimating
                     ? 'bg-[#25D366] text-white scale-125 ring-4 ring-[#c4a675] shadow-[0_0_22px_rgba(196,166,117,0.85)]'
@@ -380,7 +383,7 @@ export default function Navbar() {
                     {totalItems}
                   </span>
                 )}
-              </Link>
+              </a>
 
               {/* Floating "Added!" Tooltip Pill */}
               {isBagAnimating && (
@@ -464,9 +467,10 @@ export default function Navbar() {
             </div>
 
             {/* View Shopping Bag Button in Mobile Drawer */}
-            <Link
+            <a
               href="/cart"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
                 setMobileOpen(false)
                 openCart()
               }}
@@ -479,7 +483,7 @@ export default function Navbar() {
               <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">
                 {totalItems} {totalItems === 1 ? 'item' : 'items'}
               </span>
-            </Link>
+            </a>
 
             {/* Quick Contact & Social Logos Row (Call, Email, Instagram) */}
             <div className="pt-2 flex items-center justify-around gap-2 bg-[#faf6f0] border border-[#e8d5b7] rounded-2xl p-2.5">

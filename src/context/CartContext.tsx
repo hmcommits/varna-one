@@ -1,6 +1,5 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { CartItem, DeliveryAddress } from '@/types/store'
 import { useStore } from '@/context/StoreContext'
 
@@ -48,7 +47,6 @@ const CART_STORAGE_KEY = 'varna_cart_items'
 const ADDRESS_STORAGE_KEY = 'varna_delivery_address'
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
   const { activeStore } = useStore()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -142,13 +140,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsCheckoutOpen(false)
     setIsCartOpen(false)
     if (typeof window !== 'undefined') {
-      try {
-        router.push('/cart')
-      } catch {
-        window.location.href = '/cart'
-      }
+      window.location.href = '/cart'
     }
-  }, [router])
+  }, [])
 
   const closeCart = useCallback(() => {
     setIsCartOpen(false)
@@ -208,10 +202,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       triggerBagAnimation()
 
       if (openCartDrawer) {
-        router.push('/cart')
+        if (typeof window !== 'undefined') {
+          window.location.href = '/cart'
+        }
       }
     },
-    [router, triggerBagAnimation]
+    [triggerBagAnimation]
   )
 
   const removeFromCart = useCallback((id: string) => {

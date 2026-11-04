@@ -934,14 +934,17 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
               {/* Dedicated View Bag Link from PDP */}
               {totalItems > 0 && (
-                <Link
-                  href="/cart"
-                  onClick={openCart}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#faf8f4] hover:bg-[#f3ede2] text-[#1a2e1a] rounded-xl text-xs font-bold border border-[#e8d5b7] shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    openCart()
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#f3ede2] hover:bg-[#e8d5b7]/60 text-[#1a2e1a] rounded-xl text-xs sm:text-sm font-bold border border-[#e8d5b7] shadow-xs hover:shadow-md transition-all cursor-pointer"
                 >
-                  <ShoppingBag size={14} className="text-[#845d1d]" />
+                  <ShoppingBag size={15} className="text-[#845d1d]" />
                   <span>View Shopping Bag ({totalItems} {totalItems === 1 ? 'item' : 'items'}) →</span>
-                </Link>
+                </button>
               )}
             </div>
 
