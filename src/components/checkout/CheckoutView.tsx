@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -95,17 +95,21 @@ export default function CheckoutView() {
     totalAmount: number
   } | null>(null)
 
-  // Re-populate from saved address if available in user's browser data
+  const isLoadedFromSaved = useRef(false)
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Re-populate from saved address strictly ONCE on mount
   useEffect(() => {
-    if (savedAddress) {
+    if (!isLoadedFromSaved.current && savedAddress) {
       setFormData((prev) => ({
         ...prev,
         ...savedAddress,
       }))
+      isLoadedFromSaved.current = true
     }
   }, [savedAddress])
 
-  // Automatically save address to localStorage so customers never lose it
+  // Debounced auto-save directly to localStorage (1.2s idle) without triggering React context re-renders
   useEffect(() => {
     const hasAnyContent = Boolean(
       formData.fullName.trim() ||
@@ -118,10 +122,22 @@ export default function CheckoutView() {
       formData.state.trim()
     )
 
-    if (hasAnyContent) {
-      saveAddress(formData)
+    if (!hasAnyContent) return
+
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem('varna_delivery_address', JSON.stringify(formData))
+      } catch {
+        // Safe storage write
+      }
+    }, 1200)
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     }
-  }, [formData, saveAddress])
+  }, [formData])
 
   // Target WhatsApp phone resolution
   const rawPhoneDigits =
