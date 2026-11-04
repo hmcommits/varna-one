@@ -1464,112 +1464,138 @@ export default function ProductsModule({
             )}
 
             {/* Product Shipping Charges Section with Toggle Switch */}
-            <div className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Truck size={17} className="text-[#1c3624]" />
-                    <span className="text-xs sm:text-sm font-bold text-[#142319]">
+            <div className="bg-[#faf8f5] border-2 border-[#ded7cb] rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#ded7cb]/70">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="w-8 h-8 rounded-xl bg-[#1c3624]/10 text-[#1c3624] flex items-center justify-center shrink-0">
+                      <Truck size={18} className="text-[#1c3624]" />
+                    </div>
+                    <span className="text-sm sm:text-base font-extrabold text-[#142319]">
                       Charge Shipping for this Product?
                     </span>
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                      className={`text-xs font-bold px-3 py-1 rounded-full border shadow-2xs ${
                         editingProduct.chargeShipping
                           ? 'bg-[#fef6e7] text-[#975a16] border-[#fae4ba]'
                           : 'bg-[#eef7f0] text-[#1c3624] border-[#b8e0bf]'
                       }`}
                     >
-                      {editingProduct.chargeShipping ? 'Paid Delivery' : 'Free Delivery'}
+                      {editingProduct.chargeShipping
+                        ? `Paid Delivery (₹${editingProduct.shippingCharges || 0})`
+                        : 'Free Delivery (₹0)'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#6b7770] mt-1">
+                  <p className="text-xs text-[#6b7770] mt-1.5 pl-10">
                     {editingProduct.chargeShipping
-                      ? 'Toggle is ON: Enter shipping fee below that will be charged when ordering this item.'
-                      : 'Toggle is OFF: Free shipping for this product (₹0 delivery fee charged).'}
+                      ? 'Toggle is ON: Custom shipping charge is applied when this product is in the cart.'
+                      : 'Toggle is OFF: 100% Free Pan-India delivery for this product.'}
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={Boolean(editingProduct.chargeShipping)}
-                  onClick={() => {
-                    const nextCharged = !editingProduct.chargeShipping
-                    setEditingProduct({
-                      ...editingProduct,
-                      chargeShipping: nextCharged,
-                      shippingCharges: nextCharged ? (editingProduct.shippingCharges || 99) : 0,
-                    })
-                  }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                    editingProduct.chargeShipping ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                      editingProduct.chargeShipping ? 'translate-x-5' : 'translate-x-0'
+                {/* Big Prominent Toggle Switch */}
+                <div className="self-end sm:self-center pl-10 sm:pl-0">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={Boolean(editingProduct.chargeShipping)}
+                    onClick={() => {
+                      const nextCharged = !editingProduct.chargeShipping
+                      setEditingProduct({
+                        ...editingProduct,
+                        chargeShipping: nextCharged,
+                        shippingCharges: nextCharged ? (editingProduct.shippingCharges || 99) : 0,
+                      })
+                    }}
+                    className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden shadow-xs ${
+                      editingProduct.chargeShipping ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                        editingProduct.chargeShipping ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
-              {/* Input field to enter shipping charges when toggle is ON */}
+              {/* Large, Visible, Mobile-Optimized Input Box when toggle is ON */}
               {editingProduct.chargeShipping && (
-                <div className="bg-white rounded-xl p-3.5 border border-[#ded7cb] space-y-3 animate-in fade-in duration-200">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border-2 border-[#1c3624]/40 shadow-sm space-y-4 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
-                      <label className="text-xs font-bold text-[#142319] block">
-                        Shipping Charges (₹) *
+                      <label className="text-sm sm:text-base font-extrabold text-[#142319] block">
+                        Enter Shipping Charges (₹) *
                       </label>
-                      <span className="text-[10px] text-[#6b7770]">
-                        Enter the shipping cost to deliver this item pan-India.
+                      <span className="text-xs text-[#6b7770]">
+                        Pan-India delivery charge applied to this product.
                       </span>
                     </div>
+                    <span className="shrink-0 text-xs sm:text-sm font-mono font-extrabold text-[#1c3624] bg-[#eef7f0] px-3 py-1.5 rounded-xl border border-[#b8e0bf]">
+                      ₹{editingProduct.shippingCharges || 0}
+                    </span>
+                  </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="relative w-36">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#6b7770]">
-                          ₹
-                        </span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          placeholder="e.g. 99"
-                          value={editingProduct.shippingCharges ?? 99}
-                          onChange={(e) =>
+                  {/* Big Touch-Friendly Number Field */}
+                  <div className="relative w-full">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl sm:text-2xl font-black text-[#1c3624] select-none">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 99"
+                      value={editingProduct.shippingCharges === 0 ? '' : (editingProduct.shippingCharges ?? 99)}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                        const val = raw === '' ? 0 : Math.max(0, parseInt(raw) || 0)
+                        setEditingProduct({
+                          ...editingProduct,
+                          shippingCharges: val,
+                        })
+                      }}
+                      className="w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl border-2 border-[#1c3624]/40 focus:border-[#1c3624] bg-[#faf8f5] focus:bg-white text-lg sm:text-xl font-black text-[#142319] focus:outline-none focus:ring-4 focus:ring-[#1c3624]/15 transition-all shadow-inner placeholder-[#8c978f]"
+                    />
+                  </div>
+
+                  {/* Quick Select Preset Buttons */}
+                  <div>
+                    <span className="text-xs font-bold text-[#6b7770] uppercase tracking-wider block mb-2">
+                      Quick Select (Tap to set):
+                    </span>
+                    <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                      {[49, 79, 99, 149].map((fee) => (
+                        <button
+                          key={fee}
+                          type="button"
+                          onClick={() =>
                             setEditingProduct({
                               ...editingProduct,
-                              shippingCharges: Math.max(0, parseInt(e.target.value) || 0),
+                              shippingCharges: fee,
                             })
                           }
-                          className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#ded7cb] text-xs font-bold text-[#142319] focus:outline-none focus:ring-1 focus:ring-[#1c3624]"
-                        />
-                      </div>
-
-                      {/* Quick Presets */}
-                      <div className="flex items-center gap-1">
-                        {[49, 79, 99, 149].map((fee) => (
-                          <button
-                            key={fee}
-                            type="button"
-                            onClick={() =>
-                              setEditingProduct({
-                                ...editingProduct,
-                                shippingCharges: fee,
-                              })
-                            }
-                            className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                              editingProduct.shippingCharges === fee
-                                ? 'bg-[#1c3624] text-white shadow-2xs'
-                                : 'bg-[#faf8f5] text-[#6b7770] border border-[#ded7cb] hover:bg-[#ded7cb]/40'
-                            }`}
-                          >
-                            ₹{fee}
-                          </button>
-                        ))}
-                      </div>
+                          className={`py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center active:scale-95 shadow-xs ${
+                            editingProduct.shippingCharges === fee
+                              ? 'bg-[#1c3624] text-white ring-2 ring-[#1c3624] ring-offset-2 shadow-sm'
+                              : 'bg-white text-[#142319] border-2 border-[#ded7cb] hover:border-[#1c3624] hover:bg-[#faf8f5]'
+                          }`}
+                        >
+                          ₹{fee}
+                        </button>
+                      ))}
                     </div>
+                  </div>
+
+                  {/* Customer Notice Preview */}
+                  <div className="flex items-center gap-2 text-xs text-[#206035] bg-[#eef7f0] p-3 rounded-xl border border-[#b8e0bf]">
+                    <Truck size={16} className="shrink-0 text-[#1c3624]" />
+                    <span>
+                      Customer will pay <strong>₹{editingProduct.shippingCharges || 0}</strong> shipping at checkout for this item.
+                    </span>
                   </div>
                 </div>
               )}
