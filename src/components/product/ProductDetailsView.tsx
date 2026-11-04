@@ -296,8 +296,8 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
         image: currentImage,
         customNotes: formattedCustomNotes || undefined,
         customAddOns: selectedCustomOptions.map((o) => o.type),
-        shippingType: product.shippingType || 'store_default',
-        deliveryFee: product.deliveryFee,
+        chargeShipping: Boolean(product.chargeShipping),
+        shippingCharges: product.chargeShipping ? (Number(product.shippingCharges) || 0) : 0,
       },
       false
     )
@@ -963,19 +963,13 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 features.freeDelivery && {
                   icon: Truck,
                   title:
-                    product.shippingType === 'free'
-                      ? 'Free Pan-India Delivery'
-                      : product.shippingType === 'paid' && product.deliveryFee
-                      ? `Standard Delivery (₹${product.deliveryFee})`
-                      : activeStore.settings?.freeDelivery !== false
-                      ? 'Free Pan-India Delivery'
-                      : 'Express Delivery Available',
+                    product.chargeShipping && (Number(product.shippingCharges) || 0) > 0
+                      ? `Standard Delivery (₹${product.shippingCharges})`
+                      : 'Free Pan-India Delivery',
                   desc:
-                    product.shippingType === 'free'
-                      ? 'No shipping fee on this item'
-                      : product.shippingType === 'paid' && product.deliveryFee
-                      ? `₹${product.deliveryFee} shipping across India`
-                      : 'Fast dispatch across India',
+                    product.chargeShipping && (Number(product.shippingCharges) || 0) > 0
+                      ? `₹${product.shippingCharges} shipping charges apply`
+                      : 'Free shipping on this product',
                 },
                 features.returnable && {
                   icon: RotateCcw,

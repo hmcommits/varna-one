@@ -18,7 +18,6 @@ import {
   Palette,
   X,
   Truck,
-  CheckCircle2,
 } from 'lucide-react'
 
 interface ProductsModuleProps {
@@ -95,8 +94,8 @@ export default function ProductsModule({
       description: '',
       fabricCare: '',
       shippingPolicy: '',
-      shippingType: 'store_default',
-      deliveryFee: undefined,
+      chargeShipping: false,
+      shippingCharges: 0,
     }
   }
 
@@ -1464,116 +1463,71 @@ export default function ProductsModule({
               </div>
             )}
 
-            {/* Shipping & Delivery Charges for this Product */}
-            <div className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-3.5">
-              <div className="flex items-center gap-2 text-[#1c3624]">
-                <Truck size={17} className="text-[#206035]" />
-                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#142319]">
-                  Shipping &amp; Delivery Charges for this Product
-                </h3>
-              </div>
-              <p className="text-[11px] text-[#6b7770]">
-                Choose whether standard store delivery rules apply, or specify custom free / paid delivery for this product.
-              </p>
+            {/* Product Shipping Charges Section with Toggle Switch */}
+            <div className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Truck size={17} className="text-[#1c3624]" />
+                    <span className="text-xs sm:text-sm font-bold text-[#142319]">
+                      Charge Shipping for this Product?
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        editingProduct.chargeShipping
+                          ? 'bg-[#fef6e7] text-[#975a16] border-[#fae4ba]'
+                          : 'bg-[#eef7f0] text-[#1c3624] border-[#b8e0bf]'
+                      }`}
+                    >
+                      {editingProduct.chargeShipping ? 'Paid Delivery' : 'Free Delivery'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#6b7770] mt-1">
+                    {editingProduct.chargeShipping
+                      ? 'Toggle is ON: Enter shipping fee below that will be charged when ordering this item.'
+                      : 'Toggle is OFF: Free shipping for this product (₹0 delivery fee charged).'}
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {/* Option 1: Follow Store Policy */}
                 <button
                   type="button"
-                  onClick={() =>
+                  role="switch"
+                  aria-checked={Boolean(editingProduct.chargeShipping)}
+                  onClick={() => {
+                    const nextCharged = !editingProduct.chargeShipping
                     setEditingProduct({
                       ...editingProduct,
-                      shippingType: 'store_default',
-                      deliveryFee: undefined,
+                      chargeShipping: nextCharged,
+                      shippingCharges: nextCharged ? (editingProduct.shippingCharges || 99) : 0,
                     })
-                  }
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    !editingProduct.shippingType || editingProduct.shippingType === 'store_default'
-                      ? 'bg-white border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
-                      : 'bg-[#faf8f5] border-[#ded7cb] hover:bg-white text-[#6b7770]'
+                  }}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                    editingProduct.chargeShipping ? 'bg-[#1c3624]' : 'bg-[#ded7cb]'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-[#142319]">Store Default</span>
-                    {(!editingProduct.shippingType || editingProduct.shippingType === 'store_default') && (
-                      <CheckCircle2 size={14} className="text-[#206035]" />
-                    )}
-                  </div>
-                  <p className="text-[10px] text-[#6b7770] leading-tight">
-                    Follows the Pan-India shipping policy set in Store Settings.
-                  </p>
-                </button>
-
-                {/* Option 2: Always 100% Free Shipping */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      shippingType: 'free',
-                      deliveryFee: 0,
-                    })
-                  }
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    editingProduct.shippingType === 'free'
-                      ? 'bg-white border-[#206035] ring-2 ring-[#206035]/20 shadow-xs'
-                      : 'bg-[#faf8f5] border-[#ded7cb] hover:bg-white text-[#6b7770]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-[#206035]">100% Free Shipping</span>
-                    {editingProduct.shippingType === 'free' && (
-                      <CheckCircle2 size={14} className="text-[#206035]" />
-                    )}
-                  </div>
-                  <p className="text-[10px] text-[#6b7770] leading-tight">
-                    Guaranteed Free Delivery for this item across India.
-                  </p>
-                </button>
-
-                {/* Option 3: Charge Delivery Fee */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      shippingType: 'paid',
-                      deliveryFee: editingProduct.deliveryFee || 99,
-                    })
-                  }
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    editingProduct.shippingType === 'paid'
-                      ? 'bg-white border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
-                      : 'bg-[#faf8f5] border-[#ded7cb] hover:bg-white text-[#6b7770]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-[#142319]">Charge Delivery Fee</span>
-                    {editingProduct.shippingType === 'paid' && (
-                      <CheckCircle2 size={14} className="text-[#206035]" />
-                    )}
-                  </div>
-                  <p className="text-[10px] text-[#6b7770] leading-tight">
-                    Apply a custom shipping charge (e.g. ₹49, ₹99) to this product.
-                  </p>
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      editingProduct.chargeShipping ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
               </div>
 
-              {/* Fee Input & Presets when "Charge Delivery Fee" is selected */}
-              {editingProduct.shippingType === 'paid' && (
-                <div className="bg-white rounded-xl p-3.5 border border-[#ded7cb] space-y-3 animate-in fade-in">
+              {/* Input field to enter shipping charges when toggle is ON */}
+              {editingProduct.chargeShipping && (
+                <div className="bg-white rounded-xl p-3.5 border border-[#ded7cb] space-y-3 animate-in fade-in duration-200">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <label className="text-xs font-bold text-[#142319] block">
-                        Delivery Charge for this Product (₹)
+                        Shipping Charges (₹) *
                       </label>
                       <span className="text-[10px] text-[#6b7770]">
-                        Standard shipping fee added to order when this item is in the cart.
+                        Enter the shipping cost to deliver this item pan-India.
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="relative w-32">
+                      <div className="relative w-36">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#6b7770]">
                           ₹
                         </span>
@@ -1581,11 +1535,12 @@ export default function ProductsModule({
                           type="number"
                           min="0"
                           step="1"
-                          value={editingProduct.deliveryFee ?? 99}
+                          placeholder="e.g. 99"
+                          value={editingProduct.shippingCharges ?? 99}
                           onChange={(e) =>
                             setEditingProduct({
                               ...editingProduct,
-                              deliveryFee: Math.max(0, parseInt(e.target.value) || 0),
+                              shippingCharges: Math.max(0, parseInt(e.target.value) || 0),
                             })
                           }
                           className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#ded7cb] text-xs font-bold text-[#142319] focus:outline-none focus:ring-1 focus:ring-[#1c3624]"
@@ -1601,11 +1556,11 @@ export default function ProductsModule({
                             onClick={() =>
                               setEditingProduct({
                                 ...editingProduct,
-                                deliveryFee: fee,
+                                shippingCharges: fee,
                               })
                             }
                             className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                              editingProduct.deliveryFee === fee
+                              editingProduct.shippingCharges === fee
                                 ? 'bg-[#1c3624] text-white shadow-2xs'
                                 : 'bg-[#faf8f5] text-[#6b7770] border border-[#ded7cb] hover:bg-[#ded7cb]/40'
                             }`}

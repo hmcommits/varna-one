@@ -1,7 +1,6 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { CartItem, DeliveryAddress } from '@/types/store'
-import { useStore } from '@/context/StoreContext'
 
 interface CartContextType {
   cart: CartItem[]
@@ -47,7 +46,6 @@ const CART_STORAGE_KEY = 'varna_cart_items'
 const ADDRESS_STORAGE_KEY = 'varna_delivery_address'
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { activeStore } = useStore()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -318,27 +316,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   }, [cart])
 
-  // Shipping & Delivery Policy Engine (Store Settings + Product-level Overrides)
+  // Product-Level Shipping Charges Engine
   const deliveryPolicy = useMemo(() => {
-    const s = activeStore.settings || {}
-    const isFreeOnAll = s.freeDelivery !== false
-    const baseFee = s.deliveryFee !== undefined ? Number(s.deliveryFee) : 99
-    const freeThreshold = s.freeDeliveryThreshold !== undefined ? Number(s.freeDeliveryThreshold) : 999
-
     if (cart.length === 0) {
       return {
         deliveryFee: 0,
         isFreeDelivery: true,
         totalPayable: 0,
-        freeThreshold,
+        freeThreshold: 0,
         amountToFreeDelivery: 0,
       }
     }
 
-    // Check if every item in cart has 100% Free Shipping specified
-    const allItemsExplicitlyFree =
-      cart.length > 0 && cart.every((ci) => ci.shippingType === 'free')
-    if (allItemsExplicitlyFree) {
+    // Collect shipping charges from items where admin toggled shipping ON
+    const productShippingFees = cart
+      .filter((ci) => Boolean(ci.chargeShipping) && (Number(ci.shippingCharges) || 0) > 0)
+      .map((ci) => Number(ci.shippingCharges))
+
+    // If no item has shipping charges toggled ON, delivery is completely FREE
+    if (productShippingFees.length === 0) {
       return {
         deliveryFee: 0,
         isFreeDelivery: true,
@@ -348,37 +344,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const customPaidFees = cart
-      .filter((ci) => ci.shippingType === 'paid' && ci.deliveryFee !== undefined)
-      .map((ci) => Number(ci.deliveryFee))
-
-    // If global policy is 100% Free Shipping and no items have custom paid delivery
-    if (isFreeOnAll && customPaidFees.length === 0) {
-      return {
-        deliveryFee: 0,
-        isFreeDelivery: true,
-        totalPayable: subtotal,
-        freeThreshold: 0,
-        amountToFreeDelivery: 0,
-      }
-    }
-
-    // Applicable fee: either the product-specific fee or store standard fee
-    const effectiveFee = customPaidFees.length > 0 ? Math.max(...customPaidFees) : baseFee
-
-    // Paid delivery with optional threshold qualification
-    const qualifiesForFree = freeThreshold > 0 && subtotal >= freeThreshold
-    const fee = qualifiesForFree ? 0 : effectiveFee
-    const toFree = !qualifiesForFree && freeThreshold > 0 ? Math.max(0, freeThreshold - subtotal) : 0
+    // Single parcel delivery fee based on product shipping charges
+    const applicableFee = Math.max(...productShippingFees)
 
     return {
-      deliveryFee: fee,
-      isFreeDelivery: qualifiesForFree,
-      totalPayable: subtotal + fee,
-      freeThreshold,
-      amountToFreeDelivery: toFree,
+      deliveryFee: applicableFee,
+      isFreeDelivery: false,
+      totalPayable: subtotal + applicableFee,
+      freeThreshold: 0,
+      amountToFreeDelivery: 0,
     }
-  }, [activeStore.settings, cart, subtotal])
+  }, [cart, subtotal])
 
   const contextValue = useMemo<CartContextType>(
     () => ({

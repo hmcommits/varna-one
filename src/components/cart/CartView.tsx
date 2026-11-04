@@ -32,8 +32,6 @@ export default function CartView() {
     deliveryFee,
     isFreeDelivery,
     totalPayable,
-    freeThreshold,
-    amountToFreeDelivery,
     updateQuantity,
     updateCartItemVariant,
     removeFromCart,
@@ -137,52 +135,23 @@ export default function CartView() {
           )}
         </div>
 
-        {/* Free Delivery Goal Tracker Banner */}
-        {cart.length > 0 && (
-          <div className="mb-6">
-            {amountToFreeDelivery > 0 ? (
-              <div className="bg-[#fef6e7] rounded-2xl p-3.5 sm:p-4 border border-[#fae4ba] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#fde8c2] text-[#975a16] flex items-center justify-center shrink-0">
-                    <Truck size={16} />
-                  </div>
-                  <div>
-                    <p className="text-xs sm:text-sm font-bold text-[#975a16]">
-                      Add ₹{amountToFreeDelivery.toLocaleString('en-IN')} more to unlock FREE Pan-India Delivery!
-                    </p>
-                    <p className="text-[11px] text-[#b47728]">
-                      Free shipping activates automatically at ₹{freeThreshold.toLocaleString('en-IN')}.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="w-full sm:w-48 bg-[#fde8c2] h-2 rounded-full overflow-hidden shrink-0">
-                  <div
-                    className="bg-[#c47d2b] h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(100, Math.round((subtotal / freeThreshold) * 100))}%`,
-                    }}
-                  />
-                </div>
+        {/* Free Delivery Banner if qualified */}
+        {cart.length > 0 && isFreeDelivery && (
+          <div className="mb-6 bg-[#eef7f0] rounded-2xl p-3.5 sm:p-4 border border-[#d6ecda] shadow-xs flex items-center justify-between gap-3 text-xs sm:text-sm text-[#206035] font-semibold">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#d6ecda] text-[#206035] flex items-center justify-center shrink-0">
+                <Truck size={16} />
               </div>
-            ) : (
-              <div className="bg-[#eef7f0] rounded-2xl p-3.5 sm:p-4 border border-[#d6ecda] shadow-xs flex items-center justify-between gap-3 text-xs sm:text-sm text-[#206035] font-semibold">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#d6ecda] text-[#206035] flex items-center justify-center shrink-0">
-                    <Truck size={16} />
-                  </div>
-                  <div>
-                    <span className="font-bold">You unlocked FREE Pan-India Express Delivery!</span>
-                    <span className="block text-[11px] text-[#206035]/80">
-                      Standard delivery charges waived on this order.
-                    </span>
-                  </div>
-                </div>
-                <span className="bg-[#206035] text-white text-xs px-3 py-1 rounded-full font-bold shadow-xs shrink-0">
-                  FREE SHIPPING
+              <div>
+                <span className="font-bold">100% FREE Pan-India Delivery!</span>
+                <span className="block text-[11px] text-[#206035]/80">
+                  Zero shipping charges for items in your bag.
                 </span>
               </div>
-            )}
+            </div>
+            <span className="bg-[#206035] text-white text-xs px-3 py-1 rounded-full font-bold shadow-xs shrink-0">
+              FREE SHIPPING
+            </span>
           </div>
         )}
 
