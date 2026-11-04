@@ -37,6 +37,8 @@ export interface Product {
   description?: string
   fabricCare?: string
   shippingPolicy?: string
+  shippingType?: 'store_default' | 'free' | 'paid'
+  deliveryFee?: number
   features?: {
     freeDelivery: boolean
     customizationAvailable: boolean
@@ -93,6 +95,8 @@ export interface CartItem {
   image: string
   customNotes?: string
   customAddOns?: string[]
+  shippingType?: 'store_default' | 'free' | 'paid'
+  deliveryFee?: number
 }
 
 export interface DeliveryAddress {

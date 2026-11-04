@@ -17,6 +17,8 @@ import {
   Sparkles,
   Palette,
   X,
+  Truck,
+  CheckCircle2,
 } from 'lucide-react'
 
 interface ProductsModuleProps {
@@ -93,6 +95,8 @@ export default function ProductsModule({
       description: '',
       fabricCare: '',
       shippingPolicy: '',
+      shippingType: 'store_default',
+      deliveryFee: undefined,
     }
   }
 
@@ -1459,6 +1463,162 @@ export default function ProductsModule({
                 </button>
               </div>
             )}
+
+            {/* Shipping & Delivery Charges for this Product */}
+            <div className="bg-[#faf8f5] border border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-3.5">
+              <div className="flex items-center gap-2 text-[#1c3624]">
+                <Truck size={17} className="text-[#206035]" />
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#142319]">
+                  Shipping &amp; Delivery Charges for this Product
+                </h3>
+              </div>
+              <p className="text-[11px] text-[#6b7770]">
+                Choose whether standard store delivery rules apply, or specify custom free / paid delivery for this product.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Option 1: Follow Store Policy */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      shippingType: 'store_default',
+                      deliveryFee: undefined,
+                    })
+                  }
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    !editingProduct.shippingType || editingProduct.shippingType === 'store_default'
+                      ? 'bg-white border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
+                      : 'bg-[#faf8f5] border-[#ded7cb] hover:bg-white text-[#6b7770]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-[#142319]">Store Default</span>
+                    {(!editingProduct.shippingType || editingProduct.shippingType === 'store_default') && (
+                      <CheckCircle2 size={14} className="text-[#206035]" />
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#6b7770] leading-tight">
+                    Follows the Pan-India shipping policy set in Store Settings.
+                  </p>
+                </button>
+
+                {/* Option 2: Always 100% Free Shipping */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      shippingType: 'free',
+                      deliveryFee: 0,
+                    })
+                  }
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    editingProduct.shippingType === 'free'
+                      ? 'bg-white border-[#206035] ring-2 ring-[#206035]/20 shadow-xs'
+                      : 'bg-[#faf8f5] border-[#ded7cb] hover:bg-white text-[#6b7770]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-[#206035]">100% Free Shipping</span>
+                    {editingProduct.shippingType === 'free' && (
+                      <CheckCircle2 size={14} className="text-[#206035]" />
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#6b7770] leading-tight">
+                    Guaranteed Free Delivery for this item across India.
+                  </p>
+                </button>
+
+                {/* Option 3: Charge Delivery Fee */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      shippingType: 'paid',
+                      deliveryFee: editingProduct.deliveryFee || 99,
+                    })
+                  }
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    editingProduct.shippingType === 'paid'
+                      ? 'bg-white border-[#1c3624] ring-2 ring-[#1c3624]/20 shadow-xs'
+                      : 'bg-[#faf8f5] border-[#ded7cb] hover:bg-white text-[#6b7770]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-[#142319]">Charge Delivery Fee</span>
+                    {editingProduct.shippingType === 'paid' && (
+                      <CheckCircle2 size={14} className="text-[#206035]" />
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#6b7770] leading-tight">
+                    Apply a custom shipping charge (e.g. ₹49, ₹99) to this product.
+                  </p>
+                </button>
+              </div>
+
+              {/* Fee Input & Presets when "Charge Delivery Fee" is selected */}
+              {editingProduct.shippingType === 'paid' && (
+                <div className="bg-white rounded-xl p-3.5 border border-[#ded7cb] space-y-3 animate-in fade-in">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-[#142319] block">
+                        Delivery Charge for this Product (₹)
+                      </label>
+                      <span className="text-[10px] text-[#6b7770]">
+                        Standard shipping fee added to order when this item is in the cart.
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-32">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#6b7770]">
+                          ₹
+                        </span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={editingProduct.deliveryFee ?? 99}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              deliveryFee: Math.max(0, parseInt(e.target.value) || 0),
+                            })
+                          }
+                          className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#ded7cb] text-xs font-bold text-[#142319] focus:outline-none focus:ring-1 focus:ring-[#1c3624]"
+                        />
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="flex items-center gap-1">
+                        {[49, 79, 99, 149].map((fee) => (
+                          <button
+                            key={fee}
+                            type="button"
+                            onClick={() =>
+                              setEditingProduct({
+                                ...editingProduct,
+                                deliveryFee: fee,
+                              })
+                            }
+                            className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                              editingProduct.deliveryFee === fee
+                                ? 'bg-[#1c3624] text-white shadow-2xs'
+                                : 'bg-[#faf8f5] text-[#6b7770] border border-[#ded7cb] hover:bg-[#ded7cb]/40'
+                            }`}
+                          >
+                            ₹{fee}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Storefront Guarantees */}
             <div className="space-y-2">

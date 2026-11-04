@@ -318,7 +318,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   }, [cart])
 
-  // Shipping & Delivery Policy Engine
+  // Shipping & Delivery Policy Engine (Store Settings + Product-level Overrides)
   const deliveryPolicy = useMemo(() => {
     const s = activeStore.settings || {}
     const isFreeOnAll = s.freeDelivery !== false
@@ -335,7 +335,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    if (isFreeOnAll) {
+    // Check if every item in cart has 100% Free Shipping specified
+    const allItemsExplicitlyFree =
+      cart.length > 0 && cart.every((ci) => ci.shippingType === 'free')
+    if (allItemsExplicitlyFree) {
       return {
         deliveryFee: 0,
         isFreeDelivery: true,
@@ -345,9 +348,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Paid delivery with optional threshold
+    const customPaidFees = cart
+      .filter((ci) => ci.shippingType === 'paid' && ci.deliveryFee !== undefined)
+      .map((ci) => Number(ci.deliveryFee))
+
+    // If global policy is 100% Free Shipping and no items have custom paid delivery
+    if (isFreeOnAll && customPaidFees.length === 0) {
+      return {
+        deliveryFee: 0,
+        isFreeDelivery: true,
+        totalPayable: subtotal,
+        freeThreshold: 0,
+        amountToFreeDelivery: 0,
+      }
+    }
+
+    // Applicable fee: either the product-specific fee or store standard fee
+    const effectiveFee = customPaidFees.length > 0 ? Math.max(...customPaidFees) : baseFee
+
+    // Paid delivery with optional threshold qualification
     const qualifiesForFree = freeThreshold > 0 && subtotal >= freeThreshold
-    const fee = qualifiesForFree ? 0 : baseFee
+    const fee = qualifiesForFree ? 0 : effectiveFee
     const toFree = !qualifiesForFree && freeThreshold > 0 ? Math.max(0, freeThreshold - subtotal) : 0
 
     return {
@@ -357,7 +378,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       freeThreshold,
       amountToFreeDelivery: toFree,
     }
-  }, [activeStore.settings, cart.length, subtotal])
+  }, [activeStore.settings, cart, subtotal])
 
   const contextValue = useMemo<CartContextType>(
     () => ({
