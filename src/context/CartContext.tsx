@@ -1,5 +1,6 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { CartItem, DeliveryAddress } from '@/types/store'
 import { useStore } from '@/context/StoreContext'
 
@@ -23,9 +24,22 @@ interface CartContextType {
   addToCart: (item: Omit<CartItem, 'id'>, openCartDrawer?: boolean) => void
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, newQty: number) => void
+  updateCartItemVariant: (
+    id: string,
+    updates: {
+      size?: string
+      color?: string
+      colorHex?: string
+      image?: string
+      price?: number
+      originalPrice?: number
+    }
+  ) => void
   clearCart: () => void
   savedAddress: DeliveryAddress | null
   saveAddress: (addr: DeliveryAddress) => void
+  isBagAnimating: boolean
+  triggerBagAnimation: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -34,12 +48,30 @@ const CART_STORAGE_KEY = 'varna_cart_items'
 const ADDRESS_STORAGE_KEY = 'varna_delivery_address'
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
   const { activeStore } = useStore()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [savedAddress, setSavedAddress] = useState<DeliveryAddress | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isBagAnimating, setIsBagAnimating] = useState(false)
+  const bagTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Bag bounce / glow animation trigger
+  const triggerBagAnimation = useCallback(() => {
+    setIsBagAnimating(true)
+    if (bagTimerRef.current) clearTimeout(bagTimerRef.current)
+    bagTimerRef.current = setTimeout(() => {
+      setIsBagAnimating(false)
+    }, 1200)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (bagTimerRef.current) clearTimeout(bagTimerRef.current)
+    }
+  }, [])
 
   // Rehydrate cart and address from localStorage on client mount
   useEffect(() => {
@@ -78,8 +110,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const openCart = useCallback(() => {
     setIsCheckoutOpen(false)
-    setIsCartOpen(true)
-  }, [])
+    setIsCartOpen(false)
+    router.push('/cart')
+  }, [router])
 
   const closeCart = useCallback(() => {
     setIsCartOpen(false)
@@ -104,7 +137,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const addToCart = useCallback(
-    (item: Omit<CartItem, 'id'>, openCartDrawer = true) => {
+    (item: Omit<CartItem, 'id'>, openCartDrawer = false) => {
       // Normalize unique key based on product ID, color, size, and custom notes
       const normalizedNotes = (item.customNotes || '').trim().toLowerCase()
       const normalizedAddOns = (item.customAddOns || []).sort().join('|')
@@ -135,11 +168,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         ]
       })
 
+      // Trigger the navbar shopping bag blink / bounce animation
+      triggerBagAnimation()
+
       if (openCartDrawer) {
-        setIsCartOpen(true)
+        router.push('/cart')
       }
     },
-    []
+    [router, triggerBagAnimation]
   )
 
   const removeFromCart = useCallback((id: string) => {
@@ -156,6 +192,82 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       prevCart.map((item) => (item.id === id ? { ...item, quantity: Math.min(99, newQty) } : item))
     )
   }, [])
+
+  // Update Size or Color for an item directly from the Cart
+  const updateCartItemVariant = useCallback(
+    (
+      id: string,
+      updates: {
+        size?: string
+        color?: string
+        colorHex?: string
+        image?: string
+        price?: number
+        originalPrice?: number
+      }
+    ) => {
+      setCart((prevCart) => {
+        const itemIndex = prevCart.findIndex((ci) => ci.id === id)
+        if (itemIndex === -1) return prevCart
+
+        const item = prevCart[itemIndex]
+        const newSize = updates.size !== undefined ? updates.size : item.size
+        const newColor = updates.color !== undefined ? updates.color : item.color
+        const newColorHex = updates.colorHex !== undefined ? updates.colorHex : item.colorHex
+        const newImage = updates.image !== undefined ? updates.image : item.image
+        const newPrice = updates.price !== undefined ? updates.price : item.price
+        const newOriginalPrice =
+          updates.originalPrice !== undefined ? updates.originalPrice : item.originalPrice
+
+        const normalizedNotes = (item.customNotes || '').trim().toLowerCase()
+        const normalizedAddOns = (item.customAddOns || []).sort().join('|')
+        const newUniqueId = `${item.productId}_${newColor}_${newSize}_${normalizedNotes}_${normalizedAddOns}`
+          .replace(/\s+/g, '-')
+          .toLowerCase()
+
+        if (newUniqueId === id) {
+          const updated = [...prevCart]
+          updated[itemIndex] = {
+            ...item,
+            size: newSize,
+            color: newColor,
+            colorHex: newColorHex,
+            image: newImage,
+            price: newPrice,
+            originalPrice: newOriginalPrice,
+          }
+          return updated
+        }
+
+        // If another item with newUniqueId exists in cart, merge quantities
+        const existingOtherIndex = prevCart.findIndex((ci) => ci.id === newUniqueId)
+        if (existingOtherIndex > -1) {
+          return prevCart
+            .filter((ci) => ci.id !== id)
+            .map((ci) =>
+              ci.id === newUniqueId
+                ? { ...ci, quantity: ci.quantity + item.quantity }
+                : ci
+            )
+        }
+
+        // Update item with new ID and variant details
+        const updated = [...prevCart]
+        updated[itemIndex] = {
+          ...item,
+          id: newUniqueId,
+          size: newSize,
+          color: newColor,
+          colorHex: newColorHex,
+          image: newImage,
+          price: newPrice,
+          originalPrice: newOriginalPrice,
+        }
+        return updated
+      })
+    },
+    []
+  )
 
   const clearCart = useCallback(() => {
     setCart([])
@@ -236,9 +348,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addToCart,
       removeFromCart,
       updateQuantity,
+      updateCartItemVariant,
       clearCart,
       savedAddress,
       saveAddress,
+      isBagAnimating,
+      triggerBagAnimation,
     }),
     [
       cart,
@@ -254,9 +369,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addToCart,
       removeFromCart,
       updateQuantity,
+      updateCartItemVariant,
       clearCart,
       savedAddress,
       saveAddress,
+      isBagAnimating,
+      triggerBagAnimation,
     ]
   )
 

@@ -297,7 +297,7 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
         customNotes: formattedCustomNotes || undefined,
         customAddOns: selectedCustomOptions.map((o) => o.type),
       },
-      !directToCheckout
+      false
     )
 
     setIsAddedFeedback(true)

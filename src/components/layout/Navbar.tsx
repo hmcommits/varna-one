@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { Search, Menu, X, Shield, Lock, Phone, ShoppingBag } from 'lucide-react'
+import { Search, Menu, X, Shield, Lock, Phone, ShoppingBag, Check } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -19,7 +19,7 @@ export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const { activeStore, searchQuery, setSearchQuery, selectCatalogFilter } = useStore()
-  const { openCart, totalItems } = useCart()
+  const { openCart, totalItems, isBagAnimating } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const supportPhone = activeStore.settings?.supportPhone || '+91 6363145972'
@@ -348,21 +348,48 @@ export default function Navbar() {
               </div>
             </a>
 
-            {/* Shopping Bag / Cart Trigger */}
-            <button
-              type="button"
-              onClick={openCart}
-              className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1a2e1a] hover:bg-[#25D366] text-white flex items-center justify-center transition-all cursor-pointer shadow-xs group"
-              title={`Shopping Bag (${totalItems} items)`}
-              aria-label={`Shopping Bag (${totalItems} items)`}
-            >
-              <ShoppingBag size={15} className="group-hover:scale-110 transition-transform text-[#f4efe6]" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#c85a44] text-white text-[10px] font-bold flex items-center justify-center shadow-xs border-2 border-white leading-none">
-                  {totalItems}
-                </span>
+            {/* Shopping Bag / Cart Trigger with Bounce & Glow Animation on Add */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={openCart}
+                className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 shadow-xs group ${
+                  isBagAnimating
+                    ? 'bg-[#25D366] text-white scale-125 ring-4 ring-[#c4a675] shadow-[0_0_22px_rgba(196,166,117,0.85)]'
+                    : 'bg-[#1a2e1a] hover:bg-[#25D366] text-white'
+                }`}
+                title={`Shopping Bag (${totalItems} items)`}
+                aria-label={`Shopping Bag (${totalItems} items)`}
+              >
+                <ShoppingBag
+                  size={15}
+                  className={`transition-all duration-300 ${
+                    isBagAnimating
+                      ? 'scale-125 text-white animate-bounce'
+                      : 'group-hover:scale-110 text-[#f4efe6]'
+                  }`}
+                />
+                {totalItems > 0 && (
+                  <span
+                    className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow-xs border-2 border-white leading-none transition-all duration-300 ${
+                      isBagAnimating
+                        ? 'bg-[#c85a44] scale-125 animate-pulse'
+                        : 'bg-[#c85a44]'
+                    }`}
+                  >
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+
+              {/* Floating "Added!" Tooltip Pill */}
+              {isBagAnimating && (
+                <div className="absolute -bottom-8 right-0 whitespace-nowrap bg-[#1a2e1a] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-[#c4a675] pointer-events-none z-50 flex items-center gap-1 animate-in fade-in zoom-in-90 duration-200">
+                  <Check size={11} className="text-[#25D366]" />
+                  <span>Added!</span>
+                </div>
               )}
-            </button>
+            </div>
 
             <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs ml-1">
               <Search
