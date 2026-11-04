@@ -16,12 +16,15 @@ import {
   Share2,
   Check,
   Scissors,
-  HelpCircle,
   X,
   ArrowLeft,
   CheckCircle2,
+  ShoppingBag,
+  ArrowRight,
+  Phone,
 } from 'lucide-react'
 import { useStore } from '@/context/StoreContext'
+import { useCart } from '@/context/CartContext'
 import { ProductColor, Product } from '@/types/store'
 
 
@@ -59,7 +62,12 @@ interface ProductDetailsViewProps {
 
 export default function ProductDetailsView({ productId }: ProductDetailsViewProps = {}) {
   const router = useRouter()
-  const { activeStore, logEnquiry, setActiveViewingProduct, isLoading } = useStore()
+  const { activeStore, setActiveViewingProduct, isLoading } = useStore()
+  const { addToCart, openCheckout } = useCart()
+  const [isAddedFeedback, setIsAddedFeedback] = useState(false)
+
+  const supportPhone = activeStore.settings?.supportPhone || '+91 6363145972'
+  const cleanPhone = supportPhone.replace(/[^0-9+]/g, '')
 
   // Preload home page route on mount for instantaneous (<50ms) back navigation
   useEffect(() => {
@@ -260,96 +268,45 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
     '916363145972'
   const whatsappPhone = rawPhoneDigits.length === 10 ? `91${rawPhoneDigits}` : rawPhoneDigits
 
-  // Dynamic WhatsApp Concierge Order Link - Evaluates editable Admin templatePdp
-  const buildWhatsAppMessage = () => {
-    const currentUrl =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/products/${product.id}`
-        : `https://www.varnaclothingin.in/products/${product.id}`
+  const handleAddToCart = (directToCheckout = false) => {
+    const currentImage =
+      selectedColor?.image ||
+      galleryImages[0]?.src ||
+      product.colors?.[0]?.image ||
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp'
 
-    const formattedPrice = `₹${totalPrice.toLocaleString('en-IN')}`
-
-    let customNotesBlock = ''
+    let formattedCustomNotes = customNotes.trim()
     if (selectedCustomOptions.length > 0) {
-      customNotesBlock += `\n• *Custom Options Selected:*\n`
-      selectedCustomOptions.forEach((opt) => {
-        customNotesBlock += `   - ${opt.type} (+₹${opt.price})\n`
-      })
-      if (customNotes.trim()) {
-        customNotesBlock += `• *Custom Notes:* "${customNotes.trim()}"\n`
-      }
-    } else if (customNotes.trim()) {
-      customNotesBlock += `\n• *Custom Notes:* "${customNotes.trim()}"\n`
+      const optionsText = selectedCustomOptions.map((o) => o.type).join(', ')
+      formattedCustomNotes = formattedCustomNotes
+        ? `${optionsText} — "${formattedCustomNotes}"`
+        : optionsText
     }
 
-    if (isBulkOrder) {
-      customNotesBlock += `\n*Note:* This is a bulk enquiry for ${quantity} units. Please share wholesale tier pricing and dispatch schedule.`
+    addToCart(
+      {
+        productId: product.id,
+        name: product.name,
+        price: price + customCost,
+        originalPrice,
+        color: selectedColor.name,
+        colorHex: selectedColor.hex,
+        size: selectedSize,
+        quantity,
+        image: currentImage,
+        customNotes: formattedCustomNotes || undefined,
+        customAddOns: selectedCustomOptions.map((o) => o.type),
+      },
+      !directToCheckout
+    )
+
+    setIsAddedFeedback(true)
+    setTimeout(() => setIsAddedFeedback(false), 1800)
+
+    if (directToCheckout) {
+      openCheckout()
     }
-
-    // Evaluate activeStore.whatsapp?.templatePdp if configured
-    const template = activeStore.whatsapp?.templatePdp
-    if (template && template.includes('{product_name}')) {
-      let customMsg = template
-        .replace(/{product_name}/g, product.name)
-        .replace(/{color}/g, selectedColor.name)
-        .replace(/{size}/g, selectedSize)
-        .replace(/{quantity}/g, String(quantity))
-        .replace(/{price}/g, formattedPrice)
-        .replace(/{product_url}/g, currentUrl)
-        .replace(/{custom_notes}/g, customNotesBlock)
-
-      // Guarantee product link is always present even if custom template lacked the token
-      if (!customMsg.includes(currentUrl)) {
-        customMsg += `\n• *Product Link:* ${currentUrl}`
-      }
-      return customMsg
-    }
-
-    // Standard high-converting default format with clean WhatsApp bolds and line breaks
-    let msg = `Hi Varna! I'd like to order the *${product.name}*:\n\n`
-    msg += `• *Color:* ${selectedColor.name}\n`
-    msg += `• *Size:* ${selectedSize}\n`
-    msg += `• *Quantity:* ${quantity} ${isBulkOrder ? '(Bulk Order Request)' : 'unit(s)'}\n`
-    msg += `• *Total Amount:* ${formattedPrice}\n`
-    msg += `• *Product Link:* ${currentUrl}\n`
-    msg += customNotesBlock
-
-    if (!isBulkOrder) {
-      msg += `\nPlease confirm product availability & dispatch timeline!`
-    }
-    return msg
   }
-
-  const handleOrderClick = () => {
-    logEnquiry({
-      productName: product.name,
-      color: selectedColor.name,
-      size: selectedSize,
-      quantity,
-      customNotes:
-        selectedCustomOptions.length > 0
-          ? `${selectedCustomOptions.map((o) => o.type).join(', ')}${
-              customNotes ? ` — ${customNotes}` : ''
-            }`
-          : isBulkOrder
-          ? `Bulk Order: ${quantity} units`
-          : undefined,
-      source: 'Product Details Page',
-      completed: false,
-    })
-  }
-
-  const productShareUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/products/${product.id}`
-      : `https://www.varnaclothingin.in/products/${product.id}`
-
-  const whatsappOrderUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-    buildWhatsAppMessage()
-  )}`
-  const whatsappQuestionUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-    `Hi Varna! I have a question about the *${product.name}*:\n\n• *Color:* ${selectedColor.name}\n• *Size:* ${selectedSize}\n• *Product Link:* ${productShareUrl}\n\nCould you please help me with fabric details & sizing?`
-  )}`
 
   const handleShare = async () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -943,39 +900,37 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               )}
             </div>
 
-            {/* ACTION BUTTONS (WHATSAPP DIRECT ORDER FLOW) */}
+            {/* ACTION BUTTONS (ADD TO BAG & INSTANT BUY NOW) */}
             <div className="space-y-3 mb-6">
-              {/* Primary Direct WhatsApp Order CTA */}
-              <a
-                href={whatsappOrderUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleOrderClick}
+              {/* Primary: Add to Bag */}
+              <button
+                type="button"
+                onClick={() => handleAddToCart(false)}
                 className="group relative w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-6 bg-[#1a2e1a] hover:bg-[#25D366] text-white rounded-2xl text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer overflow-hidden"
               >
-                <div className="relative w-5 h-5 flex-shrink-0">
-                  <Image
-                    src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
-                    alt="WhatsApp"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span>Order via WhatsApp</span>
-                <Sparkles size={16} className="text-[#e8d5b7] group-hover:text-white transition-colors" />
-              </a>
+                {isAddedFeedback ? (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={18} className="text-white" />
+                    <span>Added to Bag!</span>
+                  </div>
+                ) : (
+                  <>
+                    <ShoppingBag size={18} className="text-[#e8d5b7] group-hover:text-white transition-colors" />
+                    <span>Add to Bag</span>
+                    <Sparkles size={16} className="text-[#e8d5b7] group-hover:text-white transition-colors" />
+                  </>
+                )}
+              </button>
 
-              {/* Secondary Instant Query CTA */}
-              <a
-                href={whatsappQuestionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleOrderClick}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-[#faf8f4] text-[#1a2e1a] rounded-xl text-xs sm:text-sm font-semibold border border-[#e8d5b7] hover:border-[#1a2e1a] shadow-xs transition-all cursor-pointer"
+              {/* Secondary: Buy Now (Direct Checkout) */}
+              <button
+                type="button"
+                onClick={() => handleAddToCart(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-[#faf8f4] text-[#1a2e1a] rounded-xl text-xs sm:text-sm font-bold border-2 border-[#1a2e1a] hover:border-[#25D366] hover:text-[#0f6b3e] shadow-xs hover:shadow-md transition-all cursor-pointer"
               >
-                <HelpCircle size={15} />
-                <span>Ask a Question</span>
-              </a>
+                <span>Buy Now (Express WhatsApp Checkout)</span>
+                <ArrowRight size={15} />
+              </button>
             </div>
 
             {/* DYNAMIC TRUST BADGES (Configured by Admin) */}
@@ -1286,29 +1241,8 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                           href={`/products/${p.id}`}
                           className="text-[11px] text-[#1a2e1a] font-bold hover:underline"
                         >
-                          View Style →
+                          View Style &amp; Select Size →
                         </Link>
-                        <span className="text-[#ded7cb] text-xs">•</span>
-                        {(() => {
-                          const pairProductUrl =
-                            typeof window !== 'undefined'
-                              ? `${window.location.origin}/products/${p.id}`
-                              : `https://www.varnaclothingin.in/products/${p.id}`
-                          const pairMessage = `Hi Varna! I'm interested in ordering *${p.name}* (₹${p.price.toLocaleString(
-                            'en-IN'
-                          )}) alongside *${product.name}*.\n\n• Product Link: ${pairProductUrl}`
-
-                          return (
-                            <a
-                              href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(pairMessage)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[11px] text-[#25D366] font-bold hover:underline"
-                            >
-                              WhatsApp
-                            </a>
-                          )
-                        })()}
                       </div>
                     </div>
                   </div>
@@ -1327,17 +1261,16 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                     Looking for styling advice or custom pair recommendations?
                   </h3>
                   <p className="text-xs text-[#7d7062] mt-0.5">
-                    Our studio stylists are online daily on WhatsApp to help with fabric swatches, sizing, and personalized matching.
+                    Our studio artisans and stylists are available to help with fabric swatches, custom monograms, and personalized matching.
                   </p>
                 </div>
               </div>
               <a
-                href={whatsappQuestionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 rounded-full bg-[#1a2e1a] hover:bg-[#25D366] text-white text-xs font-bold transition-all shadow-md whitespace-nowrap cursor-pointer flex-shrink-0"
+                href={`tel:${cleanPhone}`}
+                className="px-5 py-2.5 rounded-full bg-[#1a2e1a] hover:bg-[#25D366] text-white text-xs font-bold transition-all shadow-md whitespace-nowrap cursor-pointer flex-shrink-0 flex items-center gap-1.5"
               >
-                Chat with Stylist →
+                <Phone size={13} />
+                <span>Call Studio: {supportPhone}</span>
               </a>
             </div>
           </section>
@@ -1444,18 +1377,15 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
               )
             })()}
 
-            {/* WhatsApp direct size help */}
+            {/* Studio direct size help */}
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#7d7062]">Confused about your size?</span>
               <a
-                href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                  "Hi Varna! I'm not sure which size of the Linen Shirt to choose. My chest is around __ inches. Can you guide me?"
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-[#1a2e1a] font-bold hover:underline flex items-center gap-1"
+                href={`tel:${cleanPhone}`}
+                className="text-xs text-[#1a2e1a] font-bold hover:underline flex items-center gap-1.5"
               >
-                Ask our stylist on WhatsApp →
+                <Phone size={12} className="text-[#845d1d]" />
+                <span>Call Studio Help: {supportPhone}</span>
               </a>
             </div>
           </div>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Playfair_Display, Inter, Alex_Brush } from 'next/font/google'
 import './globals.css'
 import { StoreProvider } from '@/context/StoreContext'
+import { CartProvider } from '@/context/CartContext'
 import AppShell from '@/components/layout/AppShell'
 import { getSiteUrl } from '@/lib/serverStore'
 
@@ -191,7 +192,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-[#faf8f4] text-[#1a1a1a] antialiased selection:bg-[#1a2e1a] selection:text-white">
         <StoreProvider>
-          <AppShell>{children}</AppShell>
+          <CartProvider>
+            <AppShell>{children}</AppShell>
+          </CartProvider>
         </StoreProvider>
       </body>
     </html>

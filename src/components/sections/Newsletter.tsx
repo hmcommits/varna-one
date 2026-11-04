@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
-import Image from 'next/image'
-import { ArrowRight, MessageSquare, Sparkles } from 'lucide-react'
+import { MessageSquare, Sparkles, CheckCircle2, Send } from 'lucide-react'
 import { useStore } from '@/context/StoreContext'
 
 const topicOptions = [
@@ -12,34 +11,31 @@ const topicOptions = [
 ]
 
 export default function Newsletter() {
-  const { activeStore, logEnquiry } = useStore()
+  const { logEnquiry } = useStore()
   const [selectedTopic, setSelectedTopic] = useState('Enquiry')
   const [message, setMessage] = useState('')
+  const [submitted, setSubmitted] = useState(false)
 
-  const whatsappPhone = activeStore.whatsapp?.phoneNumber || '916363145972'
-
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const trimmed = message.trim()
-    const textToSend = trimmed
-      ? `Hi Varna! [${selectedTopic}]: ${trimmed}`
-      : `Hi Varna! I would like to share an ${selectedTopic.toLowerCase()} regarding your custom wear and collection.`
+    if (!trimmed) return
 
     // Log the lead to MongoDB Atlas and admin enquiries module
-    logEnquiry({
-      productName: `Storefront [${selectedTopic}]`,
+    await logEnquiry({
+      productName: `Customer Message [${selectedTopic}]`,
       color: 'N/A',
       size: 'N/A',
       quantity: 1,
-      customNotes: trimmed || `Customer submitted a ${selectedTopic.toLowerCase()} enquiry`,
-      source: 'Floating Concierge',
+      customNotes: trimmed,
+      source: 'Storefront Contact',
       completed: false,
     })
 
-    const waUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(textToSend)}`
-    window.open(waUrl, '_blank')
+    setSubmitted(true)
     setMessage('')
+    setTimeout(() => setSubmitted(false), 5000)
   }
 
   return (
@@ -78,7 +74,7 @@ export default function Newsletter() {
         </h2>
 
         <p className="text-xs sm:text-sm text-gray-300 mb-6 md:mb-7 max-w-lg mx-auto leading-relaxed">
-          Looking for a custom print, sizing advice, bulk order, or want to share feedback? Type your message below to chat directly with us on WhatsApp.
+          Looking for custom print advice, bulk team jerseys, or want to share feedback? Send our studio a message below.
         </p>
 
         {/* Topic Selector Pills */}
@@ -99,33 +95,36 @@ export default function Newsletter() {
           ))}
         </div>
 
-        {/* Enquiry Form redirecting to WhatsApp */}
+        {/* Direct Studio Message Form */}
         <form onSubmit={handleSend} className="max-w-xl mx-auto flex flex-col gap-3">
           <div className="relative">
             <textarea
               rows={3}
+              required
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={`Write your ${selectedTopic.toLowerCase()} here...`}
-              className="w-full bg-white/10 border border-white/25 focus:border-[#25D366] text-white placeholder-gray-400 text-xs sm:text-sm px-4 py-3 rounded-2xl outline-none focus:bg-white/15 transition-all resize-none shadow-inner"
+              className="w-full bg-white/10 border border-white/25 focus:border-[#e8d5b7] text-white placeholder-gray-400 text-xs sm:text-sm px-4 py-3 rounded-2xl outline-none focus:bg-white/15 transition-all resize-none shadow-inner"
             />
             <div className="absolute right-3 bottom-3 text-[10px] text-gray-400 pointer-events-none flex items-center gap-1">
               <MessageSquare size={12} />
-              <span>Direct to WhatsApp</span>
+              <span>Studio Desk</span>
             </div>
           </div>
 
+          {submitted && (
+            <div className="bg-[#e8d5b7]/20 border border-[#e8d5b7] text-[#e8d5b7] rounded-xl p-3 text-xs flex items-center justify-center gap-2 animate-in fade-in">
+              <CheckCircle2 size={16} />
+              <span>Thank you! Your message has been received by our studio team.</span>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full sm:w-auto sm:self-center inline-flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm px-7 py-3 rounded-full shadow-[0_4px_20px_rgba(37,211,102,0.45)] hover:shadow-[0_6px_25px_rgba(37,211,102,0.65)] hover:scale-102 active:scale-95 transition-all duration-200 cursor-pointer"
+            className="w-full sm:w-auto sm:self-center inline-flex items-center justify-center gap-2.5 bg-[#e8d5b7] hover:bg-white text-[#1a2e1a] font-bold text-xs sm:text-sm px-7 py-3 rounded-full shadow-md hover:scale-102 active:scale-95 transition-all duration-200 cursor-pointer"
           >
-            <div className="relative w-4 h-4 flex-shrink-0">
-              <Image
-                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
-                alt="WhatsApp" fill className="object-contain" />
-            </div>
-            <span>Send on WhatsApp</span>
-            <ArrowRight size={14} />
+            <span>Submit {selectedTopic}</span>
+            <Send size={14} />
           </button>
         </form>
       </div>

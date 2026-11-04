@@ -1,10 +1,11 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { Search, Menu, X, Shield, Lock, Phone } from 'lucide-react'
+import { Search, Menu, X, Shield, Lock, Phone, ShoppingBag } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useStore } from '@/context/StoreContext'
+import { useCart } from '@/context/CartContext'
 
 const navLinks = [
   { label: 'New Arrivals', href: '/#new-arrivals' },
@@ -18,6 +19,7 @@ export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const { activeStore, searchQuery, setSearchQuery, selectCatalogFilter } = useStore()
+  const { openCart, totalItems } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const supportPhone = activeStore.settings?.supportPhone || '+91 6363145972'
@@ -347,6 +349,22 @@ export default function Navbar() {
               </div>
             </a>
 
+            {/* Shopping Bag / Cart Trigger */}
+            <button
+              type="button"
+              onClick={openCart}
+              className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1a2e1a] hover:bg-[#25D366] text-white flex items-center justify-center transition-all cursor-pointer shadow-xs group"
+              title={`Shopping Bag (${totalItems} items)`}
+              aria-label={`Shopping Bag (${totalItems} items)`}
+            >
+              <ShoppingBag size={15} className="group-hover:scale-110 transition-transform text-[#f4efe6]" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#c85a44] text-white text-[10px] font-bold flex items-center justify-center shadow-xs border-2 border-white leading-none">
+                  {totalItems}
+                </span>
+              )}
+            </button>
+
             <div className="hidden md:flex items-center gap-2 bg-[#faf8f4] border border-[#e8d5b7]/70 rounded-full px-3.5 py-1.5 focus-within:border-[#1a2e1a] focus-within:bg-white transition-all shadow-xs ml-1">
               <Search
                 size={15}
@@ -418,6 +436,24 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
+
+            {/* View Shopping Bag Button in Mobile Drawer */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false)
+                openCart()
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#1a2e1a] hover:bg-[#25D366] text-white text-xs font-bold transition-all flex items-center justify-between shadow-xs cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <ShoppingBag size={15} className="text-[#e8d5b7]" />
+                <span>Your Shopping Bag</span>
+              </div>
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">
+                {totalItems} {totalItems === 1 ? 'item' : 'items'}
+              </span>
+            </button>
 
             {/* Quick Contact & Social Logos Row (Call, Email, Instagram) */}
             <div className="pt-2 flex items-center justify-around gap-2 bg-[#faf6f0] border border-[#e8d5b7] rounded-2xl p-2.5">

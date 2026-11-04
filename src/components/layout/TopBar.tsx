@@ -1,5 +1,5 @@
 'use client'
-import { Truck, Sparkles, MessageCircle } from 'lucide-react'
+import { Truck, Sparkles, Phone } from 'lucide-react'
 import { useStore } from '@/context/StoreContext'
 
 export default function TopBar() {
@@ -17,10 +17,10 @@ export default function TopBar() {
         'Wear Your Colors',
       ]
 
-  const phoneNumber = activeStore.whatsapp?.phoneNumber || '916363145972'
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-    "Hi Varna! I'm interested in your styles and would like to place an enquiry."
-  )}`
+  const supportPhone =
+    activeStore.settings?.supportPhone ||
+    (activeStore.whatsapp?.phoneNumber ? `+${activeStore.whatsapp.phoneNumber}` : '+91 6363145972')
+  const cleanPhone = supportPhone.replace(/[^0-9+]/g, '')
 
   return (
     <div className="bg-[#1a2e1a] text-white text-[11px] md:text-xs py-2 px-3 md:px-4 overflow-hidden select-none">
@@ -66,17 +66,16 @@ export default function TopBar() {
           ))}
         </div>
 
-        {/* Right Contact Enquiry Link */}
+        {/* Right Contact Support Link */}
         <div className="flex items-center gap-1.5 sm:gap-3 text-gray-300 flex-shrink-0 text-[11px] pl-2 border-l border-white/15">
           <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 hover:text-[#25D366] text-gray-200 transition-colors cursor-pointer"
+            href={`tel:${cleanPhone}`}
+            className="flex items-center gap-1.5 hover:text-[#e8d5b7] text-gray-200 transition-colors cursor-pointer"
+            title={`Customer Support: ${supportPhone}`}
           >
-            <MessageCircle size={12} className="text-[#25D366] flex-shrink-0" />
-            <span className="hidden xs:inline">Enquire: </span>
-            <span>+{phoneNumber}</span>
+            <Phone size={11} className="text-[#e8d5b7] flex-shrink-0" />
+            <span className="hidden xs:inline">Support: </span>
+            <span>{supportPhone}</span>
           </a>
         </div>
       </div>

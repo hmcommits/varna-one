@@ -4,8 +4,9 @@ import { usePathname } from 'next/navigation'
 import TopBar from '@/components/layout/TopBar'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import GlobalPreviewBanner from '@/components/admin/GlobalPreviewBanner'
+import CartDrawer from '@/components/cart/CartDrawer'
+import CheckoutModal from '@/components/cart/CheckoutModal'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -22,7 +23,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="overflow-x-clip">{children}</main>
       <Footer />
-      <WhatsAppButton />
+      <CartDrawer />
+      <CheckoutModal />
     </>
   )
 }

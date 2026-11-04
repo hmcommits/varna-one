@@ -166,12 +166,12 @@ export default function DashboardModule({
           </div>
 
           <div className="mt-4">
-            <span className="text-xs font-semibold text-[#7e5855] block">Customer Enquiries</span>
+            <span className="text-xs font-semibold text-[#7e5855] block">Orders &amp; Enquiries</span>
             <span className="font-display text-3xl sm:text-4xl font-bold text-[#142319] tracking-tight block mt-0.5">
               {enquiries.length}
             </span>
             <span className="text-[11px] text-[#7e5855] mt-1 block">
-              WhatsApp customer leads
+              Cart checkout &amp; direct leads
             </span>
           </div>
         </div>
@@ -409,10 +409,10 @@ export default function DashboardModule({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-display text-lg font-bold text-[#142319]">
-                  Recent Enquiries
+                  Recent Orders &amp; Enquiries
                 </h2>
                 <p className="text-xs text-[#6b7770]">
-                  Customer orders and requests from product pages
+                  Customer orders and WhatsApp checkout requests
                 </p>
               </div>
               <button
@@ -427,7 +427,7 @@ export default function DashboardModule({
 
             {enquiries.length === 0 ? (
               <div className="p-8 text-center text-xs text-[#6b7770] bg-[#faf8f5] rounded-2xl border border-[#ded7cb]">
-                No customer enquiries logged yet.
+                No customer orders or enquiries logged yet.
               </div>
             ) : (
               <div className="space-y-3">
@@ -438,16 +438,31 @@ export default function DashboardModule({
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white border border-[#ded7cb] text-[#142319] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                        {enq.productName.slice(0, 2).toUpperCase()}
+                        {(enq.customerName || enq.productName).slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-[#142319] leading-tight">
-                          {enq.productName}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xs font-bold text-[#142319] leading-tight">
+                            {enq.customerName || enq.productName}
+                          </h3>
+                          {enq.totalAmount && (
+                            <span className="text-[11px] font-bold text-[#1c3624]">
+                              ₹{enq.totalAmount.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-[#556358] mt-0.5 leading-tight">
-                          {enq.color} • {enq.size} (Qty: {enq.quantity})
+                          {enq.customerName ? `${enq.productName} • ` : ''}
+                          {enq.color !== 'N/A' && `${enq.color} • `}
+                          {enq.size !== 'N/A' && `${enq.size} `}
+                          (Qty: {enq.quantity})
                         </p>
-                        {enq.customNotes && (
+                        {enq.address?.city && (
+                          <span className="text-[10px] text-[#845d1d] block mt-0.5">
+                            📍 {enq.address.city}, {enq.address.state}
+                          </span>
+                        )}
+                        {enq.customNotes && !enq.address && (
                           <span className="text-[10px] text-[#845d1d] block mt-0.5 truncate max-w-xs">
                             Note: &ldquo;{enq.customNotes}&rdquo;
                           </span>
@@ -466,11 +481,15 @@ export default function DashboardModule({
                         className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer border ${
                           enq.completed
                             ? 'bg-[#eaf6ec] text-[#246b38] border-[#cbe8d1]'
+                            : enq.status === 'Paid'
+                            ? 'bg-[#eaf6ec] text-[#246b38] border-[#cbe8d1]'
+                            : enq.status === 'Dispatched'
+                            ? 'bg-[#e8f2fc] text-[#1c65b9] border-[#c4ddf8]'
                             : 'bg-[#fef6e7] text-[#975a16] border-[#fae4ba]'
                         }`}
                         title="Click to toggle status"
                       >
-                        {enq.completed ? '✓ Completed' : '● Active Lead'}
+                        {enq.completed ? '✓ Completed' : enq.status ? `● ${enq.status}` : '● Active Lead'}
                       </button>
                     </div>
                   </div>

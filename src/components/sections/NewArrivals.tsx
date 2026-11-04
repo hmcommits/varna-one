@@ -232,14 +232,10 @@ export default function NewArrivals() {
                 View All Active Styles
               </button>
               <a
-                href={`https://wa.me/${activeStore.whatsapp?.phoneNumber || '916363145972'}?text=${encodeURIComponent(
-                  `Hi Varna! I'm interested in ${catalogFilter} styles. Can you share custom catalogue photos and sizing?`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold transition-all shadow-md cursor-pointer inline-flex items-center gap-1.5"
+                href={`tel:${(activeStore.settings?.supportPhone || '+916363145972').replace(/[^0-9+]/g, '')}`}
+                className="px-5 py-2.5 rounded-xl bg-white border border-[#ded7cb] text-[#1a2e1a] hover:bg-[#f0ece4] text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
               >
-                <span>WhatsApp Concierge</span>
+                <span>Call Studio Desk</span>
               </a>
             </div>
           </div>

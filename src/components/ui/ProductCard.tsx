@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Star, Scissors, Eye } from 'lucide-react'
 import { ProductColor, CustomizationConfig } from '@/types/store'
-import { useStore } from '@/context/StoreContext'
 
 export interface ProductCardProps {
   id: string
@@ -47,7 +46,6 @@ export default function ProductCard({
   className = '',
 }: ProductCardProps) {
   const router = useRouter()
-  const { activeStore, logEnquiry } = useStore()
 
   // Determine the primary first uploaded image for default card thumbnail
   const firstUploadedImage =
@@ -120,33 +118,6 @@ export default function ProductCard({
     router.push(`/products/${id}`)
   }
 
-  const handleEnquiryClick = () => {
-    logEnquiry({
-      productName: name,
-      color: activeColor?.name || activeColor?.hex || 'Default',
-      size: 'Free Size',
-      quantity: 1,
-      source: 'Product Card',
-      completed: false,
-    })
-  }
-
-  const productUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/products/${id}`
-      : `https://www.varnaclothingin.in/products/${id}`
-
-  const phone = activeStore.whatsapp?.phoneNumber || '916363145972'
-  const template =
-    activeStore.whatsapp?.templateCard ||
-    "Hi Varna! I'd like to enquire about the {product_name} ({price}). Please share availability and delivery timeframe."
-
-  const enquiryMessage = `${template
-    .replace('{product_name}', name)
-    .replace('{price}', `₹${effectivePrice.toLocaleString('en-IN')}`)}\n• Product Link: ${productUrl}`
-
-  const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(enquiryMessage)}`
-
   return (
     <div
       onClick={handleCardClick}
@@ -190,42 +161,20 @@ export default function ProductCard({
         </div>
 
 
-        {/* Quick Action Hover Bar: Details & WhatsApp Buttons */}
-        <div className="hidden sm:flex absolute inset-x-2 bottom-2.5 items-center gap-1.5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10">
+        {/* Quick Action Hover Bar: View Style Details */}
+        <div className="hidden sm:flex absolute inset-x-3 bottom-3 items-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation()
               handleCardClick()
             }}
-            className="flex-1 py-1.5 px-2 bg-white/95 hover:bg-white text-[#1a2e1a] rounded-lg text-[11px] font-bold shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer border border-[#ded7cb]"
-            title="View Details"
+            className="w-full py-2 px-3 bg-[#1a2e1a] hover:bg-[#25D366] text-white rounded-xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="View Details & Select Size"
           >
-            <Eye size={12} className="text-[#1a2e1a]" />
-            <span>Details</span>
+            <Eye size={13} className="text-[#e8d5b7]" />
+            <span>View Style &amp; Sizes →</span>
           </button>
-
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleEnquiryClick()
-            }}
-            className="flex-1 py-1.5 px-2 bg-[#1a2e1a]/95 hover:bg-[#25D366] text-white rounded-lg text-[11px] font-bold shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer"
-            title="Enquire on WhatsApp"
-          >
-            <div className="relative w-3 h-3 flex-shrink-0">
-              <Image
-                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
-                alt="WhatsApp"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span>WhatsApp</span>
-          </a>
         </div>
       </div>
 
@@ -300,35 +249,19 @@ export default function ProductCard({
           </span>
         </div>
 
-        {/* Mobile Action Buttons */}
+        {/* Mobile Action Button */}
         <div
-          className="sm:hidden mt-2.5 flex items-center gap-1.5"
+          className="sm:hidden mt-2.5"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"
             onClick={handleCardClick}
-            className="flex-1 py-1.5 px-2 bg-[#1a2e1a] text-white rounded-xl text-[11px] font-semibold active:scale-95 transition-all text-center cursor-pointer"
+            className="w-full py-2 px-3 bg-[#1a2e1a] text-white rounded-xl text-xs font-semibold active:scale-95 transition-all text-center cursor-pointer flex items-center justify-center gap-1 shadow-xs"
           >
-            Details →
+            <span>View Style &amp; Sizes</span>
+            <span className="text-[#c4a675] font-bold">→</span>
           </button>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleEnquiryClick}
-            className="py-1.5 px-2.5 bg-[#25D366]/15 text-[#0f6b3e] rounded-xl text-[11px] font-semibold border border-[#25D366]/35 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-            aria-label="Enquire on WhatsApp"
-          >
-            <div className="relative w-3.5 h-3.5">
-              <Image
-                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/icons/whatsapp-icon.webp"
-                alt="WhatsApp"
-                fill
-                className="object-contain"
-              />
-            </div>
-          </a>
         </div>
       </div>
     </div>

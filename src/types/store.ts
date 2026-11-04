@@ -80,6 +80,33 @@ export interface Promotion {
   }
 }
 
+export interface CartItem {
+  id: string
+  productId: string
+  name: string
+  price: number
+  originalPrice?: number
+  color: string
+  colorHex?: string
+  size: string
+  quantity: number
+  image: string
+  customNotes?: string
+  customAddOns?: string[]
+}
+
+export interface DeliveryAddress {
+  fullName: string
+  phoneNumber: string
+  houseNumber: string // Flat, House no., Building, Apartment
+  streetAddress: string // Area, Colony, Street, Sector
+  landmark: string // Landmark (e.g. Near Apollo Pharmacy, Opp. Bank)
+  city: string
+  state: string
+  pincode: string
+  addressType: 'Home' | 'Work' | 'Other'
+}
+
 export interface EnquiryItem {
   id: string
   timestamp: string
@@ -88,8 +115,14 @@ export interface EnquiryItem {
   size: string
   quantity: number
   customNotes?: string
-  source: 'Product Details Page' | 'Product Card' | 'Hero' | 'Floating Concierge'
+  source: 'Product Details Page' | 'Product Card' | 'Hero' | 'Floating Concierge' | 'WhatsApp Checkout' | 'Cart' | string
   completed: boolean
+  customerName?: string
+  customerPhone?: string
+  address?: DeliveryAddress
+  items?: CartItem[]
+  totalAmount?: number
+  status?: 'New' | 'Contacted' | 'Payment Pending' | 'Paid' | 'Dispatched' | 'Delivered' | 'Cancelled'
 }
 
 export interface PromoBanner {
