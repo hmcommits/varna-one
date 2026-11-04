@@ -27,25 +27,24 @@ const STATUS_OPTIONS = [
 ] as const
 
 export default function EnquiriesModule() {
-  const { draft, updateDraft } = useStore()
+  const { draft, updateEnquiries } = useStore()
   const enquiries = useMemo(() => draft.enquiries || [], [draft.enquiries])
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('All')
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  // Update Status handler
+  // Update Status handler - Auto-persisted immediately without requiring top-bar "Save Changes"
   const handleStatusChange = async (id: string, newStatus: string) => {
     const isCompleted = newStatus === 'Delivered' || newStatus === 'Paid' || newStatus === 'Dispatched'
 
-    updateDraft((prev) => ({
-      ...prev,
-      enquiries: (prev.enquiries || []).map((e) =>
+    updateEnquiries((prev) =>
+      prev.map((e) =>
         e.id === id ? { ...e, status: newStatus as any, completed: isCompleted ? e.completed : false } : e
-      ),
-    }))
+      )
+    )
 
-    // Async sync to MongoDB Atlas
+    // Async sync to MongoDB Atlas and store config
     try {
       await fetch('/api/admin/enquiry', {
         method: 'PATCH',
@@ -57,17 +56,14 @@ export default function EnquiriesModule() {
     }
   }
 
-  // Toggle Completed status
+  // Toggle Completed status - Auto-persisted immediately
   const handleToggleCompleted = async (id: string) => {
     const item = enquiries.find((e) => e.id === id)
     const nextCompleted = !item?.completed
 
-    updateDraft((prev) => ({
-      ...prev,
-      enquiries: (prev.enquiries || []).map((e) =>
-        e.id === id ? { ...e, completed: nextCompleted } : e
-      ),
-    }))
+    updateEnquiries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, completed: nextCompleted } : e))
+    )
 
     try {
       await fetch('/api/admin/enquiry', {
@@ -80,13 +76,10 @@ export default function EnquiriesModule() {
     }
   }
 
-  // Remove enquiry
+  // Remove enquiry - Auto-persisted immediately
   const handleRemove = async (id: string) => {
     if (confirm('Are you sure you want to permanently delete this order/enquiry?')) {
-      updateDraft((prev) => ({
-        ...prev,
-        enquiries: (prev.enquiries || []).filter((e) => e.id !== id),
-      }))
+      updateEnquiries((prev) => prev.filter((e) => e.id !== id))
 
       try {
         await fetch(`/api/admin/enquiry?id=${encodeURIComponent(id)}`, {

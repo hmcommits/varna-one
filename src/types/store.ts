@@ -198,6 +198,10 @@ export interface StoreSettings {
   storeStatus: 'Online' | 'Flash Sale' | 'Maintenance'
   instagramHandle?: string
   instagramUrl?: string
+  // Shipping & Delivery Policy
+  freeDelivery?: boolean // true = Free delivery on all orders, false = Paid
+  deliveryFee?: number // Standard delivery charge (₹), e.g. 99
+  freeDeliveryThreshold?: number // e.g. 999 (Orders >= this amount get free delivery)
 }
 
 export interface ReviewItem {

@@ -17,6 +17,9 @@ export const defaultStoreData: StoreState = {
     storeStatus: 'Online',
     instagramHandle: 'varna_prints_',
     instagramUrl: 'https://www.instagram.com/varna_prints_/',
+    freeDelivery: true,
+    deliveryFee: 99,
+    freeDeliveryThreshold: 999,
   },
   products: [
   {

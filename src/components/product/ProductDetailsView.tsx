@@ -1199,12 +1199,17 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                 .map((p) => (
                   <div
                     key={p.id}
-                    className="bg-white rounded-2xl p-3 border border-[#e8d5b7]/60 flex items-center gap-3 shadow-xs hover:shadow-md transition-shadow group"
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        window.location.href = `/products/${p.id}`
+                      } else {
+                        router.push(`/products/${p.id}`)
+                      }
+                    }}
+                    className="bg-white rounded-2xl p-3.5 border border-[#e8d5b7]/60 hover:border-[#1a2e1a] flex items-center gap-3.5 shadow-xs hover:shadow-md transition-all group cursor-pointer select-none active:scale-98"
+                    title={`View ${p.name}`}
                   >
-                    <Link
-                      href={`/products/${p.id}`}
-                      className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0 block"
-                    >
+                    <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-[#f0ece4] shrink-0 block">
                       <Image
                         src={
                           p.colors?.[0]?.image ||
@@ -1215,17 +1220,14 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                         sizes="64px"
                         className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
                       />
-                    </Link>
+                    </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] text-[#c4a675] font-bold uppercase tracking-wider block truncate">
                         {p.category}
                       </span>
-                      <Link
-                        href={`/products/${p.id}`}
-                        className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] hover:text-[#1a2e1a] transition-colors truncate block"
-                      >
+                      <h4 className="font-display text-xs sm:text-sm font-bold text-[#1a1a1a] group-hover:text-[#1a2e1a] transition-colors truncate block">
                         {p.name}
-                      </Link>
+                      </h4>
                       <div className="flex items-baseline gap-1.5 mt-0.5">
                         <span className="text-xs font-bold text-[#1a1a1a]">
                           ₹{p.price.toLocaleString('en-IN')}
@@ -1236,13 +1238,9 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Link
-                          href={`/products/${p.id}`}
-                          className="text-[11px] text-[#1a2e1a] font-bold hover:underline"
-                        >
-                          View Style &amp; Select Size →
-                        </Link>
+                      <div className="flex items-center gap-1 mt-1 text-[11px] text-[#1a2e1a] font-bold group-hover:translate-x-0.5 transition-transform">
+                        <span>View Style &amp; Select Size</span>
+                        <span>→</span>
                       </div>
                     </div>
                   </div>

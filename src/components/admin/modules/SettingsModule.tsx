@@ -12,6 +12,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Lock,
+  Truck,
+  Tag,
+  ShieldCheck,
 } from 'lucide-react'
 
 export default function SettingsModule() {
@@ -455,6 +458,216 @@ export default function SettingsModule() {
             />
           </div>
         </div>
+      </div>
+
+      {/* 4. SHIPPING & DELIVERY SETTINGS (Free vs Paid with Threshold) */}
+      <div className="bg-white border border-[#ded7cb] rounded-3xl p-6 sm:p-7 shadow-2xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#ded7cb]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#1c3624] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Truck size={20} className="text-[#e8d5b7]" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg sm:text-xl font-bold text-[#142319]">
+                Pan-India Shipping &amp; Delivery Policy
+              </h2>
+              <p className="text-xs text-[#6b7770]">
+                Choose whether delivery is 100% Free or paid with an optional free-shipping threshold
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`self-start sm:self-auto text-xs font-bold px-3 py-1 rounded-full border ${
+              settings.freeDelivery !== false
+                ? 'bg-[#eaf6ec] text-[#246b38] border-[#cbe8d1]'
+                : 'bg-[#fef6e7] text-[#975a16] border-[#fae4ba]'
+            }`}
+          >
+            {settings.freeDelivery !== false ? '✓ 100% Free Delivery Active' : '● Paid Delivery Active'}
+          </span>
+        </div>
+
+        {/* 2-Option Selector Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Card 1: 100% Free Delivery */}
+          <div
+            onClick={() => handleUpdate('freeDelivery', true)}
+            className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+              settings.freeDelivery !== false
+                ? 'bg-[#eef7f0] border-[#1c3624] shadow-xs'
+                : 'bg-white border-[#ded7cb] hover:border-[#1c3624]/40'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-[#1c3624] uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-[#246b38]" />
+                  <span>Option 1: 100% Free Shipping</span>
+                </span>
+                {settings.freeDelivery !== false && (
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#246b38] animate-pulse" />
+                )}
+              </div>
+              <h3 className="font-display text-base font-bold text-[#142319] mb-1">
+                Free Delivery on All Orders
+              </h3>
+              <p className="text-xs text-[#556358] leading-relaxed">
+                Zero shipping fee charged to customers across India, regardless of total bill or unit quantity.
+              </p>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-[#d6ecda] text-[11px] font-semibold text-[#246b38]">
+              Recommended for maximum cart conversions
+            </div>
+          </div>
+
+          {/* Card 2: Paid Delivery / Free Above Threshold */}
+          <div
+            onClick={() => handleUpdate('freeDelivery', false)}
+            className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+              settings.freeDelivery === false
+                ? 'bg-[#fcf5e9] border-[#845d1d] shadow-xs'
+                : 'bg-white border-[#ded7cb] hover:border-[#845d1d]/40'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-[#845d1d] uppercase tracking-wider flex items-center gap-1.5">
+                  <Tag size={15} className="text-[#845d1d]" />
+                  <span>Option 2: Charge Delivery Fee</span>
+                </span>
+                {settings.freeDelivery === false && (
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#845d1d] animate-pulse" />
+                )}
+              </div>
+              <h3 className="font-display text-base font-bold text-[#142319] mb-1">
+                Paid Shipping / Threshold
+              </h3>
+              <p className="text-xs text-[#556358] leading-relaxed">
+                Charge a standard delivery fee, or offer Free Delivery only when cart total meets your minimum order target.
+              </p>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-[#fae4ba] text-[11px] font-semibold text-[#845d1d]">
+              Configurable delivery charge &amp; free shipping goal
+            </div>
+          </div>
+        </div>
+
+        {/* Config Inputs if Paid Delivery is chosen */}
+        {settings.freeDelivery === false && (
+          <div className="bg-[#faf8f4] border border-[#ded7cb] rounded-2xl p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#142319]">
+              Configure Shipping Rates (in INR ₹)
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Delivery Fee Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#142319]">
+                  Standard Delivery Fee (₹) *
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#6b7770]">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={1000}
+                      value={settings.deliveryFee ?? 99}
+                      onChange={(e) =>
+                        handleUpdate('deliveryFee', Math.max(0, Number(e.target.value) || 0))
+                      }
+                      className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-[#142319] outline-hidden font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-[#8c978f]">Presets:</span>
+                  {[49, 79, 99, 149].map((fee) => (
+                    <button
+                      key={fee}
+                      type="button"
+                      onClick={() => handleUpdate('deliveryFee', fee)}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md border cursor-pointer ${
+                        (settings.deliveryFee ?? 99) === fee
+                          ? 'bg-[#1c3624] text-white border-[#1c3624]'
+                          : 'bg-white text-[#556358] border-[#ded7cb] hover:bg-[#f0ece4]'
+                      }`}
+                    >
+                      ₹{fee}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Free Delivery Threshold Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#142319]">
+                  Free Delivery on Orders Above (₹)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#6b7770]">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10000}
+                    value={settings.freeDeliveryThreshold ?? 999}
+                    onChange={(e) =>
+                      handleUpdate(
+                        'freeDeliveryThreshold',
+                        Math.max(0, Number(e.target.value) || 0)
+                      )
+                    }
+                    placeholder="e.g. 999 (0 for no free shipping)"
+                    className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-[#142319] outline-hidden font-mono"
+                  />
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                  <span className="text-[10px] text-[#8c978f]">Presets:</span>
+                  {[499, 799, 999, 1499, 0].map((th) => (
+                    <button
+                      key={th}
+                      type="button"
+                      onClick={() => handleUpdate('freeDeliveryThreshold', th)}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md border cursor-pointer ${
+                        (settings.freeDeliveryThreshold ?? 999) === th
+                          ? 'bg-[#1c3624] text-white border-[#1c3624]'
+                          : 'bg-white text-[#556358] border-[#ded7cb] hover:bg-[#f0ece4]'
+                      }`}
+                    >
+                      {th === 0 ? 'No Threshold' : `₹${th}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Live Customer Preview */}
+            <div className="bg-white p-3.5 rounded-xl border border-[#ded7cb] flex items-center justify-between text-xs text-[#556358]">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-[#1c3624] shrink-0" />
+                <span>
+                  <strong>Customer Experience:</strong> Orders below{' '}
+                  <strong className="text-[#142319]">
+                    ₹{(settings.freeDeliveryThreshold ?? 999).toLocaleString('en-IN')}
+                  </strong>{' '}
+                  pay ₹{settings.deliveryFee ?? 99} delivery. Orders equal to or above get{' '}
+                  <span className="text-[#246b38] font-bold">FREE Delivery</span>!
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

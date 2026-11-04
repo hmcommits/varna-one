@@ -61,6 +61,9 @@ export default function CheckoutModal() {
     cart,
     totalItems,
     subtotal,
+    deliveryFee,
+    isFreeDelivery,
+    totalPayable,
     isCheckoutOpen,
     closeCheckout,
     openCart,
@@ -188,8 +191,13 @@ export default function CheckoutModal() {
     })
 
     msg += `───────────────────────────\n`
-    msg += `💰 *TOTAL PAYABLE: ₹${subtotal.toLocaleString('en-IN')}*\n`
-    msg += `🚚 *DELIVERY: FREE (Pan-India Express)*\n`
+    msg += `💰 *ITEMS SUBTOTAL: ₹${subtotal.toLocaleString('en-IN')}*\n`
+    if (isFreeDelivery) {
+      msg += `🚚 *DELIVERY: FREE (Pan-India Express)*\n`
+    } else {
+      msg += `🚚 *DELIVERY CHARGE: ₹${deliveryFee.toLocaleString('en-IN')}*\n`
+    }
+    msg += `💰 *TOTAL PAYABLE: ₹${totalPayable.toLocaleString('en-IN')}*\n`
     msg += `───────────────────────────\n`
     msg += `📍 *DELIVERY ADDRESS:*\n`
     msg += `• *Receiver:* ${formData.fullName.trim()}\n`
@@ -256,7 +264,7 @@ export default function CheckoutModal() {
         customerPhone: formData.phoneNumber.trim(),
         address: { ...formData },
         items: [...cart],
-        totalAmount: subtotal,
+        totalAmount: totalPayable,
         status: 'New',
       })
 
@@ -265,7 +273,7 @@ export default function CheckoutModal() {
         orderId,
         whatsappUrl,
         itemsCount: totalItems,
-        totalAmount: subtotal,
+        totalAmount: totalPayable,
       })
 
       // 5. Open WhatsApp in new tab
@@ -414,7 +422,7 @@ export default function CheckoutModal() {
                       Order Summary ({totalItems} {totalItems === 1 ? 'item' : 'items'})
                     </span>
                     <span className="text-sm font-display font-bold text-[#1a1a1a] ml-1">
-                      • ₹{subtotal.toLocaleString('en-IN')}
+                      • ₹{totalPayable.toLocaleString('en-IN')}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-[11px] font-semibold text-[#845d1d]">
@@ -444,10 +452,24 @@ export default function CheckoutModal() {
                       </div>
                     ))}
                     <div className="pt-2 border-t border-[#e8d5b7]/60 flex items-center justify-between text-xs font-semibold text-[#63574a]">
+                      <span>Items Subtotal:</span>
+                      <span className="font-bold text-[#1a1a1a]">₹{subtotal.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-semibold text-[#63574a]">
                       <span>Pan-India Delivery:</span>
-                      <span className="text-emerald-700 font-bold uppercase text-[10px]">
-                        FREE
-                      </span>
+                      {isFreeDelivery ? (
+                        <span className="text-emerald-700 font-bold uppercase text-[10px]">
+                          FREE
+                        </span>
+                      ) : (
+                        <span className="font-bold text-[#1a1a1a]">
+                          +₹{deliveryFee.toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                    <div className="pt-1.5 border-t border-[#e8d5b7]/60 flex items-center justify-between text-xs font-bold text-[#1a2e1a]">
+                      <span>Total Amount:</span>
+                      <span>₹{totalPayable.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 )}
@@ -712,7 +734,7 @@ export default function CheckoutModal() {
                     <span>
                       {isSubmitting
                         ? 'Preparing WhatsApp Order...'
-                        : `Place Order via WhatsApp • ₹${subtotal.toLocaleString('en-IN')}`}
+                        : `Place Order via WhatsApp • ₹${totalPayable.toLocaleString('en-IN')}`}
                     </span>
                   </button>
 

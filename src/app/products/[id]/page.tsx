@@ -131,7 +131,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
         />
       )}
-      <ProductDetailsView productId={params.id} />
+      <ProductDetailsView key={params.id} productId={params.id} />
     </>
   )
 }

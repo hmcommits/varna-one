@@ -113,74 +113,62 @@ export default function Navbar() {
   const subtitle = activeStore.settings?.subtitle || 'Custom Wear & Prints'
 
   const handleNavLinkClick = (label: string, e: React.MouseEvent) => {
-    e.preventDefault()
     const isHome = pathname === '/'
 
-    if (label === 'Men') {
-      selectCatalogFilter('Men', isHome)
-      if (!isHome) {
-        router.push('/#men')
-      } else {
-        window.history.replaceState(null, '', '#men')
-      }
+    if (!isHome) {
+      // User is on a product details page or any subpage -> smoothly route to storefront section
       setMobileOpen(false)
-    } else if (label === 'Women') {
-      selectCatalogFilter('Women', isHome)
-      if (!isHome) {
-        router.push('/#women')
-      } else {
-        window.history.replaceState(null, '', '#women')
-      }
-      setMobileOpen(false)
-    } else if (label === 'New Arrivals') {
-      selectCatalogFilter('All', isHome)
-      if (!isHome) {
-        router.push('/#new-arrivals')
-      } else {
-        window.history.replaceState(null, '', '#new-arrivals')
-      }
-      setMobileOpen(false)
-    } else if (label === 'Collections') {
-      if (isHome) {
-        const collectionsEl = document.getElementById('collections')
-        if (collectionsEl) {
-          collectionsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (typeof window !== 'undefined') {
+        if (label === 'Men') {
+          sessionStorage.setItem('varna_catalog_filter', 'Men')
+          window.location.href = '/#men'
+        } else if (label === 'Women') {
+          sessionStorage.setItem('varna_catalog_filter', 'Women')
+          window.location.href = '/#women'
+        } else if (label === 'New Arrivals') {
+          sessionStorage.setItem('varna_catalog_filter', 'All')
+          window.location.href = '/#new-arrivals'
+        } else if (label === 'Collections') {
+          window.location.href = '/#collections'
+        } else if (label === 'Sale') {
+          sessionStorage.setItem('varna_catalog_filter', 'Sale')
+          window.location.href = '/#sale'
         } else {
-          selectCatalogFilter('All', true)
-        }
-        window.history.replaceState(null, '', '#collections')
-      } else {
-        selectCatalogFilter('All', false)
-        router.push('/#collections')
-      }
-      setMobileOpen(false)
-    } else if (label === 'Sale') {
-      const hasActiveSale = (activeStore.promotions || []).some(
-        (p) => p.active && p.saleProducts && p.saleProducts.length > 0
-      )
-      if (hasActiveSale) {
-        if (isHome) {
-          const saleEl = document.getElementById('sale')
-          if (saleEl) {
-            saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          } else {
-            selectCatalogFilter('Sale', true)
-          }
-          window.history.replaceState(null, '', '#sale')
-        } else {
-          router.push('/#sale')
-        }
-      } else {
-        // When no active sale exists, redirect directly to product list
-        selectCatalogFilter('All', isHome)
-        if (!isHome) {
-          router.push('/#new-arrivals')
-        } else {
-          window.history.replaceState(null, '', '#new-arrivals')
+          window.location.href = '/'
         }
       }
-      setMobileOpen(false)
+      return
     }
+
+    // On Homepage, perform instant smooth scrolling without full-page reloads
+    e.preventDefault()
+    if (label === 'Men') {
+      selectCatalogFilter('Men', true)
+      window.history.replaceState(null, '', '#men')
+    } else if (label === 'Women') {
+      selectCatalogFilter('Women', true)
+      window.history.replaceState(null, '', '#women')
+    } else if (label === 'New Arrivals') {
+      selectCatalogFilter('All', true)
+      window.history.replaceState(null, '', '#new-arrivals')
+    } else if (label === 'Collections') {
+      const collectionsEl = document.getElementById('collections')
+      if (collectionsEl) {
+        collectionsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        selectCatalogFilter('All', true)
+      }
+      window.history.replaceState(null, '', '#collections')
+    } else if (label === 'Sale') {
+      const saleEl = document.getElementById('sale')
+      if (saleEl) {
+        saleEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        selectCatalogFilter('Sale', true)
+      }
+      window.history.replaceState(null, '', '#sale')
+    }
+    setMobileOpen(false)
   }
 
   const handleSearchTrigger = () => {
@@ -189,7 +177,18 @@ export default function Navbar() {
       const el = document.getElementById('new-arrivals')
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     } else {
-      router.push('/#new-arrivals')
+      if (searchQuery.trim()) {
+        try {
+          sessionStorage.setItem('varna_search_query', searchQuery.trim())
+        } catch {
+          // sessionStorage restricted
+        }
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = '/#new-arrivals'
+      } else {
+        router.push('/')
+      }
     }
   }
 

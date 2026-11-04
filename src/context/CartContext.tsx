@@ -1,11 +1,17 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { CartItem, DeliveryAddress } from '@/types/store'
+import { useStore } from '@/context/StoreContext'
 
 interface CartContextType {
   cart: CartItem[]
   totalItems: number
   subtotal: number
+  deliveryFee: number
+  isFreeDelivery: boolean
+  totalPayable: number
+  freeThreshold: number
+  amountToFreeDelivery: number
   isCartOpen: boolean
   setIsCartOpen: (open: boolean) => void
   openCart: () => void
@@ -28,6 +34,7 @@ const CART_STORAGE_KEY = 'varna_cart_items'
 const ADDRESS_STORAGE_KEY = 'varna_delivery_address'
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { activeStore } = useStore()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -167,11 +174,57 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   }, [cart])
 
+  // Shipping & Delivery Policy Engine
+  const deliveryPolicy = useMemo(() => {
+    const s = activeStore.settings || {}
+    const isFreeOnAll = s.freeDelivery !== false
+    const baseFee = s.deliveryFee !== undefined ? Number(s.deliveryFee) : 99
+    const freeThreshold = s.freeDeliveryThreshold !== undefined ? Number(s.freeDeliveryThreshold) : 999
+
+    if (cart.length === 0) {
+      return {
+        deliveryFee: 0,
+        isFreeDelivery: true,
+        totalPayable: 0,
+        freeThreshold,
+        amountToFreeDelivery: 0,
+      }
+    }
+
+    if (isFreeOnAll) {
+      return {
+        deliveryFee: 0,
+        isFreeDelivery: true,
+        totalPayable: subtotal,
+        freeThreshold: 0,
+        amountToFreeDelivery: 0,
+      }
+    }
+
+    // Paid delivery with optional threshold
+    const qualifiesForFree = freeThreshold > 0 && subtotal >= freeThreshold
+    const fee = qualifiesForFree ? 0 : baseFee
+    const toFree = !qualifiesForFree && freeThreshold > 0 ? Math.max(0, freeThreshold - subtotal) : 0
+
+    return {
+      deliveryFee: fee,
+      isFreeDelivery: qualifiesForFree,
+      totalPayable: subtotal + fee,
+      freeThreshold,
+      amountToFreeDelivery: toFree,
+    }
+  }, [activeStore.settings, cart.length, subtotal])
+
   const contextValue = useMemo<CartContextType>(
     () => ({
       cart,
       totalItems,
       subtotal,
+      deliveryFee: deliveryPolicy.deliveryFee,
+      isFreeDelivery: deliveryPolicy.isFreeDelivery,
+      totalPayable: deliveryPolicy.totalPayable,
+      freeThreshold: deliveryPolicy.freeThreshold,
+      amountToFreeDelivery: deliveryPolicy.amountToFreeDelivery,
       isCartOpen,
       setIsCartOpen,
       openCart,
@@ -191,6 +244,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       cart,
       totalItems,
       subtotal,
+      deliveryPolicy,
       isCartOpen,
       openCart,
       closeCart,

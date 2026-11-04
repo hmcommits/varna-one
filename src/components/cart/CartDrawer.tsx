@@ -9,7 +9,6 @@ import {
   Plus,
   Minus,
   ArrowRight,
-  ShieldCheck,
   Truck,
   Sparkles,
 } from 'lucide-react'
@@ -20,6 +19,11 @@ export default function CartDrawer() {
     cart,
     totalItems,
     subtotal,
+    deliveryFee,
+    isFreeDelivery,
+    totalPayable,
+    freeThreshold,
+    amountToFreeDelivery,
     isCartOpen,
     closeCart,
     updateQuantity,
@@ -218,19 +222,35 @@ export default function CartDrawer() {
           {/* Footer with Summary & Checkout Trigger */}
           {cart.length > 0 && (
             <div className="p-4 sm:p-5 bg-white border-t border-[#e8d5b7]/80 space-y-3.5 shadow-lg">
-              {/* Shipping & Guarantee Pills */}
-              <div className="bg-[#faf8f4] rounded-xl p-2.5 border border-[#e8d5b7]/60 flex items-center justify-between text-[11px] text-[#63574a]">
-                <div className="flex items-center gap-1.5 text-[#1e4a36] font-semibold">
-                  <Truck size={13} />
-                  <span>Free Express Delivery</span>
+              {/* Free Delivery Threshold Goal Tracker */}
+              {amountToFreeDelivery > 0 ? (
+                <div className="bg-[#fef6e7] rounded-xl p-2.5 border border-[#fae4ba] space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-[#975a16]">
+                    <span>Add ₹{amountToFreeDelivery.toLocaleString('en-IN')} more for FREE Delivery!</span>
+                    <span>Goal: ₹{freeThreshold}</span>
+                  </div>
+                  <div className="w-full bg-[#fde8c2] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-[#c47d2b] h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.min(100, Math.round((subtotal / freeThreshold) * 100))}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 text-[#845d1d] font-semibold">
-                  <ShieldCheck size={13} />
-                  <span>Quality Assured</span>
+              ) : (
+                <div className="bg-[#eef7f0] rounded-xl p-2.5 border border-[#d6ecda] flex items-center justify-between text-[11px] text-[#206035] font-semibold">
+                  <div className="flex items-center gap-1.5">
+                    <Truck size={14} className="text-[#206035]" />
+                    <span>You unlocked Free Pan-India Delivery!</span>
+                  </div>
+                  <span className="text-[10px] bg-[#206035] text-white px-2 py-0.5 rounded-full font-bold">
+                    FREE
+                  </span>
                 </div>
-              </div>
+              )}
 
-              {/* Subtotal */}
+              {/* Subtotal & Delivery Breakup */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-[#7d7062]">
                   <span>Subtotal</span>
@@ -238,16 +258,22 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex items-center justify-between text-xs text-[#7d7062]">
                   <span>Pan-India Shipping</span>
-                  <span className="text-emerald-700 font-bold uppercase tracking-wider text-[11px]">
-                    FREE
-                  </span>
+                  {isFreeDelivery ? (
+                    <span className="text-emerald-700 font-bold uppercase tracking-wider text-[11px]">
+                      FREE
+                    </span>
+                  ) : (
+                    <span className="font-bold text-[#1a1a1a]">
+                      +₹{deliveryFee.toLocaleString('en-IN')}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-baseline justify-between pt-2 border-t border-[#e8d5b7]/60">
                   <span className="font-display font-bold text-sm sm:text-base text-[#1a1a1a]">
                     Total Payable
                   </span>
                   <span className="font-display text-xl sm:text-2xl font-bold text-[#1a2e1a]">
-                    ₹{subtotal.toLocaleString('en-IN')}
+                    ₹{totalPayable.toLocaleString('en-IN')}
                   </span>
                 </div>
                 <p className="text-[10px] text-[#7d7062] text-right">

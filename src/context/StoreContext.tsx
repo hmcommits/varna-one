@@ -32,6 +32,7 @@ interface StoreContextType {
   saveDraft: (overrideDraft?: StoreState) => Promise<boolean>
   discardDraft: () => void
   logEnquiry: (enquiry: Partial<EnquiryItem>) => Promise<void>
+  updateEnquiries: (updater: (prev: EnquiryItem[]) => EnquiryItem[]) => void
   activeStore: StoreState
   catalogFilter: string
   setCatalogFilter: (filter: string) => void
@@ -232,6 +233,38 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Dedicated enquiry / order updater that syncs immediately WITHOUT marking draft dirty
+  const updateEnquiries = useCallback((updater: (prev: EnquiryItem[]) => EnquiryItem[]) => {
+    setStore((prev) => ({
+      ...prev,
+      enquiries: updater(prev.enquiries || []),
+    }))
+    setDraft((prev) => ({
+      ...prev,
+      enquiries: updater(prev.enquiries || []),
+    }))
+  }, [])
+
+  // Auto-rehydrate cross-page catalog filter or search navigation
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const savedFilter = sessionStorage.getItem('varna_catalog_filter')
+        if (savedFilter) {
+          setCatalogFilter(savedFilter)
+          sessionStorage.removeItem('varna_catalog_filter')
+        }
+        const savedQuery = sessionStorage.getItem('varna_search_query')
+        if (savedQuery) {
+          setSearchQuery(savedQuery)
+          sessionStorage.removeItem('varna_search_query')
+        }
+      }
+    } catch {
+      // sessionStorage restricted
+    }
+  }, [])
+
   // The active store consumed by components:
   // If globalPreviewMode is ON, we show the draft state; otherwise published store state!
   const activeStore = globalPreviewMode ? draft : store
@@ -250,6 +283,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         saveDraft,
         discardDraft,
         logEnquiry,
+        updateEnquiries,
         activeStore,
         catalogFilter,
         setCatalogFilter,
