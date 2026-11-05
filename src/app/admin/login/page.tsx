@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
 
   const logoSrc =
     store.settings?.logoUrl ||
-    'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
+    '/images/logo/varna-logo.webp'
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#142319] flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden">
@@ -129,13 +129,14 @@ export default function AdminLoginPage() {
         <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-8 shadow-xl">
           {/* Logo & Header */}
           <div className="text-center mb-6">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full p-2 bg-[#1c3624] border border-[#ded7cb] shadow-xs">
+            <div className="relative h-16 sm:h-20 aspect-[872/499] mx-auto mb-4 rounded-2xl overflow-hidden border border-[#ded7cb] shadow-xs">
               <Image
                 src={logoSrc}
                 alt="Varna"
                 fill
-                className="object-contain p-2"
+                className="object-cover"
                 priority
+                unoptimized
               />
             </div>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#142319] tracking-tight">

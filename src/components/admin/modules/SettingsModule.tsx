@@ -37,8 +37,7 @@ export default function SettingsModule() {
     supportPhone: '+91 6363145972',
     studioAddress: 'Karkala, Udupi, Karnataka',
     copyrightText: '© 2026 Varna. All rights reserved.',
-    logoUrl:
-      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp',
+    logoUrl: '/images/logo/varna-logo.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
   }
@@ -168,23 +167,23 @@ export default function SettingsModule() {
           <div>
             <h3 className="font-display text-base font-bold text-[#142319] flex items-center gap-2">
               <Sparkles size={16} className="text-[#845d1d]" />
-              <span>Store Brand Emblem</span>
+              <span>Store Brand Logo</span>
             </h3>
             <p className="text-xs text-[#6b7770] mt-1">
-              Your official emblem displayed across storefront navbar, footer, and packaging labels.
+              Your official brand logo displayed across storefront navbar, footer, and packaging labels.
             </p>
           </div>
 
           <div className="flex items-center gap-4 bg-[#faf8f5] p-5 rounded-2xl border border-[#ded7cb]">
-            <div className="relative w-20 h-20 rounded-2xl p-2.5 bg-[#0f1d14] border border-[#ded7cb] shrink-0 shadow-sm flex items-center justify-center">
+            <div className="relative h-16 w-28 sm:h-20 sm:w-36 rounded-2xl border border-[#ded7cb] shrink-0 shadow-sm flex items-center justify-center overflow-hidden bg-white">
               <Image
                 src={
                   settings.logoUrl ||
-                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
+                  '/images/logo/varna-logo.webp'
                 }
-                alt={settings.storeName}
+                alt={settings.storeName || 'Store Logo'}
                 fill
-                className="object-contain p-2"
+                className="object-cover"
                 unoptimized
               />
             </div>
@@ -337,14 +336,18 @@ export default function SettingsModule() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-semibold text-[#142319] mb-1">
-              Store Name
+              Store Name <span className="text-[#6b7770] font-normal text-[11px]">(Optional)</span>
             </label>
             <input
               type="text"
-              value={settings.storeName}
+              value={settings.storeName || ''}
               onChange={(e) => handleUpdate('storeName', e.target.value)}
+              placeholder="e.g. Varna (optional)"
               className="w-full bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden"
             />
+            <p className="text-[10px] text-[#6b7770] mt-1">
+              Optional. If blank, only your logo image will be displayed on the header.
+            </p>
           </div>
 
           <div>

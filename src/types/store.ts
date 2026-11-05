@@ -190,7 +190,7 @@ export interface WhatsAppConfig {
 }
 
 export interface StoreSettings {
-  storeName: string
+  storeName?: string
   subtitle: string
   slogan: string
   supportPhone: string

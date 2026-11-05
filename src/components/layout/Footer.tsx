@@ -153,6 +153,10 @@ export default function Footer() {
   )
   const fullWaPhone = rawDigits.length === 10 ? `91${rawDigits}` : rawDigits
 
+  const logoSrc =
+    activeStore.settings?.logoUrl ||
+    '/images/logo/varna-logo.webp'
+
   const getWaLink = (message: string) =>
     `https://wa.me/${fullWaPhone}?text=${encodeURIComponent(message)}`
 
@@ -163,16 +167,16 @@ export default function Footer() {
         <div className="col-span-2 md:col-span-4 pr-0 md:pr-8">
           <div
             onClick={handleFooterLogoTap}
-            className="flex items-center gap-3 mb-4 group cursor-pointer select-none"
-            title="Varna Custom Wear"
+            className="flex items-center gap-3.5 mb-4 group cursor-pointer select-none"
+            title="Varna Clothing Co."
           >
-            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-full transition-transform ${tapCount > 0 ? 'scale-105 ring-2 ring-[#c4a675]' : ''}`}>
+            <div className={`relative h-14 sm:h-16 aspect-[872/499] flex-shrink-0 rounded-xl overflow-hidden border border-[#c4a675]/40 transition-transform ${tapCount > 0 ? 'scale-105 ring-2 ring-[#c4a675]' : ''}`}>
               <Image
-                src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp"
-                alt="Varna Custom Wear & Prints"
+                src={logoSrc}
+                alt="Varna Clothing Co."
                 fill
-                sizes="64px"
-                className="object-contain"
+                sizes="120px"
+                className="object-cover"
                 unoptimized
               />
             </div>
@@ -181,7 +185,7 @@ export default function Footer() {
                 Varna
               </span>
               <span className="text-[11px] uppercase tracking-wider text-[#e8d5b7] font-medium">
-                Custom Wear &amp; Prints
+                Clothing Co. • Custom Wear
               </span>
             </div>
           </div>

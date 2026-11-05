@@ -108,9 +108,8 @@ export default function Navbar() {
 
   const logoSrc =
     activeStore.settings?.logoUrl ||
-    'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp'
+    '/images/logo/varna-logo.webp'
   const storeName = activeStore.settings?.storeName || 'Varna'
-  const subtitle = activeStore.settings?.subtitle || 'Custom Wear & Prints'
 
   const handleNavLinkClick = (label: string, e: React.MouseEvent) => {
     const isHome = pathname === '/'
@@ -203,12 +202,12 @@ export default function Navbar() {
       {/* Full-Screen Vault Entry Transition Overlay */}
       {isUnlocking && (
         <div className="fixed inset-0 z-50 bg-[#0f1d14]/95 backdrop-blur-md flex flex-col items-center justify-center text-white animate-in fade-in duration-200">
-          <div className="relative w-20 h-20 rounded-full p-3 bg-[#183220] border-2 border-[#c4a675] shadow-[0_0_50px_rgba(196,166,117,0.4)] animate-pulse mb-4">
+          <div className="relative h-16 sm:h-20 aspect-[872/499] rounded-2xl overflow-hidden border-2 border-[#c4a675] shadow-[0_0_50px_rgba(196,166,117,0.4)] animate-pulse mb-4">
             <Image
               src={logoSrc}
               alt="Varna"
               fill
-              className="object-contain p-2"
+              className="object-cover"
               priority
               unoptimized
             />
@@ -245,37 +244,29 @@ export default function Navbar() {
           <Link
             href="/"
             onClick={handleLogoTap}
-            className={`flex items-center gap-2.5 hover:opacity-90 transition-all cursor-pointer group py-1 relative select-none ${
+            className={`flex items-center gap-2 hover:opacity-95 transition-all cursor-pointer group py-1 relative select-none ${
               isUnlocking ? 'scale-105' : ''
             }`}
-            title="Varna Custom Wear"
+            title="Varna Clothing Co."
           >
             <div
-              className={`relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 transition-transform duration-300 rounded-full ${
+              className={`relative h-11 sm:h-13 aspect-[872/499] flex-shrink-0 transition-transform duration-300 rounded-xl overflow-hidden border border-[#e8d5b7]/60 shadow-2xs ${
                 isUnlocking
                   ? 'ring-4 ring-[#c4a675] shadow-[0_0_20px_#c4a675] animate-pulse'
                   : tapCount > 0
                   ? 'ring-2 ring-[#c4a675]/60 scale-105'
-                  : ''
+                  : 'group-hover:border-[#c4a675]/80'
               }`}
             >
               <Image
                 src={logoSrc}
-                alt={storeName}
+                alt={storeName || 'Varna Clothing Co.'}
                 fill
-                sizes="56px"
+                sizes="(max-width: 640px) 90px, 120px"
                 priority
-                className="object-contain"
+                className="object-cover"
                 unoptimized
               />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display italic text-2xl sm:text-[1.75rem] font-bold text-[#1a2e1a] tracking-tight leading-none">
-                {storeName}
-              </span>
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#7d7062] uppercase mt-0.5 hidden xs:block">
-                {subtitle}
-              </span>
             </div>
           </Link>
 

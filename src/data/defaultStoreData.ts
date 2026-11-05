@@ -11,8 +11,7 @@ export const defaultStoreData: StoreState = {
     supportEmail: 'varnaprints2026@gmail.com',
     studioAddress: 'Karkala, Udupi, Karnataka',
     copyrightText: '© 2026 Varna. All rights reserved. Crafted for comfort, curated to impress.',
-    logoUrl:
-      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp',
+    logoUrl: '/images/logo/varna-logo.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
     instagramHandle: 'varna_prints_',
