@@ -9,12 +9,12 @@ export default function GlobalLoading() {
 
       {/* Luxury Brand Emblem Container */}
       <div className="relative z-10 flex flex-col items-center text-center">
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full p-2.5 bg-white border border-[#ded7cb] shadow-md mb-4 animate-pulse">
+        <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-[#c4a675]/40 shadow-lg mb-4 animate-pulse">
           <Image
-            src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793532654/varna_store/logo/varna-emblem.webp"
+            src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793869689/varna_store/logo/varna-emblem-v2.webp"
             alt="Varna"
             fill
-            className="object-contain p-1.5"
+            className="object-cover"
             priority
             unoptimized
           />
