@@ -117,16 +117,17 @@ export async function GET(req: Request) {
 
     const isAdmin = isAuthenticated(providedToken || null, storePasscode)
 
-    // Ensure stale emblem or raw fabric photo is replaced with curved brandmark
+    // Ensure stale emblem, raw fabric photo, or older small logo is replaced with balanced brandmark
     if (
       !storeData?.settings?.logoUrl ||
       storeData.settings.logoUrl.includes('varna-emblem') ||
       storeData.settings.logoUrl.includes('1793867092112') ||
-      storeData.settings.logoUrl.includes('varna-transparent-brandmark')
+      storeData.settings.logoUrl.includes('varna-transparent-brandmark') ||
+      storeData.settings.logoUrl.includes('varna-curved-brandmark.webp')
     ) {
       if (storeData && storeData.settings) {
         storeData.settings.logoUrl =
-          'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp'
+          'https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp'
       }
     }
 

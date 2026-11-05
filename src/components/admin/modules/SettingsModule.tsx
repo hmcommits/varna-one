@@ -38,7 +38,7 @@ export default function SettingsModule() {
     studioAddress: 'Karkala, Udupi, Karnataka',
     copyrightText: '© 2026 Varna. All rights reserved.',
     logoUrl:
-      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp',
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
   }
@@ -180,7 +180,7 @@ export default function SettingsModule() {
               <Image
                 src={
                   settings.logoUrl ||
-                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp'
+                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp'
                 }
                 alt={settings.storeName || 'Store Logo'}
                 fill

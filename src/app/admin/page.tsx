@@ -555,9 +555,9 @@ export default function AdminDashboardPage() {
         <div className="p-5 pb-4 relative z-10 border-b border-white/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 aspect-[1024/682] rounded-xl overflow-hidden border border-[#c4a675]/40 shadow-xs flex-shrink-0">
+              <div className="relative h-11 aspect-[900/520] rounded-xl overflow-hidden border border-[#c4a675]/40 shadow-xs flex-shrink-0">
                 <Image
-                  src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp"
+                  src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp"
                   alt="Varna"
                   fill
                   className="object-cover"
