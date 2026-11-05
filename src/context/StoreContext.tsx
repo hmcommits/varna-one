@@ -10,10 +10,11 @@ const OLD_LOGOS = [
   '1793867092112-varna_clothing_co__elegant_log.webp',
   'varna-transparent-brandmark.webp',
   'varna-curved-brandmark.webp',
+  'varna-curved-brandmark-v2.webp',
 ]
 
 const DEFAULT_BRAND_LOGO =
-  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp'
+  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793872122/varna_store/logo/varna-brandmark-transparent-v3.webp'
 
 function sanitizeStoreLogo(data: StoreState): StoreState {
   if (!data) return data

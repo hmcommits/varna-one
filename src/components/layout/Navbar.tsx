@@ -109,11 +109,10 @@ export default function Navbar() {
   const logoSrc =
     activeStore.settings?.logoUrl &&
     !activeStore.settings.logoUrl.includes('varna-emblem') &&
-    !activeStore.settings.logoUrl.includes('1793867092112')
-      ? (activeStore.settings.logoUrl.includes('varna-curved-brandmark.webp')
-          ? 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp'
-          : activeStore.settings.logoUrl)
-      : 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793871217/varna_store/logo/varna-curved-brandmark-v2.webp'
+    !activeStore.settings.logoUrl.includes('1793867092112') &&
+    !activeStore.settings.logoUrl.includes('varna-curved-brandmark')
+      ? activeStore.settings.logoUrl
+      : 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793872122/varna_store/logo/varna-brandmark-transparent-v3.webp'
   const storeName = activeStore.settings?.storeName || 'Varna'
 
   const handleNavLinkClick = (label: string, e: React.MouseEvent) => {
@@ -207,13 +206,12 @@ export default function Navbar() {
       {/* Full-Screen Vault Entry Transition Overlay */}
       {isUnlocking && (
         <div className="fixed inset-0 z-50 bg-[#0f1d14]/95 backdrop-blur-md flex flex-col items-center justify-center text-white animate-in fade-in duration-200">
-          <div className="relative h-20 sm:h-24 aspect-[900/520] rounded-2xl overflow-hidden border-2 border-[#c4a675] shadow-[0_0_30px_rgba(196,166,117,0.4)] mx-auto mb-4 animate-pulse">
+          <div className="relative h-20 sm:h-24 aspect-[831/469] rounded-2xl overflow-hidden p-2 mx-auto mb-4 animate-pulse">
             <Image
-              src={logoSrc}
+              src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793872123/varna_store/logo/varna-brandmark-transparent-gold-v3.webp"
               alt="Varna"
               fill
-              className="object-cover"
-              priority
+              className="object-contain"
               unoptimized
             />
           </div>
@@ -255,11 +253,11 @@ export default function Navbar() {
             title="Varna Clothing Co."
           >
             <div
-              className={`relative h-13 sm:h-16 lg:h-18 aspect-[900/520] flex-shrink-0 transition-all duration-300 rounded-xl sm:rounded-2xl overflow-hidden border border-[#c4a675]/35 shadow-xs hover:shadow-md hover:border-[#c4a675]/70 ${
+              className={`relative h-12 sm:h-15 lg:h-17 aspect-[831/469] flex-shrink-0 transition-all duration-300 ${
                 isUnlocking
-                  ? 'scale-110 ring-4 ring-[#c4a675] shadow-[0_0_20px_#c4a675] animate-pulse'
+                  ? 'scale-110 drop-shadow-[0_0_15px_#c4a675] animate-pulse'
                   : tapCount > 0
-                  ? 'scale-105 ring-2 ring-[#c4a675]/60'
+                  ? 'scale-105 opacity-90'
                   : ''
               }`}
             >
@@ -267,9 +265,8 @@ export default function Navbar() {
                 src={logoSrc}
                 alt={storeName || 'Varna Clothing Co.'}
                 fill
-                sizes="(max-width: 640px) 140px, 200px"
-                priority
-                className="object-cover"
+                sizes="(max-width: 640px) 160px, 220px"
+                className="object-contain"
                 unoptimized
               />
             </div>
@@ -307,7 +304,7 @@ export default function Navbar() {
             {/* Email Contact (Gmail Logo Only) */}
             <a
               href={`mailto:${supportEmail}`}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
+              className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/80 items-center justify-center transition-all cursor-pointer shadow-2xs group"
               title={`Email Us: ${supportEmail}`}
               aria-label={`Email Us: ${supportEmail}`}
             >
@@ -328,7 +325,7 @@ export default function Navbar() {
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
+              className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#faf8f4] hover:bg-[#f3ede2] border border-[#e8d5b7]/80 items-center justify-center transition-all cursor-pointer shadow-2xs group"
               title={`Instagram: @${instagramHandle}`}
               aria-label={`Instagram: @${instagramHandle}`}
             >

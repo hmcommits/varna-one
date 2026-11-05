@@ -15,7 +15,6 @@ export default function GlobalLoading() {
             alt="Varna"
             fill
             className="object-cover"
-            priority
             unoptimized
           />
         </div>
