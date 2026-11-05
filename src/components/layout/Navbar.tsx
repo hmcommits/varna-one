@@ -232,7 +232,7 @@ export default function Navbar() {
       )}
 
       <header className="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#e8d5b7]/50 shadow-xs transition-all">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-18 sm:h-20 lg:h-22">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-[76px] sm:h-[88px] lg:h-[100px] xl:h-[106px]">
           {/* Mobile menu button */}
           <button
             type="button"
@@ -253,7 +253,7 @@ export default function Navbar() {
             title="Varna Clothing Co."
           >
             <div
-              className={`relative h-12 sm:h-15 lg:h-17 aspect-[831/469] flex-shrink-0 transition-all duration-300 ${
+              className={`relative h-[54px] sm:h-[68px] lg:h-[82px] xl:h-[90px] aspect-[831/469] flex-shrink-0 transition-all duration-300 ${
                 isUnlocking
                   ? 'scale-110 drop-shadow-[0_0_15px_#c4a675] animate-pulse'
                   : tapCount > 0
@@ -265,7 +265,7 @@ export default function Navbar() {
                 src={logoSrc}
                 alt={storeName || 'Varna Clothing Co.'}
                 fill
-                sizes="(max-width: 640px) 160px, 220px"
+                sizes="(max-width: 640px) 160px, (max-width: 1024px) 200px, 260px"
                 className="object-contain"
                 unoptimized
               />

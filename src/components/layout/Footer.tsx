@@ -166,12 +166,12 @@ export default function Footer() {
             className="flex items-center gap-3.5 mb-4 group cursor-pointer select-none"
             title="Varna Clothing Co."
           >
-            <div className={`relative h-14 sm:h-16 aspect-[831/469] flex-shrink-0 transition-transform ${tapCount > 0 ? 'scale-105' : ''}`}>
+            <div className={`relative h-16 sm:h-20 lg:h-[84px] aspect-[831/469] flex-shrink-0 transition-transform ${tapCount > 0 ? 'scale-105' : ''}`}>
               <Image
                 src="https://res.cloudinary.com/o6jv6xte/image/upload/v1793872123/varna_store/logo/varna-brandmark-transparent-gold-v3.webp"
                 alt="Varna Clothing Co."
                 fill
-                sizes="160px"
+                sizes="(max-width: 640px) 140px, 180px"
                 className="object-contain"
                 unoptimized
               />
