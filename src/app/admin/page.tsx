@@ -555,12 +555,12 @@ export default function AdminDashboardPage() {
         <div className="p-5 pb-4 relative z-10 border-b border-white/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 aspect-[872/499] rounded-lg overflow-hidden border border-[#c4a675]/40 shadow-xs flex-shrink-0">
+              <div className="relative h-10 aspect-[841/476] flex-shrink-0">
                 <Image
-                  src={draft.settings?.logoUrl || '/images/logo/varna-logo.webp'}
+                  src="/images/logo/varna-logo-dark.webp"
                   alt="Varna"
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   unoptimized
                 />
               </div>

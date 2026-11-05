@@ -202,12 +202,12 @@ export default function Navbar() {
       {/* Full-Screen Vault Entry Transition Overlay */}
       {isUnlocking && (
         <div className="fixed inset-0 z-50 bg-[#0f1d14]/95 backdrop-blur-md flex flex-col items-center justify-center text-white animate-in fade-in duration-200">
-          <div className="relative h-16 sm:h-20 aspect-[872/499] rounded-2xl overflow-hidden border-2 border-[#c4a675] shadow-[0_0_50px_rgba(196,166,117,0.4)] animate-pulse mb-4">
+          <div className="relative h-20 sm:h-24 aspect-[841/476] mx-auto mb-4 animate-pulse">
             <Image
-              src={logoSrc}
+              src="/images/logo/varna-logo-dark.webp"
               alt="Varna"
               fill
-              className="object-cover"
+              className="object-contain"
               priority
               unoptimized
             />
@@ -240,31 +240,31 @@ export default function Navbar() {
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          {/* Brand Logo with the Emblem & 5-Tap Unlock Trigger */}
+          {/* Brand Logo with 5-Tap Unlock Trigger */}
           <Link
             href="/"
             onClick={handleLogoTap}
-            className={`flex items-center gap-2 hover:opacity-95 transition-all cursor-pointer group py-1 relative select-none ${
+            className={`flex items-center py-1 relative select-none transition-all cursor-pointer ${
               isUnlocking ? 'scale-105' : ''
             }`}
             title="Varna Clothing Co."
           >
             <div
-              className={`relative h-11 sm:h-13 aspect-[872/499] flex-shrink-0 transition-transform duration-300 rounded-xl overflow-hidden border border-[#e8d5b7]/60 shadow-2xs ${
+              className={`relative h-12 sm:h-14 md:h-15 aspect-[841/476] flex-shrink-0 transition-transform duration-300 ${
                 isUnlocking
-                  ? 'ring-4 ring-[#c4a675] shadow-[0_0_20px_#c4a675] animate-pulse'
+                  ? 'scale-110 drop-shadow-[0_0_15px_#c4a675]'
                   : tapCount > 0
-                  ? 'ring-2 ring-[#c4a675]/60 scale-105'
-                  : 'group-hover:border-[#c4a675]/80'
+                  ? 'scale-105 opacity-90'
+                  : 'hover:opacity-90'
               }`}
             >
               <Image
                 src={logoSrc}
                 alt={storeName || 'Varna Clothing Co.'}
                 fill
-                sizes="(max-width: 640px) 90px, 120px"
+                sizes="(max-width: 640px) 110px, 150px"
                 priority
-                className="object-cover"
+                className="object-contain"
                 unoptimized
               />
             </div>

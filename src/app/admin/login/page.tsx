@@ -129,12 +129,12 @@ export default function AdminLoginPage() {
         <div className="bg-white border border-[#ebe5da] rounded-3xl p-6 sm:p-8 shadow-xl">
           {/* Logo & Header */}
           <div className="text-center mb-6">
-            <div className="relative h-16 sm:h-20 aspect-[872/499] mx-auto mb-4 rounded-2xl overflow-hidden border border-[#ded7cb] shadow-xs">
+            <div className="relative h-16 sm:h-20 aspect-[841/476] mx-auto mb-4">
               <Image
                 src={logoSrc}
                 alt="Varna"
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
                 unoptimized
               />

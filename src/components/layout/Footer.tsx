@@ -153,10 +153,6 @@ export default function Footer() {
   )
   const fullWaPhone = rawDigits.length === 10 ? `91${rawDigits}` : rawDigits
 
-  const logoSrc =
-    activeStore.settings?.logoUrl ||
-    '/images/logo/varna-logo.webp'
-
   const getWaLink = (message: string) =>
     `https://wa.me/${fullWaPhone}?text=${encodeURIComponent(message)}`
 
@@ -170,13 +166,13 @@ export default function Footer() {
             className="flex items-center gap-3.5 mb-4 group cursor-pointer select-none"
             title="Varna Clothing Co."
           >
-            <div className={`relative h-14 sm:h-16 aspect-[872/499] flex-shrink-0 rounded-xl overflow-hidden border border-[#c4a675]/40 transition-transform ${tapCount > 0 ? 'scale-105 ring-2 ring-[#c4a675]' : ''}`}>
+            <div className={`relative h-14 sm:h-16 aspect-[841/476] flex-shrink-0 transition-transform ${tapCount > 0 ? 'scale-105' : ''}`}>
               <Image
-                src={logoSrc}
+                src="/images/logo/varna-logo-dark.webp"
                 alt="Varna Clothing Co."
                 fill
-                sizes="120px"
-                className="object-cover"
+                sizes="140px"
+                className="object-contain"
                 unoptimized
               />
             </div>

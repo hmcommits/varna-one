@@ -183,7 +183,7 @@ export default function SettingsModule() {
                 }
                 alt={settings.storeName || 'Store Logo'}
                 fill
-                className="object-cover"
+                className="object-contain p-2"
                 unoptimized
               />
             </div>
