@@ -38,7 +38,7 @@ export default function SettingsModule() {
     studioAddress: 'Karkala, Udupi, Karnataka',
     copyrightText: '© 2026 Varna. All rights reserved.',
     logoUrl:
-      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp',
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
   }
@@ -176,15 +176,15 @@ export default function SettingsModule() {
           </div>
 
           <div className="flex items-center gap-4 bg-[#faf8f5] p-5 rounded-2xl border border-[#ded7cb]">
-            <div className="relative h-16 w-28 sm:h-20 sm:w-36 rounded-2xl border border-[#ded7cb] shrink-0 shadow-sm flex items-center justify-center overflow-hidden bg-white">
+            <div className="relative h-16 w-28 sm:h-20 sm:w-36 rounded-2xl border border-[#c4a675]/40 shrink-0 shadow-xs flex items-center justify-center overflow-hidden bg-white">
               <Image
                 src={
                   settings.logoUrl ||
-                  '/images/logo/varna-logo.webp'
+                  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp'
                 }
                 alt={settings.storeName || 'Store Logo'}
                 fill
-                className="object-contain p-2"
+                className="object-cover"
                 unoptimized
               />
             </div>

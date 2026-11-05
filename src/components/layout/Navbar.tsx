@@ -111,7 +111,7 @@ export default function Navbar() {
     !activeStore.settings.logoUrl.includes('varna-emblem') &&
     !activeStore.settings.logoUrl.includes('1793867092112')
       ? activeStore.settings.logoUrl
-      : 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp'
+      : 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp'
   const storeName = activeStore.settings?.storeName || 'Varna'
 
   const handleNavLinkClick = (label: string, e: React.MouseEvent) => {
@@ -205,12 +205,12 @@ export default function Navbar() {
       {/* Full-Screen Vault Entry Transition Overlay */}
       {isUnlocking && (
         <div className="fixed inset-0 z-50 bg-[#0f1d14]/95 backdrop-blur-md flex flex-col items-center justify-center text-white animate-in fade-in duration-200">
-          <div className="relative h-20 sm:h-24 aspect-[841/476] mx-auto mb-4 animate-pulse">
+          <div className="relative h-18 sm:h-22 aspect-[1024/682] rounded-2xl overflow-hidden border-2 border-[#c4a675] shadow-[0_0_30px_rgba(196,166,117,0.4)] mx-auto mb-4 animate-pulse">
             <Image
-              src="/images/logo/varna-logo-dark.webp"
+              src={logoSrc}
               alt="Varna"
               fill
-              className="object-contain"
+              className="object-cover"
               priority
               unoptimized
             />
@@ -253,12 +253,12 @@ export default function Navbar() {
             title="Varna Clothing Co."
           >
             <div
-              className={`relative h-12 sm:h-14 md:h-15 aspect-[841/476] flex-shrink-0 transition-transform duration-300 ${
+              className={`relative h-11 sm:h-13 aspect-[1024/682] flex-shrink-0 transition-all duration-300 rounded-xl sm:rounded-2xl overflow-hidden border border-[#c4a675]/35 shadow-xs hover:shadow-md hover:border-[#c4a675]/70 ${
                 isUnlocking
-                  ? 'scale-110 drop-shadow-[0_0_15px_#c4a675]'
+                  ? 'scale-110 ring-4 ring-[#c4a675] shadow-[0_0_20px_#c4a675] animate-pulse'
                   : tapCount > 0
-                  ? 'scale-105 opacity-90'
-                  : 'hover:opacity-90'
+                  ? 'scale-105 ring-2 ring-[#c4a675]/60'
+                  : ''
               }`}
             >
               <Image
@@ -267,7 +267,7 @@ export default function Navbar() {
                 fill
                 sizes="(max-width: 640px) 110px, 150px"
                 priority
-                className="object-contain"
+                className="object-cover"
                 unoptimized
               />
             </div>

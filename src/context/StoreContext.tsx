@@ -3,15 +3,16 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { StoreState, EnquiryItem } from '@/types/store'
 import { defaultStoreData } from '@/data/defaultStoreData'
 
-const LOCAL_STORAGE_KEY = 'varna_store_data_v2'
+const LOCAL_STORAGE_KEY = 'varna_store_data_v3'
 
 const OLD_LOGOS = [
   'varna-emblem.webp',
   '1793867092112-varna_clothing_co__elegant_log.webp',
+  'varna-transparent-brandmark.webp',
 ]
 
 const DEFAULT_BRAND_LOGO =
-  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp'
+  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793868116/varna_store/logo/varna-curved-brandmark.webp'
 
 function sanitizeStoreLogo(data: StoreState): StoreState {
   if (!data) return data
