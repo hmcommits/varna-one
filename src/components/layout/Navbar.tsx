@@ -232,11 +232,11 @@ export default function Navbar() {
       )}
 
       <header className="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#e8d5b7]/50 shadow-xs transition-all">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-[76px] sm:h-[88px] lg:h-[100px] xl:h-[106px]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 flex items-center justify-between h-[82px] min-[400px]:h-[88px] sm:h-[92px] lg:h-[102px] xl:h-[108px]">
           {/* Mobile menu button */}
           <button
             type="button"
-            className="lg:hidden -ml-2 p-2 text-[#3d362e] hover:text-black hover:bg-[#faf8f4] rounded-lg transition-colors cursor-pointer"
+            className="lg:hidden -ml-1 sm:-ml-2 p-2 text-[#3d362e] hover:text-black hover:bg-[#faf8f4] rounded-lg transition-colors cursor-pointer"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           >
@@ -253,7 +253,7 @@ export default function Navbar() {
             title="Varna Clothing Co."
           >
             <div
-              className={`relative h-[54px] sm:h-[68px] lg:h-[82px] xl:h-[90px] aspect-[831/469] flex-shrink-0 transition-all duration-300 ${
+              className={`relative h-[64px] min-[400px]:h-[70px] sm:h-[74px] lg:h-[84px] xl:h-[92px] aspect-[831/469] flex-shrink-0 transition-all duration-300 ${
                 isUnlocking
                   ? 'scale-110 drop-shadow-[0_0_15px_#c4a675] animate-pulse'
                   : tapCount > 0
@@ -265,7 +265,7 @@ export default function Navbar() {
                 src={logoSrc}
                 alt={storeName || 'Varna Clothing Co.'}
                 fill
-                sizes="(max-width: 640px) 160px, (max-width: 1024px) 200px, 260px"
+                sizes="(max-width: 640px) 180px, (max-width: 1024px) 220px, 280px"
                 className="object-contain"
                 unoptimized
               />
