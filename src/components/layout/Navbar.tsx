@@ -107,8 +107,11 @@ export default function Navbar() {
   }
 
   const logoSrc =
-    activeStore.settings?.logoUrl ||
-    '/images/logo/varna-logo.webp'
+    activeStore.settings?.logoUrl &&
+    !activeStore.settings.logoUrl.includes('varna-emblem') &&
+    !activeStore.settings.logoUrl.includes('1793867092112')
+      ? activeStore.settings.logoUrl
+      : 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp'
   const storeName = activeStore.settings?.storeName || 'Varna'
 
   const handleNavLinkClick = (label: string, e: React.MouseEvent) => {

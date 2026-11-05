@@ -117,6 +117,18 @@ export async function GET(req: Request) {
 
     const isAdmin = isAuthenticated(providedToken || null, storePasscode)
 
+    // Ensure stale emblem or raw fabric photo is replaced with transparent brandmark
+    if (
+      !storeData?.settings?.logoUrl ||
+      storeData.settings.logoUrl.includes('varna-emblem') ||
+      storeData.settings.logoUrl.includes('1793867092112')
+    ) {
+      if (storeData && storeData.settings) {
+        storeData.settings.logoUrl =
+          'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp'
+      }
+    }
+
     // Sanitize: strip passcode from public storefront responses
     const responseData = isAdmin ? storeData : sanitizeForPublic(storeData)
 

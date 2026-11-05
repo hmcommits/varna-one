@@ -3,7 +3,30 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { StoreState, EnquiryItem } from '@/types/store'
 import { defaultStoreData } from '@/data/defaultStoreData'
 
-const LOCAL_STORAGE_KEY = 'varna_store_data_v1'
+const LOCAL_STORAGE_KEY = 'varna_store_data_v2'
+
+const OLD_LOGOS = [
+  'varna-emblem.webp',
+  '1793867092112-varna_clothing_co__elegant_log.webp',
+]
+
+const DEFAULT_BRAND_LOGO =
+  'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp'
+
+function sanitizeStoreLogo(data: StoreState): StoreState {
+  if (!data) return data
+  const currentLogo = data.settings?.logoUrl || ''
+  if (!currentLogo || OLD_LOGOS.some((old) => currentLogo.includes(old))) {
+    return {
+      ...data,
+      settings: {
+        ...data.settings,
+        logoUrl: DEFAULT_BRAND_LOGO,
+      },
+    }
+  }
+  return data
+}
 
 export interface ActiveViewingProduct {
   productId: string
@@ -108,8 +131,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Instantly hydrate storefront so first-time visitors see products in 0ms without waiting
-    setStore(initialSeed)
-    setDraft(initialSeed)
+    const cleanInitial = sanitizeStoreLogo(initialSeed)
+    setStore(cleanInitial)
+    setDraft(cleanInitial)
     setIsLoading(false)
 
     async function loadInitialData() {
@@ -124,8 +148,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         const res = await fetch('/api/admin/store', { headers })
         if (res.ok) {
-          const remoteData: StoreState = await res.json()
-          if (remoteData && remoteData.products) {
+          const rawRemote: StoreState = await res.json()
+          if (rawRemote && rawRemote.products) {
+            const remoteData = sanitizeStoreLogo(rawRemote)
             setStore(remoteData)
             setDraft(remoteData)
             try {

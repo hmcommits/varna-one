@@ -37,7 +37,8 @@ export default function SettingsModule() {
     supportPhone: '+91 6363145972',
     studioAddress: 'Karkala, Udupi, Karnataka',
     copyrightText: '© 2026 Varna. All rights reserved.',
-    logoUrl: '/images/logo/varna-logo.webp',
+    logoUrl:
+      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793867470/varna_store/logo/varna-transparent-brandmark.webp',
     passcode: 'varna2026',
     storeStatus: 'Online',
   }
