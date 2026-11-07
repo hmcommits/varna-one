@@ -107,7 +107,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon.ico', sizes: '48x48 32x32 16x16', type: 'image/x-icon' },
+      { url: '/images/logo/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/images/logo/icon-96.png', sizes: '96x96', type: 'image/png' },
       { url: '/images/logo/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/images/logo/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
