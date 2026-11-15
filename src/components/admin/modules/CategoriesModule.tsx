@@ -75,8 +75,11 @@ export default function CategoriesModule({
   }
 
   // Delete category with assigned products safety warning
-  const handleDeleteCategory = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleDeleteCategory = (id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
     const targetCat = categories.find((c) => c.id === id)
     const targetTitle = targetCat?.title || 'this category'
 
@@ -101,7 +104,9 @@ export default function CategoriesModule({
         ...prev,
         categories: (prev.categories || []).filter((c) => c.id !== id),
       }))
+      return true
     }
+    return false
   }
 
   // Toggle visibility
@@ -241,12 +246,13 @@ export default function CategoriesModule({
           >
             <div>
               {/* Category Image Frame */}
-              <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-[#faf5ee] mb-3.5 border border-[#ded7cb]">
+              <div className="relative aspect-[4/3] min-h-[140px] rounded-2xl overflow-hidden bg-[#faf5ee] mb-3.5 border border-[#ded7cb]">
                 {cat.image ? (
                   <Image
                     src={cat.image}
                     alt={cat.title}
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover object-top group-hover:scale-102 transition-transform duration-300"
                   />
                 ) : (
@@ -260,7 +266,7 @@ export default function CategoriesModule({
                   Slot #{idx + 1}
                 </span>
 
-                <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
                   <button
                     type="button"
                     onClick={(e) => handleToggleVisibility(cat.id, e)}
@@ -277,8 +283,8 @@ export default function CategoriesModule({
                   <button
                     type="button"
                     onClick={(e) => handleDeleteCategory(cat.id, e)}
-                    className="p-1.5 rounded-full bg-white/90 text-[#b84840] hover:bg-[#fdf0ef] border border-[#fcd8d5] shadow-2xs transition-colors cursor-pointer"
-                    title="Delete Category"
+                    className="p-1.5 rounded-full bg-white/95 text-[#b84840] hover:bg-[#fdf0ef] border border-[#fcd8d5] shadow-2xs transition-colors cursor-pointer"
+                    title={`Delete category "${cat.title}"`}
                   >
                     <Trash2 size={13} />
                   </button>
@@ -320,19 +326,33 @@ export default function CategoriesModule({
                 <span>Click card to edit</span>
               </span>
 
-              {/* Quick Add Product in this Category Shortcut */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onAddProductForCategory(cat.title.split(' ')[0])
-                }}
-                className="py-1.5 px-3 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-97"
-                title="Directly add a new product in this category"
-              >
-                <Plus size={13} />
-                <span>Add Product</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                {/* Dustbin / Delete Category Button */}
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteCategory(cat.id, e)}
+                  className="p-1.5 px-2.5 rounded-xl bg-[#fdf0ef] hover:bg-[#fbdad7] text-[#b84840] hover:text-[#9e3a33] border border-[#fcd8d5] text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-2xs active:scale-95"
+                  title={`Delete category "${cat.title}"`}
+                  aria-label={`Delete category "${cat.title}"`}
+                >
+                  <Trash2 size={13} />
+                  <span>Delete</span>
+                </button>
+
+                {/* Quick Add Product in this Category Shortcut */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onAddProductForCategory(cat.title.split(' ')[0])
+                  }}
+                  className="py-1.5 px-3 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-97"
+                  title="Directly add a new product in this category"
+                >
+                  <Plus size={13} />
+                  <span>Add Product</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -346,16 +366,34 @@ export default function CategoriesModule({
               <h3 className="font-display text-lg font-bold text-[#142319]">
                 {isCreating ? 'Add New Category' : `Edit Category: ${editingCategory.title || 'Untitled'}`}
               </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCategory(null)
-                  setIsCreating(false)
-                }}
-                className="w-7 h-7 rounded-full bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#6b7770] hover:text-[#142319] flex items-center justify-center cursor-pointer transition-colors"
-              >
-                <X size={15} />
-              </button>
+              <div className="flex items-center gap-2">
+                {!isCreating && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (handleDeleteCategory(editingCategory.id)) {
+                        setEditingCategory(null)
+                        setIsCreating(false)
+                      }
+                    }}
+                    className="p-1.5 rounded-full bg-[#fdf0ef] hover:bg-[#fbdad7] border border-[#fcd8d5] text-[#b84840] hover:text-[#9e3a33] flex items-center justify-center cursor-pointer transition-colors"
+                    title={`Delete category "${editingCategory.title}"`}
+                    aria-label={`Delete category "${editingCategory.title}"`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCategory(null)
+                    setIsCreating(false)
+                  }}
+                  className="w-7 h-7 rounded-full bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-[#6b7770] hover:text-[#142319] flex items-center justify-center cursor-pointer transition-colors"
+                >
+                  <X size={15} />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -461,24 +499,44 @@ export default function CategoriesModule({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[#ebe5da]">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCategory(null)
-                  setIsCreating(false)
-                }}
-                className="px-4 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveCategory}
-                className="px-5 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
-              >
-                Save Category
-              </button>
+            <div className="flex items-center justify-between gap-2.5 pt-4 border-t border-[#ebe5da]">
+              {!isCreating ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (handleDeleteCategory(editingCategory.id)) {
+                      setEditingCategory(null)
+                      setIsCreating(false)
+                    }
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-[#fdf0ef] hover:bg-[#fbdad7] text-[#b84840] hover:text-[#9e3a33] border border-[#fcd8d5] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs active:scale-97"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete Category</span>
+                </button>
+              ) : (
+                <div />
+              )}
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCategory(null)
+                    setIsCreating(false)
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#faf6f0] hover:bg-[#f0ece4] border border-[#ded7cb] text-xs font-semibold text-[#556358] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveCategory}
+                  className="px-5 py-2 rounded-xl bg-[#1c3624] hover:bg-[#14281a] text-white font-bold text-xs shadow-xs transition-all active:scale-97 cursor-pointer"
+                >
+                  Save Category
+                </button>
+              </div>
             </div>
           </div>
         </div>
