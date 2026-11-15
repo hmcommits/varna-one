@@ -120,51 +120,51 @@ export default function NewArrivals() {
   return (
     <section id="new-arrivals" className="bg-[#faf8f4] py-10 md:py-16 px-4 scroll-mt-20">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header with Filter Pills */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-8 gap-4">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 sm:mb-6 gap-3">
           <div>
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <p className="text-[11px] sm:text-xs font-extrabold tracking-[0.25em] uppercase text-[#1a2e1a]">
-                CURATED COLLECTION
-              </p>
-              <Link
-                href="/products"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (typeof window !== 'undefined') {
-                    window.location.href = '/products'
-                  }
-                }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a2e1a] hover:bg-[#284628] text-white text-xs sm:text-[13px] font-bold transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg hover:scale-105 active:scale-95 group border border-[#1a2e1a]"
-                title="View all products in all products catalog grid"
-              >
-                <span>View All Products</span>
-                <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white group-hover:text-[#1a2e1a] flex items-center justify-center transition-colors">
-                  <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                </span>
-              </Link>
-            </div>
-            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
+            <p className="text-[11px] sm:text-xs font-extrabold tracking-[0.25em] uppercase text-[#1a2e1a] mb-1">
+              CURATED COLLECTION
+            </p>
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a] tracking-tight">
               {catalogFilter === 'All' ? 'New Arrivals & Drops' : `${catalogFilter} Collection`}
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            {categoryTitles.map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setCatalogFilter(f)}
-                className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  f === catalogFilter
-                    ? 'bg-[#1a2e1a] text-white shadow-sm'
-                    : 'bg-white text-[#63574a] border border-[#e8d5b7]/70 hover:border-[#1a2e1a] hover:text-[#1a2e1a]'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+          <Link
+            href="/products"
+            onClick={(e) => {
+              e.preventDefault()
+              if (typeof window !== 'undefined') {
+                window.location.href = '/products'
+              }
+            }}
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a2e1a] hover:bg-[#284628] text-white text-xs sm:text-[13px] font-bold transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg hover:scale-105 active:scale-95 group border border-[#1a2e1a] shrink-0"
+            title="View all products in all products catalog grid"
+          >
+            <span>View All Products</span>
+            <span className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-white group-hover:text-[#1a2e1a] flex items-center justify-center transition-colors">
+              <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </Link>
+        </div>
+
+        {/* Filter Pills Bar (Dedicated Full-Width Scrollable Row) */}
+        <div className="mb-6 md:mb-8 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1.5 pt-0.5">
+          {categoryTitles.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setCatalogFilter(f)}
+              className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                f === catalogFilter
+                  ? 'bg-[#1a2e1a] text-white shadow-sm'
+                  : 'bg-white text-[#63574a] border border-[#e8d5b7]/70 hover:border-[#1a2e1a] hover:text-[#1a2e1a]'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
         </div>
 
         {/* Live Search Indicator Banner */}
