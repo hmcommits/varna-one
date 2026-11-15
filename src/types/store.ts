@@ -30,6 +30,7 @@ export interface Product {
   hasColorPricing?: boolean
   rating: number
   reviewCount: number
+  fitPercentage?: number
   stockUrgency: 'In Stock' | 'Few Pieces Left' | 'Only 3 left' | 'Out of Stock' | string
   badge?: 'None' | 'New' | 'Trending' | 'Bestseller' | 'Flash Sale'
   sizes: string[]

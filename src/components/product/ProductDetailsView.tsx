@@ -624,13 +624,22 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[#e8d5b7]/50">
               <div className="flex items-center gap-1 bg-[#1a2e1a]/10 px-2.5 py-1 rounded-full">
                 <Star size={13} className="fill-[#c47d2b] text-[#c47d2b]" />
-                <span className="text-xs font-bold text-[#1a2e1a]">{product.rating || 4.6}</span>
+                <span className="text-xs font-bold text-[#1a2e1a]">
+                  {product.rating !== undefined && product.rating !== null && String(product.rating).trim() !== ''
+                    ? product.rating
+                    : 4.5}
+                </span>
               </div>
               <span className="text-xs text-[#7d7062]">
                 <strong className="text-[#1a1a1a] font-semibold">
-                  {product.reviewCount || 120} verified reviews
+                  {product.reviewCount !== undefined && product.reviewCount !== null && String(product.reviewCount).trim() !== ''
+                    ? product.reviewCount
+                    : 10}{' '}
+                  verified reviews
                 </strong>{' '}
-                • 96% fit as expected
+                • {product.fitPercentage !== undefined && product.fitPercentage !== null && String(product.fitPercentage).trim() !== ''
+                  ? product.fitPercentage
+                  : 96}% fit as expected
               </span>
             </div>
 

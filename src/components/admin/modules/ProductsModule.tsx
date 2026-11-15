@@ -77,6 +77,7 @@ export default function ProductsModule({
       hasColorPricing: false,
       rating: 4.5,
       reviewCount: 10,
+      fitPercentage: 96,
       stockUrgency: 'In Stock',
       badge: 'New',
       sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -1249,6 +1250,106 @@ export default function ProductsModule({
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Customer Rating & Reviews (Optional / Non-compulsory) */}
+            <div className="pt-3 border-t border-[#ebe5da]">
+              <div className="mb-2">
+                <span className="text-xs font-bold text-[#142319] block">
+                  Customer Social Proof &amp; Ratings (Optional)
+                </span>
+                <p className="text-[11px] text-[#6b7770]">
+                  Displayed right below the product title on the Product Description Page (PDP). Leave blank to use system defaults (4.5 rating, 10 verified reviews, 96% fit).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-[#142319]">
+                      Star Rating (1.0 – 5.0)
+                    </label>
+                    <span className="text-[9px] text-[#845d1d] font-mono">Default: 4.5</span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="5"
+                    value={
+                      editingProduct.rating !== undefined && editingProduct.rating !== null
+                        ? editingProduct.rating
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : parseFloat(e.target.value)
+                      setEditingProduct({
+                        ...editingProduct,
+                        rating: val as any,
+                      })
+                    }}
+                    placeholder="4.5"
+                    className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden font-medium placeholder-[#8c978f]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-[#142319]">
+                      Verified Reviews Count
+                    </label>
+                    <span className="text-[9px] text-[#845d1d] font-mono">Default: 10</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={
+                      editingProduct.reviewCount !== undefined && editingProduct.reviewCount !== null
+                        ? editingProduct.reviewCount
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : parseInt(e.target.value, 10)
+                      setEditingProduct({
+                        ...editingProduct,
+                        reviewCount: val as any,
+                      })
+                    }}
+                    placeholder="10"
+                    className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden font-medium placeholder-[#8c978f]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-[#142319]">
+                      Fit As Expected (%)
+                    </label>
+                    <span className="text-[9px] text-[#845d1d] font-mono">Default: 96%</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={
+                      editingProduct.fitPercentage !== undefined && editingProduct.fitPercentage !== null
+                        ? editingProduct.fitPercentage
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : parseInt(e.target.value, 10)
+                      setEditingProduct({
+                        ...editingProduct,
+                        fitPercentage: val as any,
+                      })
+                    }}
+                    placeholder="96"
+                    className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-xl px-3 py-2 text-xs text-[#142319] outline-hidden font-medium placeholder-[#8c978f]"
+                  />
+                </div>
               </div>
             </div>
           </div>

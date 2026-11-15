@@ -236,7 +236,10 @@ export default function ProductCard({
           <div className="flex items-center gap-1 mb-2">
             <Star size={11} className="fill-[#c47d2b] text-[#c47d2b] flex-shrink-0" />
             <span className="text-[10px] font-medium text-[#63574a]">
-              {rating} <span className="text-[#9e9080]">({reviewCount})</span>
+              {rating !== undefined && rating !== null && String(rating).trim() !== '' ? rating : 4.5}{' '}
+              <span className="text-[#9e9080]">
+                ({reviewCount !== undefined && reviewCount !== null && String(reviewCount).trim() !== '' ? reviewCount : 10})
+              </span>
             </span>
           </div>
         </div>
