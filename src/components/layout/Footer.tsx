@@ -153,6 +153,10 @@ export default function Footer() {
   )
   const fullWaPhone = rawDigits.length === 10 ? `91${rawDigits}` : rawDigits
 
+  const supportEmail = activeStore.settings?.supportEmail || 'varnaprints2026@gmail.com'
+  const instagramHandle = (activeStore.settings?.instagramHandle || 'varna_prints_').replace(/^@/, '')
+  const instagramUrl = activeStore.settings?.instagramUrl || `https://www.instagram.com/${instagramHandle}/`
+
   const getWaLink = (message: string) =>
     `https://wa.me/${fullWaPhone}?text=${encodeURIComponent(message)}`
 
@@ -203,9 +207,9 @@ export default function Footer() {
 
             {/* Email Contact Pill */}
             <a
-              href="mailto:varnaprints2026@gmail.com"
+              href={`mailto:${supportEmail}`}
               className="inline-flex items-center gap-2 self-start py-1 px-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 text-[#e8d5b7] hover:text-white transition-all group"
-              title="Email Varna: varnaprints2026@gmail.com"
+              title={`Email Varna: ${supportEmail}`}
             >
               <div className="relative w-4 h-4 flex-shrink-0">
                 <Image
@@ -218,17 +222,17 @@ export default function Footer() {
                 />
               </div>
               <span className="text-xs font-semibold tracking-wide">
-                varnaprints2026@gmail.com
+                {supportEmail}
               </span>
             </a>
 
             {/* Instagram Pill */}
             <a
-              href="https://www.instagram.com/varna_prints_/"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 self-start py-1 px-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 text-[#e8d5b7] hover:text-white transition-all group"
-              title="Follow @varna_prints_ on Instagram"
+              title={`Follow @${instagramHandle} on Instagram`}
             >
               <div className="relative w-4 h-4 flex-shrink-0">
                 <Image
@@ -241,7 +245,7 @@ export default function Footer() {
                 />
               </div>
               <span className="text-xs font-semibold tracking-wide">
-                @varna_prints_
+                @{instagramHandle}
               </span>
             </a>
           </div>
@@ -293,7 +297,7 @@ export default function Footer() {
           <div className="pt-2 border-t border-white/10 flex flex-col gap-2 text-[11px] text-[#7d7062]">
             <span>⚡ Ultra-fast WhatsApp Checkout</span>
             <a
-              href="mailto:varnaprints2026@gmail.com"
+              href={`mailto:${supportEmail}`}
               className="flex items-center gap-1.5 text-[#a89d8f] hover:text-white transition-colors"
             >
               <div className="relative w-3.5 h-3.5 flex-shrink-0">
@@ -306,10 +310,10 @@ export default function Footer() {
                   unoptimized
                 />
               </div>
-              <span>varnaprints2026@gmail.com</span>
+              <span>{supportEmail}</span>
             </a>
             <a
-              href="https://www.instagram.com/varna_prints_/"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-[#a89d8f] hover:text-[#e8d5b7] transition-colors"
@@ -324,7 +328,7 @@ export default function Footer() {
                   unoptimized
                 />
               </div>
-              <span>Follow our new drops on Instagram</span>
+              <span>Follow @{instagramHandle} on Instagram</span>
             </a>
           </div>
         </div>

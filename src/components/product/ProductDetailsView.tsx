@@ -182,17 +182,21 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
   const [touchEndX, setTouchEndX] = useState<number | null>(null)
   const [touchEndY, setTouchEndY] = useState<number | null>(null)
 
-  // Build gallery dynamically from product colors with color hex and name
-  const galleryImages = colors.map((c, i) => ({
-    src:
-      c.image ||
-      'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
-    alt: `${product.name} - ${c.name}`,
-    label: c.name,
-    badge: i === 0 ? 'Front Look' : i === 1 ? 'Fabric & Collar' : 'Editorial Drape',
-    colorId: c.id,
-    colorHex: c.hex,
-  }))
+  // Build gallery dynamically from product colors with color hex, name, and optional custom image label
+  const galleryImages = colors.map((c, i) => {
+    const defaultBadge = i === 0 ? 'Front Look' : i === 1 ? 'Fabric & Collar' : 'Editorial Drape'
+    const badge = c.imageLabel && c.imageLabel.trim() ? c.imageLabel.trim() : defaultBadge
+    return {
+      src:
+        c.image ||
+        'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
+      alt: `${product.name} - ${c.name}`,
+      label: c.name,
+      badge,
+      colorId: c.id,
+      colorHex: c.hex,
+    }
+  })
 
   // Auto-switch selectedColor when switching or swiping images
   const handleSelectImageIndex = (idx: number) => {
@@ -364,11 +368,12 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
 
   const safeImageIndex =
     selectedImageIndex < galleryImages.length ? selectedImageIndex : 0
+  const fallbackBadge = selectedColor?.imageLabel?.trim() || 'Front Look'
   const fallbackImg = {
     src: 'https://res.cloudinary.com/o6jv6xte/image/upload/v1793532655/varna_store/products/linen-shirt-terracotta.webp',
     alt: product.name || 'Product Image',
     label: selectedColor?.name || 'Standard',
-    badge: 'Front Look',
+    badge: fallbackBadge,
     colorId: selectedColor?.id || 'c1',
     colorHex: selectedColor?.hex || '#1c3624',
   }
@@ -434,21 +439,15 @@ export default function ProductDetailsView({ productId }: ProductDetailsViewProp
       {/* Breadcrumbs Navigation */}
       <div className="max-w-7xl mx-auto px-4 mb-4 sm:mb-6">
         <nav className="flex items-center gap-1.5 text-xs text-[#7d7062] flex-wrap" aria-label="Breadcrumb">
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                router.push('/')
-              } catch {
-                window.location.href = '/'
-              }
-            }}
+          <Link
+            href="/"
+            prefetch={true}
             className="hover:text-[#1a2e1a] text-[#142319] flex items-center gap-1.5 transition-all font-semibold cursor-pointer py-1.5 px-2.5 -ml-2 rounded-lg bg-black/5 hover:bg-black/10 active:scale-95"
             aria-label="Back to Home"
           >
             <ArrowLeft size={14} className="text-[#1a2e1a]" />
             <span>Home</span>
-          </button>
+          </Link>
           <ChevronRight size={13} className="text-[#c4a675] shrink-0" />
           <Link
             href="/#men"

@@ -193,6 +193,7 @@ export default function ProductsModule({
           image: localUrl,
           price: editingProduct.price || 0,
           originalPrice: editingProduct.originalPrice || 0,
+          imageLabel: '',
         },
       }
     })
@@ -1103,6 +1104,33 @@ export default function ProductsModule({
                                 </button>
                               )}
                             </div>
+                          </div>
+
+                          {/* Image View Label (Optional on PDP Thumbnails) */}
+                          <div>
+                            <div className="flex items-center justify-between mb-0.5">
+                              <label className="block text-[10px] font-semibold text-[#6b7770]">
+                                Image View Label <span className="text-[9px] text-[#8c978f] font-normal">(Optional)</span>
+                              </label>
+                              <span className="text-[9px] text-[#845d1d] font-mono">
+                                PDP Thumbnail
+                              </span>
+                            </div>
+                            <input
+                              type="text"
+                              value={color.imageLabel || ''}
+                              onChange={(e) =>
+                                handleUpdateColorField(color.id, 'imageLabel', e.target.value)
+                              }
+                              placeholder={
+                                idx === 0
+                                  ? 'Front Look (default)'
+                                  : idx === 1
+                                  ? 'Fabric & Collar (default)'
+                                  : 'Editorial Drape (default)'
+                              }
+                              className="w-full bg-[#faf8f5] focus:bg-white border border-[#ded7cb] focus:border-[#1c3624] rounded-lg px-2.5 py-1.5 text-xs text-[#142319] outline-hidden font-medium placeholder-[#8c978f]"
+                            />
                           </div>
 
                         {/* DYNAMIC COLOR-WISE PRICING INPUTS (WHEN TOGGLE IS ON) */}

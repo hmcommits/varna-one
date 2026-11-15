@@ -6,6 +6,7 @@ export interface ProductColor {
   gallery?: string[]
   price?: number
   originalPrice?: number
+  imageLabel?: string
 }
 
 export interface CustomizationOption {
